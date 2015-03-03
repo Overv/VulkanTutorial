@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Vulkan Tutorial</title>
+
+        <meta name="description" content="A tutorial for using the Vulkan graphics and compute API" />
+        <meta name="author" content="Alexander Overvoorde" />
+        <meta name="keywords" content="vulkan, tutorial, guide, info, help, glnext, khronos, spir-v" />
+
+        <link rel="shortcut icon" type="image/png" href="favicon.png "/>
+
+        <link rel="stylesheet" href="main.css" />
+    </head>
+
+    <body>
+        <header>
+            <img src="logo.png" alt="Vulkan logo" />
+        </header>
+
+        <article>
+            <aside>
+                This website is a work in progress and will be updated
+                continuously as more info is released.
+            </aside>
+
+            <h1>Overview</h1>
+
+            Vulkan is a new open standard API by Khronos that offers low-level
+            control of GPUs for graphics and general purpose computation. It has
+            been designed from the ground up around the capabilities of modern
+            hardware.
+
+            <ul class="features">
+                <li>
+                    <h2>Direct GPU control with minimal driver overhead</h2>
+
+                    <p>
+                        For example, data is written directly to GPU memory
+                        instead of using calls equivalent to glUniform.
+                        Applications can implement their own memory allocation
+                        strategies. (<a href="http://blog.imgtec.com/powervr/trying-out-the-new-vulkan-graphics-api-on-powervr-gpus">Source</a>)
+                    </p>
+
+                    <p>
+                        Another feature is the <em>render pass</em>, which
+                        offers control over loading of render targets at the
+                        start and end of renders, which is very useful for
+                        tiling architectures.
+                    </p>
+                </li>
+                <li>
+                    <h2>Multi-threading friendly architecture</h2>
+
+                    <p>
+                        Multiple threads can create and populate command buffers
+                        at the same time, which can then be submitted to the GPU
+                        by a separate thread.
+                    </p>
+                </li>
+                <li>
+                    <h2>Unified API for desktop, mobile and embedded platforms</h2>
+
+                    <p>
+                        There is no equivalent of OpenGL ES, Vulkan offers the
+                        same API on all platforms.
+                    </p>
+                </li>
+                <li>
+                    <h2>Intermediate bytecode for shaders</h2>
+
+                    <p>
+                        The driver accepts shaders in the <a href="https://www.khronos.org/registry/spir-v/specs/1.0/SPIRV.pdf">SPIR-V</a> bytecode
+                        format. Khronos will supply a separate compiler for GLSL
+                        that targets this intermediate format. Third-party
+                        developers will be able to write their own compilers for
+                        other languages.
+                    </p>
+                </li>
+            </ul>
+
+            All of these features lead to simpler drivers, more predictable
+            performance, more control and less differences between vendor
+            implementations. (<a href="https://www.khronos.org/vulkan">Source</a>)
+
+            <h1>API</h1>
+
+            Not much is known about the API yet, but the blog post linked above
+            offers some insight. API calls have the <code>vk</code> prefix and
+            functions take the state that they will change as their first
+            parameter.
+
+            <pre>
+    vkCmdBindDescriptorSet(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, textureDescriptorSet[0], 0);
+    vkQueueSubmit(graphicsQueue, 1, &cmdBuffer, 0, 0, fence);
+    vkMapMemory(staticUniformBufferMemory, 0, (void **)&data);
+    // ...
+    vkUnmapMemory(staticUniformBufferMemory);
+            </pre>
+
+            All hardware that supports OpenGL ES 3.1 or later can also support
+            Vulkan.
+
+            <h1>Tools</h1>
+
+            Valve, LunarG, Codeplay and other parties are already developing
+            tools. Displayed below is a screenshot of the Vulkan debugger being
+            developed by Valve and LunarG.
+
+            <p><img src="debugger.png" /></p>
+
+            Khronos has announced that these utilities will be available at the
+            same time as the first drivers. (<a href="https://www.khronos.org/assets/uploads/developers/library/overview/2015_vulkan_v1_Overview.pdf">Source</a>)
+
+            <h1>Demo</h1>
+
+            <a href="http://imgtec.com/">Imagination Technologies</a> has
+            developed a proof-of-concept driver for Vulkan for their PowerVR
+            GPUs. They have ported an OpenGL ES 3.0 demo to Vulkan.
+
+            <p>
+                <iframe width="700" height="394" src="https://www.youtube.com/embed/KdnRI0nquKc" frameborder="0" allowfullscreen></iframe>
+            </p>
+        </article>
+
+        <a href="https://github.com/Overv/VulkanTutorial"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/567c3a48d796e2fc06ea80409cc9dd82bf714434/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_darkblue_121621.png"></a>
+
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-60335079-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+    </body>
+</html>
