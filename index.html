@@ -97,8 +97,32 @@
     vkUnmapMemory(staticUniformBufferMemory);
             </pre>
 
-            All hardware that supports OpenGL ES 3.1 or later can also support
-            Vulkan.
+            <p>
+                All hardware that supports OpenGL 4.3 / OpenGL ES 3.1 (<a href="https://www.opengl.org/registry/specs/ARB/ES3_1_compatibility.txt">Subset</a>) or
+                later can also support Vulkan.
+            </p>
+
+            <p>
+                A talk by Khronos on March 5 has offered some more insight into
+                the API. The Vulkan API still uses no special types, instead
+                settling for <code>stdint.h</code> types. The closest thing to
+                the concept of a context is now a command buffer.
+                Synchronization is done using events and allows for fences
+                and resource barriers. A link to the presentation will be added
+                once it is available for more detailed info, as this was taken
+                from a livestream.
+            </p>
+
+            <h1>SPIR-V</h1>
+
+            <p>
+                Khronos has published a whitepaper that provides an
+                <a href="https://www.khronos.org/registry/spir-v/papers/WhitePaper.pdf">introduction to the SPIR-V intermediate language</a>.
+            </p>
+
+            <p>
+                The <a href="https://www.khronos.org/registry/spir-v/specs/1.0/SPIRV.pdf">provisional specification</a> is also available.
+            </p>
 
             <h1>Tools</h1>
 
@@ -120,7 +144,7 @@
                 be available to developers in 2015. (<a href="http://lunarg.com/vulkan/">Source</a>)
             </p>
 
-            <h1>Demo</h1>
+            <h1>Demos</h1>
 
             <a href="http://imgtec.com/">Imagination Technologies</a> has
             developed a proof-of-concept driver for Vulkan for their PowerVR
@@ -128,6 +152,13 @@
 
             <p>
                 <iframe width="700" height="394" src="https://www.youtube.com/embed/KdnRI0nquKc" frameborder="0" allowfullscreen></iframe>
+            </p>
+
+            Valve has developed a Vulkan driver for Linux that targets Intel
+            GPUs. (<a href="http://www.phoronix.com/scan.php?page=news_item&px=Valve-Intel-Vulkan-Driver">Source</a>) They've shown Dota 2 running with this driver.
+
+            <p>
+                <iframe width="700" height="394" src="https://www.youtube.com/embed/0Hth4u65zfc" frameborder="0" allowfullscreen></iframe>
             </p>
         </article>
 
