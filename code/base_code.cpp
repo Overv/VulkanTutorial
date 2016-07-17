@@ -1,0 +1,98 @@
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <iostream>
+#include <stdexcept>
+#include <functional>
+
+const int WIDTH = 800;
+const int HEIGHT = 600;
+
+template <typename T>
+class VDeleter {
+public:
+    VDeleter() : VDeleter([](T _) {}) {}
+
+    VDeleter(std::function<void(T, VkAllocationCallbacks*)> deletef) {
+        object = VK_NULL_HANDLE;
+        this->deleter = [=](T obj) { deletef(obj, nullptr); };
+    }
+
+    VDeleter(const VDeleter<VkInstance>& instance, std::function<void(VkInstance, T, VkAllocationCallbacks*)> deletef) {
+        object = VK_NULL_HANDLE;
+        this->deleter = [&instance, deletef](T obj) { deletef(instance, obj, nullptr); };
+    }
+
+    VDeleter(const VDeleter<VkDevice>& device, std::function<void(VkDevice, T, VkAllocationCallbacks*)> deletef) {
+        object = VK_NULL_HANDLE;
+        this->deleter = [&device, deletef](T obj) { deletef(device, obj, nullptr); };
+    }
+
+    ~VDeleter() {
+        cleanup();
+    }
+
+    T* operator &() {
+        cleanup();
+        return &object;
+    }
+
+    operator T() const {
+        return object;
+    }
+
+private:
+    T object;
+    std::function<void(T)> deleter;
+
+    void cleanup() {
+        if (object != VK_NULL_HANDLE) {
+            deleter(object);
+        }
+        object = VK_NULL_HANDLE;
+    }
+};
+
+class HelloTriangleApplication {
+public:
+    void run() {
+        initWindow();
+        initVulkan();
+        mainLoop();
+    }
+
+private:
+    GLFWwindow* window;
+
+    void initWindow() {
+        glfwInit();
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    }
+
+    void initVulkan() {
+        
+    }
+
+    void mainLoop() {
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+        }
+    }
+};
+
+int main() {
+    HelloTriangleApplication app;
+
+    try {
+        app.run();
+    } catch (const std::runtime_error& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}

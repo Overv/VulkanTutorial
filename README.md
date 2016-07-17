@@ -1,15 +1,25 @@
-Status
-------
+Vulkan tutorial
+===============
 
-The website is currently in development and will be moved to this repository on release. Watch this repository or sign up for the mailing list on https://vulkan-tutorial.com to be notified as soon as the site is released.
+This repository hosts the contents of [vulkan-tutorial.com](https://vulkan-tutorial.com).
+The website itself is based on [daux.io](https://github.com/justinwalsh/daux.io),
+which supports [GitHub flavored Markdown](https://help.github.com/articles/basic-writing-and-formatting-syntax/).
+A few changes were made to daux.io and its themes, which are included in
+`daux.patch` and are licensed as [MIT](https://opensource.org/licenses/MIT). The
+patch is based on commit `d45ccff`.
 
-A rough overview of the content that will be available on release:
+Use issues and pull requests to provide feedback related to the website. If you
+have a problem with your code, then use the comments section in the related
+chapter to ask a question. Please provide your operating system, graphics card,
+driver version, source code, expected behaviour and actual behaviour.
 
-* Setting up for Vulkan on Windows and Linux
-* Rendering a simple triangle
-* Using vertex and index buffers
-* Uniforms, textures and samplers
+License
+-------
 
-More chapters will be added later on topics like post-processing effects and the compute API. Note that this will be first and foremost an API tutorial written for developers who're already familiar with linear algebra and 3D math, however knowledge of neither OpenGL nor Direct3D will be required.
+The contents of this repository are licensed as [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+unless stated otherwise. By contributing to this repository, you agree to license
+your contributions to the public under that same license.
 
-No specific release date can be provided at this time. The website will be based on the [daux.io](https://github.com/justinwalsh/daux.io) framework.
+The code listings in the `code` directory are licensed as [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+By contributing to that directory, you agree to license your contributions to
+the public under that same public domain-like license.
