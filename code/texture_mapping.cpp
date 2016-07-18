@@ -15,6 +15,7 @@
 #include <fstream>
 #include <algorithm>
 #include <vector>
+#include <cstring>
 #include <array>
 #include <set>
 
