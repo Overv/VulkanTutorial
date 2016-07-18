@@ -264,8 +264,8 @@ You can now build the Vulkan examples in the SDK by running:
 ```
 
 If compilation was successful, then you should now have a
-`./examples/build/cube` executable. Run it and ensure that you see the
-following pop up in a window:
+`./examples/build/cube` executable. Run it from the `examples/build` directory
+with `./cube` and ensure that you see the following pop up in a window:
 
 ![](/images/cube_demo_nowindow.png)
 
@@ -297,8 +297,9 @@ cmake .
 make
 ```
 
-If compilation was successful, then you can install GLFW into the system
-libraries by running:
+You may see a warning stating `Could NOT find Vulkan`, but you can safely ignore
+this message. If compilation was successful, then you can install GLFW into the
+system libraries by running:
 
 ```bash
 sudo make install
@@ -386,7 +387,7 @@ Next, define a `CFLAGS` variable that will specify the basic compiler flags:
 CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
 ```
 
-We're going to use modern C++ (`-std=c++11` or `std=c++14`) and we need to be
+We're going to use modern C++ (`-std=c++11` or `std=c++14`), and we need to be
 able to locate `vulkan.h` in the LunarG SDK.
 
 Similarly, define the linker flags in a `LDFLAGS` variable:
@@ -442,10 +443,11 @@ test: VulkanTest
     LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib ./VulkanTest
 ```
 
-The program should now run successfully and exit immediately without any errors 
-(exit code `0`). However, there is one more variable that you need to set. We
-will start using validation layers in Vulkan and you need to tell the Vulkan
-library where to load these from using the `VK_LAYER_PATH` variable:
+The program should now run successfully, and display the number of Vulkan
+extensions. The application should exit with the success return code (`0`) when
+you close the empty window. However, there is one more variable that you need to
+set. We will start using validation layers in Vulkan and you need to tell the
+Vulkan library where to load these from using the `VK_LAYER_PATH` variable:
 
 ```make
 test: VulkanTest
