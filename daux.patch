@@ -1,13 +1,13 @@
-From c8e1e54ea9c3272ee26ba310fcdc56a3b34e1653 Mon Sep 17 00:00:00 2001
+From 627771ccbadfbe51cce873f9d8da6826c1f3075a Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Mon, 18 Jul 2016 03:10:10 +0200
+Date: Mon, 18 Jul 2016 23:58:13 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
  daux/VulkanLinkProcessor.php            |  69 ++++
  templates/content.php                   |  24 +-
  templates/layout/00_layout.php          |   2 +-
- templates/layout/05_page.php            |  14 +-
+ templates/layout/05_page.php            |  17 +-
  themes/daux/css/theme-blue.min.css      |   2 +-
  themes/daux/css/theme-green.min.css     |   2 +-
  themes/daux/css/theme-navy.min.css      |   2 +-
@@ -20,7 +20,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
  themes/daux/less/structure.less         |  27 +-
  themes/daux/less/theme-blue.less        |  10 +-
  themes/daux_singlepage/css/main.min.css |   2 +-
- 16 files changed, 919 insertions(+), 137 deletions(-)
+ 16 files changed, 922 insertions(+), 137 deletions(-)
  create mode 100644 daux/VulkanLinkProcessor.php
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
@@ -159,7 +159,7 @@ index 868dd05..774a8a5 100755
      <meta name="apple-mobile-web-app-capable" content="yes" />
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
 diff --git a/templates/layout/05_page.php b/templates/layout/05_page.php
-index 1bd8752..9682e54 100755
+index 1bd8752..b2c0ae7 100755
 --- a/templates/layout/05_page.php
 +++ b/templates/layout/05_page.php
 @@ -4,11 +4,6 @@
@@ -196,15 +196,20 @@ index 1bd8752..9682e54 100755
  
                  <div class="sidebar-links">
                      <?php if (!empty($params['html']['links']) || !empty($params['html']['twitter']) || $params['html']['toggle_code']) { ?>
-@@ -60,8 +60,6 @@
+@@ -60,10 +60,11 @@
                                  <iframe allowtransparency="true" frameborder="0" scrolling="no" style="width:162px; height:20px;" src="https://platform.twitter.com/widgets/follow_button.html?screen_name=<?= $handle; ?>&amp;show_count=false"></iframe>
                              </div>
                          <?php } ?>
 -
 -                        <hr/>
                      <?php } ?>
++                </div>
  
++                <div style="color: #666; padding: 0 20px 0 20px; font-size: 90%">
++                    This site is not affiliated with or endorsed by the Khronos Group. Vulkan™ and the Vulkan logo are trademarks of the Khronos Group Inc.
                  </div>
+             </div>
+         </div>
 diff --git a/themes/daux/css/theme-blue.min.css b/themes/daux/css/theme-blue.min.css
 index 49435a8..9bb3952 100644
 --- a/themes/daux/css/theme-blue.min.css
