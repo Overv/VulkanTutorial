@@ -167,7 +167,7 @@ command buffer again every frame, which is not as efficient.
 
 Now that the drawing commands have been wrapped into a command buffer, the main
 loop is quite straightforward. We first acquire an image from the swap chain
-with vkAcquireNextImageKHR. We can then select the appropriate command queue
+with vkAcquireNextImageKHR. We can then select the appropriate command buffer
 for that image and execute it with vkQueueSubmit. Finally, we return the image
 to the swap chain for presentation to the screen with vkQueuePresentKHR.
 
