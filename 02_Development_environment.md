@@ -215,8 +215,8 @@ You are now all set for [the real adventure](!Drawing_a_triangle).
 ## Linux
 
 These instructions will be aimed at Ubuntu users, but you may be able to follow
-along by compiling the LunarG SDK yourself and changing the `apt-get` commands
-to the package manager commands that are appropriate for you. You should already
+along by compiling the LunarG SDK yourself and changing the `apt` commands to
+the package manager commands that are appropriate for you. You should already
 have a version of GCC installed that supports modern C++ (4.8 or later). You
 also need both CMake and make.
 
@@ -254,7 +254,7 @@ package. You also need the generic X development files that come with the
 `xorg-dev` package.
 
 ```bash
-sudo apt-get install libxcb1-dev xorg-dev
+sudo apt install libxcb1-dev xorg-dev
 ```
 
 You can now build the Vulkan examples in the SDK by running:
