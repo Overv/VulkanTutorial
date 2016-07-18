@@ -159,7 +159,7 @@ if (enableValidationLayers) {
 }
 ```
 
-If the check was successful then `vkCreateInfo` should not ever return a
+If the check was successful then `vkCreateInstance` should not ever return a
 `VK_ERROR_LAYER_NOT_PRESENT` error, but you should run the program to make sure.
 
 ## Message callback
