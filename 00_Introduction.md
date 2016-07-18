@@ -75,7 +75,7 @@ in the specification itself. You are encouraged to submit feedback to
 As mentioned before, the Vulkan API has a rather verbose API with many
 parameters to give you maximum control over the graphics hardware. This causes
 basic operations like creating a texture to take a lot of steps that have to be
-repeated every time. Therefore we'll creating our own collection of helper
+repeated every time. Therefore we'll be creating our own collection of helper
 functions throughout the tutorial.
 
 Every chapter will also conclude with a link to the full code listing up to that
@@ -101,7 +101,7 @@ lot of steps until the first geometry shows up on the screen. There are many of
 these initial steps in Vulkan, but you'll see that each of the individual steps
 is easy to understand and does not feel redundant. It's also important to keep
 in mind that once you have that boring looking triangle, drawing fully textured
-3D models does not take that much extra work and each individual step, and each
-step beyond that point is much more rewarding.
+3D models does not take that much extra work, and each step beyond that point is
+much more rewarding.
 
 Ready to dive into the future of high performance graphics APIs? [Let's go!](!Overview)
