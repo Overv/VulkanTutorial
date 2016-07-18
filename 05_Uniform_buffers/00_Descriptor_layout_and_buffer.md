@@ -220,10 +220,13 @@ Add new class members for `uniformStagingBuffer`, `uniformStagingBufferMemory`,
 `uniformBuffer`, and `uniformBufferMemory`:
 
 ```c++
-VDeleter<VkBuffer> uniformStagingBuffer{device, vkDestroyBuffer};
-VDeleter<VkDeviceMemory> uniformStagingBufferMemory{device, vkFreeMemory};
 VDeleter<VkBuffer> indexBuffer{device, vkDestroyBuffer};
 VDeleter<VkDeviceMemory> indexBufferMemory{device, vkFreeMemory};
+
+VDeleter<VkBuffer> uniformStagingBuffer{device, vkDestroyBuffer};
+VDeleter<VkDeviceMemory> uniformStagingBufferMemory{device, vkFreeMemory};
+VDeleter<VkBuffer> uniformBuffer{device, vkDestroyBuffer};
+VDeleter<VkDeviceMemory> uniformBufferMemory{device, vkFreeMemory};
 ```
 
 Similarly, create a new function `createUniformBuffer` that is called after
