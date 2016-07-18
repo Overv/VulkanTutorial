@@ -179,7 +179,7 @@ idea of how you could design your device selection process. Of course you can
 also just display the names of the choices and allow the user to select.
 
 Because we're just starting out, Vulkan support is the only thing we need and
-tTherefore we'll settle for just any GPU:
+therefore we'll settle for just any GPU:
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
