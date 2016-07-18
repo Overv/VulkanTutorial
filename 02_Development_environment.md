@@ -59,7 +59,7 @@ other files, but we won't need them for this tutorial.
 ### GLFW
 
 As mentioned before, Vulkan by itself is a platform agnostic API and does not
-include tools for creation a window to display the rendered results. To benefit
+include tools for creating a window to display the rendered results. To benefit
 from the cross-platform advantages of Vulkan and to avoid the horrors of Win32,
 we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
 supports both Windows and Linux. There are other libraries available for this
