@@ -1,11 +1,11 @@
-From 24cae4bbb80534bb43ae606abb86a5761b8f8093 Mon Sep 17 00:00:00 2001
+From c8e1e54ea9c3272ee26ba310fcdc56a3b34e1653 Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Sun, 17 Jul 2016 23:43:54 +0200
+Date: Mon, 18 Jul 2016 03:10:10 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
  daux/VulkanLinkProcessor.php            |  69 ++++
- templates/content.php                   |  18 +-
+ templates/content.php                   |  24 +-
  templates/layout/00_layout.php          |   2 +-
  templates/layout/05_page.php            |  14 +-
  themes/daux/css/theme-blue.min.css      |   2 +-
@@ -20,7 +20,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
  themes/daux/less/structure.less         |  27 +-
  themes/daux/less/theme-blue.less        |  10 +-
  themes/daux_singlepage/css/main.min.css |   2 +-
- 16 files changed, 913 insertions(+), 137 deletions(-)
+ 16 files changed, 919 insertions(+), 137 deletions(-)
  create mode 100644 daux/VulkanLinkProcessor.php
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
@@ -99,7 +99,7 @@ index 0000000..82b908c
 +    }
 +?>
 diff --git a/templates/content.php b/templates/content.php
-index 2febe38..5d351fc 100644
+index 2febe38..82e79cd 100644
 --- a/templates/content.php
 +++ b/templates/content.php
 @@ -2,17 +2,14 @@
@@ -122,13 +122,19 @@ index 2febe38..5d351fc 100644
          </div>
      <?php } ?>
  
-@@ -26,5 +23,16 @@
+@@ -26,5 +23,22 @@
          </ul>
      </nav>
      <?php } ?>
 +
 +    <div id="disqus_thread"></div>
 +    <script>
++        var disqus_config = function() {
++            var path = location.pathname;
++            if (path == '/') path = '/Introduction';
++            this.page.identifier = path;
++        };
++
 +        (function() {
 +            var d = document, s = d.createElement('script');
 +            s.src = '//vulkan-tutorial.disqus.com/embed.js';
