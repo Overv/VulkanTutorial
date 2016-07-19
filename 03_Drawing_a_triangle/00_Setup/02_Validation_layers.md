@@ -311,7 +311,7 @@ couldn't be loaded. We can now call this function to create the extension
 object if it's available:
 
 ```c++
-if (CreateDebugReportCallback(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
+if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
     throw std::runtime_error("failed to set up debug callback!");
 }
 ```
