@@ -3,7 +3,7 @@ the render pass to expect a single framebuffer with the same format as the swap
 chain images, but we haven't actually created any yet.
 
 The attachments specified during render pass creation are bound by wrapping them
-into a `VkFramebufer` object. A framebuffer object references all of the
+into a `VkFramebuffer` object. A framebuffer object references all of the
 `VkImageView` objects that represent the attachments. In our case that will be
 only a single one: the color attachment. However, the image that we have to use
 as attachment depends on which image the swap chain returns when we retrieve one
