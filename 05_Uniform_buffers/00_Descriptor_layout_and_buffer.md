@@ -367,6 +367,11 @@ vkUnmapMemory(device, uniformStagingBufferMemory);
 copyBuffer(uniformStagingBuffer, uniformBuffer, sizeof(ubo));
 ```
 
+Using a staging buffer and final buffer this way is not the most efficient way
+to pass frequently changing values to the shader. A more efficient way to pass a
+small buffer of data to shaders are *push constants*. We may look at these in a
+future chapter.
+
 In the next chapter we'll look at descriptor sets, which will actually bind the
 `VkBuffer` to the uniform buffer descriptor so that the shader can access this
 transformation data.
