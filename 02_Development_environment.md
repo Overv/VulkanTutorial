@@ -315,7 +315,7 @@ used with OpenGL.
 It is a header-only library that can be installed from the `libglm-dev` package:
 
 ```bash
-sudo make install libglm-dev
+sudo apt install libglm-dev
 ```
 
 ### Setting up a makefile project
