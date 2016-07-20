@@ -145,7 +145,10 @@ void createInstance() {
 ```
 
 Now run the program in debug mode and ensure that the error does not occur. If
-it does then make sure you have properly installed the Vulkan SDK.
+it does, then make sure you have properly installed the Vulkan SDK. If none or
+very few layers are being reported, then you may be dealing with
+[this issue](https://vulkan.lunarg.com/app/issues/578e8c8d5698c020d71580fc) 
+(requires a LunarG account to view). See that page for help with fixing it.
 
 Finally, modify the `VkInstanceCreateInfo` struct instantiation to include the
 validation layer names if they are enabled:
