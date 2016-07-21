@@ -457,14 +457,15 @@ family. This option offers the best performance.
 * `VK_SHARING_MODE_CONCURRENT`: Images can be used across multiple queue
 families without explicit ownership transfers.
 
-We'll be using the concurrent mode in this tutorial to avoid having to do the
-ownership chapters, because these involve some concepts that are better
-explained at a later time. Concurrent mode requires you to specify in advance
-between which queue families ownership will be shared using the
-`queueFamilyIndexCount` and `pQueueFamilyIndices` parameters. If the graphics
-queue family and presentation queue family are the same, which will be the case
-on most hardware, then we should stick to exclusive mode, because concurrent
-mode requires you to specify at least two distinct queue families.
+If the queue families differ, then we'll be using the concurrent mode in this
+tutorial to avoid having to do the ownership chapters, because these involve
+some concepts that are better explained at a later time. Concurrent mode
+requires you to specify in advance between which queue families ownership will
+be shared using the `queueFamilyIndexCount` and `pQueueFamilyIndices`
+parameters. If the graphics queue family and presentation queue family are the
+same, which will be the case on most hardware, then we should stick to exclusive
+mode, because concurrent mode requires you to specify at least two distinct
+queue families.
 
 ```c++
 createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
