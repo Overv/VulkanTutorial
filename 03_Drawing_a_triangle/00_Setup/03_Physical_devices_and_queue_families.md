@@ -262,8 +262,8 @@ for (const auto& queueFamily : queueFamilies) {
 ```
 
 Now that we have this fancy queue family lookup function, we can use it as a
-check in the `isDeviceSuitable` function to ensure that the device has can
-process the commands we want to use:
+check in the `isDeviceSuitable` function to ensure that the device can process
+the commands we want to use:
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {

@@ -52,7 +52,7 @@ queues for each family queue and you don't really need more than one. That's
 because you can create all of the command buffers on multiple threads and then
 submit them all at once on the main thread with a single low-overhead call.
 
-Vulkan lets you to assign priorities to queues to influence the scheduling of
+Vulkan lets you assign priorities to queues to influence the scheduling of
 command buffer execution using floating point numbers between `0.0` and `1.0`.
 This is required even if there is only a single queue:
 
@@ -98,7 +98,7 @@ The remainder of the information bears a resemblance to the
 validation layers. The difference is that these are device specific this time.
 
 An example of a device specific extension is `VK_KHR_swapchain`, which allows
-you to present rendered images from that device to windows. It is possible that 
+you to present rendered images from that device to windows. It is possible that
 there are Vulkan devices in the system that lack this ability, for example
 because they only support compute operations. We will come back to this
 extension in the swap chain chapter.
