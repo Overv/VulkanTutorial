@@ -243,8 +243,8 @@ We're now going to compile these into SPIR-V bytecode using the
 Create a `compile.bat` file with the following contents:
 
 ```bash
-C:/VulkanSDK/1.0.17.0/Bin/glslangValidator.exe -V shader.vert
-C:/VulkanSDK/1.0.17.0/Bin/glslangValidator.exe -V shader.frag
+C:/VulkanSDK/1.0.17.0/Bin32/glslangValidator.exe -V shader.vert
+C:/VulkanSDK/1.0.17.0/Bin32/glslangValidator.exe -V shader.frag
 pause
 ```
 
@@ -269,7 +269,8 @@ These two commands invoke the compiler with the `-V` flag, which tells it to
 compile the GLSL source files to SPIR-V bytecode. When you run the compile
 script, you'll see that two SPIR-V binaries are created: `vert.spv` and
 `frag.spv`. The names are automatically derived from the type of shader, but you
-can rename them to anything you like.
+can rename them to anything you like. You may get a warning about some missing
+features when compiling your shaders, but you can safely ignore that.
 
 If your shader contains a syntax error then the compiler will tell you the line
 number and problem, as you would expect. Try leaving out a semicolon for example

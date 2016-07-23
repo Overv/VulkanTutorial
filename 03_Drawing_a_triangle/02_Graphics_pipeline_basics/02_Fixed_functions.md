@@ -333,7 +333,7 @@ the viewport, line width and blend constants. If you want to do that, then
 you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
 
 ```c++
-VkDynamicState dynamicStates = {
+VkDynamicState dynamicStates[] = {
     VK_DYNAMIC_STATE_VIEWPORT,
     VK_DYNAMIC_STATE_LINE_WIDTH
 };
