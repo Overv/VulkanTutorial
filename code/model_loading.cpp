@@ -289,6 +289,8 @@ private:
     }
 
     static void onWindowResized(GLFWwindow* window, int width, int height) {
+        if (width == 0 || height == 0) return;
+        
         HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
         app->recreateSwapChain();
     }

@@ -112,6 +112,8 @@ void initWindow() {
 ...
 
 static void onWindowResized(GLFWwindow* window, int width, int height) {
+    if (width == 0 || height == 0) return;
+
     HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
     app->recreateSwapChain();
 }
@@ -123,7 +125,9 @@ argument, so we can't directly use a member function. Luckily GLFW allows us to
 store an arbitrary pointer in the window object with `glfwSetWindowUserPointer`,
 so we can specify a static class member and get the original class instance back
 with `glfwGetWindowUserPointer`. We can then proceed to call
-`recreateSwapChain`.
+`recreateSwapChain`, but only if the size of the window is non-zero. This case
+occurs when the window is minimized and it will cause swap chain creation to
+fail.
 
 ## Suboptimal or out-of-date swap chain
 
