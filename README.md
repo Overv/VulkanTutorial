@@ -13,6 +13,24 @@ have a problem with your code, then use the comments section in the related
 chapter to ask a question. Please provide your operating system, graphics card,
 driver version, source code, expected behaviour and actual behaviour.
 
+Changing code across chapters
+-----------------------------
+
+It is sometimes necessary to change code that is reused across many chapters,
+for example the `VDeleter` class or a function like `createBuffer`. If you make
+such a change, then you should update the code files using the following steps:
+
+* Update any chapters that reference the modified code.
+* Make a copy of the first file that uses it and modify the code there, e.g.
+`base_code_fixed.cpp`.
+* Create a patch using
+`diff -Naur base_code.cpp base_code_fixed.cpp > patch.txt`.
+* Apply the patch to the specified code file and all files in later chapters
+using the `incremental_patch.sh` script. Run it like this:
+`./incremental_patch.sh base_code.cpp patch.txt`.
+* Clean up the `base_code_fixed.cpp` and `patch.txt` files.
+* Commit.
+
 License
 -------
 
