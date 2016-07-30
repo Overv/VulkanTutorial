@@ -233,9 +233,7 @@ private:
         createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
         createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) debugCallback;
 
-        auto CreateDebugReportCallback = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
-
-        if (!CreateDebugReportCallback || CreateDebugReportCallback(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
+        if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug callback!");
         }
     }
