@@ -66,7 +66,7 @@ private class members.
 ## Resource management
 
 You may have noticed that there's no cleanup function anywhere to be seen and
-that is intentional. Every Vulkan function needs to be destroyed with a function
+that is intentional. Every Vulkan object needs to be destroyed with a function
 call when it's no longer needed, just like each chunk of memory allocated with
 `malloc` requires a call to `free`. Doing that manually is a lot of work and is
 very error-prone, but we can completely avoid that by taking advantage of the
