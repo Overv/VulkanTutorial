@@ -280,7 +280,7 @@ we want the new color to be blended with the old color based on its opacity. The
 `finalColor` should then be computed as follows:
 
 ```c++
-finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * newColor;
+finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
 finalColor.a = newAlpha.a;
 ```
 

@@ -71,7 +71,7 @@ The `flags` parameter is used to configure sparse buffer memory, which is not
 relevant right now. We'll leave it at the default value of `0`.
 
 We can now create the buffer with `vkCreateBuffer`. Define a class member to
-hold the buffer handle and call it `VkBuffer`.
+hold the buffer handle and call it `vertexBuffer`.
 
 ```c++
 VDeleter<VkBuffer> vertexBuffer{device, vkDestroyBuffer};
