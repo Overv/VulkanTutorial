@@ -165,9 +165,9 @@ have a reasonable accuracy, at least 24 bits is common in real-world
 applications. There are several formats that fit this requirement:
 
 * `VK_FORMAT_D32_SFLOAT`: 32-bit float for depth
-* `VK_FORMAT_D32_SFLOAT_S8_UINT`: 32-bit signed float for depth and 8 byte
+* `VK_FORMAT_D32_SFLOAT_S8_UINT`: 32-bit signed float for depth and 8 bit
 stencil component
-* `VK_FORMAT_D24_UNORM_S8_UINT`: 24-bit float for depth and 8 byte stencil
+* `VK_FORMAT_D24_UNORM_S8_UINT`: 24-bit float for depth and 8 bit stencil
 component
 
 The stencil component is used for [stencil tests](https://en.wikipedia.org/wiki/Stencil_buffer),
@@ -183,7 +183,7 @@ supported:
 
 ```c++
 VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
-    
+
 }
 ```
 
