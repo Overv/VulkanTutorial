@@ -143,7 +143,7 @@ but cannot be called from other command buffers.
 called from primary command buffers.
 
 We won't make use of the secondary command buffer functionality here, but you
-can imagine that it's helpful to reuse common operations in primary command
+can imagine that it's helpful to reuse common operations from primary command
 buffers.
 
 ## Starting command buffer recording
