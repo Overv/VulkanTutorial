@@ -17,7 +17,7 @@ postponed this is because window surfaces are part of the larger topic of
 render targets and presentation for which the explanation would have cluttered
 the basic setup. It should also be noted that window surfaces are an entirely
 optional component in Vulkan, if you just need off-screen rendering. Vulkan
-allows you to do that without hacks like creating an invisible window 
+allows you to do that without hacks like creating an invisible window
 (necessary for OpenGL).
 
 ## Window surface creation
@@ -186,9 +186,8 @@ QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 std::set<int> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
 
+float queuePriority = 1.0f;
 for (int queueFamily : uniqueQueueFamilies) {
-    float queuePriority = 1.0f;
-
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = queueFamily;

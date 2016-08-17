@@ -240,9 +240,8 @@ private:
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
         std::set<int> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
 
+        float queuePriority = 1.0f;
         for (int queueFamily : uniqueQueueFamilies) {
-            float queuePriority = 1.0f;
-
             VkDeviceQueueCreateInfo queueCreateInfo = {};
             queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
             queueCreateInfo.queueFamilyIndex = queueFamily;
