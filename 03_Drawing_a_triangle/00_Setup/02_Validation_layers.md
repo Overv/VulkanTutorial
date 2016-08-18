@@ -28,7 +28,7 @@ VkResult vkCreateInstance(
     const VkInstanceCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkInstance* instance) {
-    
+
     if (pCreateInfo == nullptr || instance == nullptr) {
         log("Null pointer passed to required parameter!");
         return VK_ERROR_INITIALIZATION_FAILED;
@@ -147,7 +147,7 @@ void createInstance() {
 Now run the program in debug mode and ensure that the error does not occur. If
 it does, then make sure you have properly installed the Vulkan SDK. If none or
 very few layers are being reported, then you may be dealing with
-[this issue](https://vulkan.lunarg.com/app/issues/578e8c8d5698c020d71580fc) 
+[this issue](https://vulkan.lunarg.com/app/issues/578e8c8d5698c020d71580fc)
 (requires a LunarG account to view). See that page for help with fixing it.
 
 Finally, modify the `VkInstanceCreateInfo` struct instantiation to include the
@@ -191,7 +191,7 @@ std::vector<const char*> getRequiredExtensions() {
     if (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     }
-    
+
     return extensions;
 }
 ```
@@ -216,10 +216,16 @@ the validation layers.
 
 Now let's see what a callback function looks like. Add a new static member
 function called `debugCallback` with the `PFN_vkDebugReportCallbackEXT`
-prototype:
+prototype. It is required to have the `stdcall` calling convention on Windows.
+The calling convention does not have to be specified on Linux, because there is
+only one calling convention on that platform.
 
 ```c++
-static VkBool32 debugCallback(
+#ifndef WIN32
+#define __stdcall
+#endif
+
+static VkBool32 __stdcall debugCallback(
     VkDebugReportFlagsEXT flags,
     VkDebugReportObjectTypeEXT objType,
     uint64_t obj,
@@ -230,7 +236,7 @@ static VkBool32 debugCallback(
     void* userData) {
 
     std::cerr << "validation layer: " << msg << std::endl;
-    
+
     return VK_FALSE;
 }
 ```
@@ -282,7 +288,7 @@ We'll need to fill in a structure with details about the callback:
 VkDebugReportCallbackCreateInfoEXT createInfo = {};
 createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
 createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) debugCallback;
+createInfo.pfnCallback = debugCallback;
 ```
 
 The `flags` field allows you to filter which types of messages you would like to
@@ -293,7 +299,7 @@ to pass a pointer to the `HelloTriangleApplication` class, for example.
 
 This struct should be passed to the `vkCreateDebugReportCallbackEXT` function to
 create the `VkDebugReportCallbackEXT` object. Unfortunately, because this
-function is an extension function it is not automatically loaded. We have to
+function is an extension function, it is not automatically loaded. We have to
 look up its address ourselves using `vkGetInstanceProcAddr`. We're going to
 create our own proxy function that handles this in the background. I've added it
 right above the `VDeleter` definition.
