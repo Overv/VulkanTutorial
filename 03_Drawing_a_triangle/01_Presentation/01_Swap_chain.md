@@ -218,7 +218,8 @@ Each `VkSurfaceFormatKHR` entry contains `format` and `colorSpace` member. The
 `VK_FORMAT_B8G8R8A8_UNORM` means that we store the B, G, R and alpha channels in
 that order with an 8 bit unsigned integer for a total of 32 bits per pixel. The
 `colorSpace` member indicates if the SRGB color space is supported or not using
-the `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR` flag.
+the `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR` flag. Note that this flag used to be
+called `VK_COLORSPACE_SRGB_NONLINEAR_KHR` in old versions of the specification.
 
 For the color space we'll use SRGB if it is available, because it [results in more accurate perceived colors](http://stackoverflow.com/questions/12524623/).
 Working directly with SRGB colors is a little bit challenging, so we'll use
