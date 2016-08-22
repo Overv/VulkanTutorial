@@ -17,13 +17,8 @@ itself rather than the details of loading it from a file.
 We will use the [tinyobjloader](https://github.com/syoyo/tinyobjloader) library
 to load vertices and faces from an OBJ file. It's fast and it's easy to
 integrate because it's a single file library like stb_image. Go to the
-repository linked above and make sure to switch to the `develop` branch to view
-the latest version of the library.
-
-![](/images/select_develop_branch.png)
-
-Download the `tiny_obj_loader.h` file to a folder in your library directory and
-add it to your compiler's include path.
+repository linked above and download the `tiny_obj_loader.h` file to a folder in
+your library directory.
 
 **Visual Studio**
 
