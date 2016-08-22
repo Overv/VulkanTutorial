@@ -216,16 +216,11 @@ the validation layers.
 
 Now let's see what a callback function looks like. Add a new static member
 function called `debugCallback` with the `PFN_vkDebugReportCallbackEXT`
-prototype. It is required to have the `stdcall` calling convention on Windows.
-The calling convention does not have to be specified on Linux, because there is
-only one calling convention on that platform.
+prototype. The `VKAPI_ATTR` and `VKAPI_CALL` ensure that the function has the
+right signature for Vulkan to call it.
 
 ```c++
-#ifndef WIN32
-#define __stdcall
-#endif
-
-static VkBool32 __stdcall debugCallback(
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugReportFlagsEXT flags,
     VkDebugReportObjectTypeEXT objType,
     uint64_t obj,
