@@ -256,7 +256,7 @@ dependencies.
 
 The last step of drawing a frame is submitting the result back to the swap chain
 to have it eventually show up on the screen. Presentation is configured through
-a `VkPresentInfoKHR` structure.
+a `VkPresentInfoKHR` structure at the end of the `drawFrame` function.
 
 ```c++
 VkPresentInfoKHR presentInfo = {};

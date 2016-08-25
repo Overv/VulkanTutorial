@@ -43,6 +43,8 @@ void createCommandPool() {
 Command pool creation only takes two parameters:
 
 ```c++
+QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+
 VkCommandPoolCreateInfo poolInfo = {};
 poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
