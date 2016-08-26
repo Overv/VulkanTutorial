@@ -20,11 +20,11 @@ public:
 
 private:
     void initVulkan() {
-        
+
     }
 
     void mainLoop() {
-        
+
     }
 };
 
@@ -107,7 +107,7 @@ functions.
 template <typename T>
 class VDeleter {
 public:
-    VDeleter() : VDeleter([](T _) {}) {}
+    VDeleter() : VDeleter([](T, VkAllocationCallbacks*) {}) {}
 
     VDeleter(std::function<void(T, VkAllocationCallbacks*)> deletef) {
         this->deleter = [=](T obj) { deletef(obj, nullptr); };
