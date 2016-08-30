@@ -202,7 +202,7 @@ auto bindingDescription = Vertex::getBindingDescription();
 auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
 vertexInputInfo.vertexBindingDescriptionCount = 1;
-vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();;
+vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
 vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
 vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 ```
