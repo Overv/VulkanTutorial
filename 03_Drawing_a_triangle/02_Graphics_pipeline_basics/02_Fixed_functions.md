@@ -339,6 +339,7 @@ VkDynamicState dynamicStates[] = {
 };
 
 VkPipelineDynamicStateCreateInfo dynamicState = {};
+dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 dynamicState.dynamicStateCount = 2;
 dynamicState.pDynamicStates = dynamicStates;
 ```
