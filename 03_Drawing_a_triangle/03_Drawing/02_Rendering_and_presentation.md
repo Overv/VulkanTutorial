@@ -109,8 +109,8 @@ if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore)
 
 ## Acquiring an image from the swap chain
 
-As mentioned before, we first thing we need to do in the `drawFrame` function is
-acquiring an image from the swap chain. Recall that the swap chain is an
+As mentioned before, the first thing we need to do in the `drawFrame` function
+is acquiring an image from the swap chain. Recall that the swap chain is an
 extension feature, so we must use a function with the `vk*KHR` naming
 convention:
 
