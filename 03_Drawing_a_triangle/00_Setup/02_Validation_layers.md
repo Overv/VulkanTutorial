@@ -262,7 +262,7 @@ this handle right under `instance`:
 VkDebugReportCallbackEXT callback;
 ```
 
-Now add a function `createDebugCallback` to be called from `initVulkan` right
+Now add a function `setupDebugCallback` to be called from `initVulkan` right
 after `createInstance`:
 
 ```c++
