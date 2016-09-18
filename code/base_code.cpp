@@ -29,13 +29,27 @@ public:
         cleanup();
     }
 
-    T* operator &() {
+    const T* operator &() const {
+        return &object;
+    }
+
+    T* replace() {
         cleanup();
         return &object;
     }
 
     operator T() const {
         return object;
+    }
+
+    void operator=(T rhs) {
+        cleanup();
+        object = rhs;
+    }
+
+    template<typename V>
+    bool operator==(V rhs) {
+        return object == T(rhs);
     }
 
 private:
