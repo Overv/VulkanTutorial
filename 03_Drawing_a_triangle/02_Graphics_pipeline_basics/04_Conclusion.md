@@ -92,9 +92,9 @@ store and reuse data relevant to pipeline creation across multiple calls to
 stored to a file. This makes it possible to significantly speed up pipeline
 creation at a later time. We'll get into this in the pipeline cache chapter.
 
-Now run your program and you'll see that all of the hard work has finally paid
-off! We are already getting quite close to seeing the that triangle pop up on
-the screen. In the next couple of chapters we'll set up the actual framebuffers
-from the swap chain images and prepare the drawing commands.
+Now run your program to confirm that all this hard work has resulted in a
+successful pipeline creation! We are already getting quite close to seeing
+something pop up on the screen. In the next couple of chapters we'll set up the
+actual framebuffers from the swap chain images and prepare the drawing commands.
 
 [Full code listing](/code/graphics_pipeline_complete.cpp)
