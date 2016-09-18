@@ -87,11 +87,24 @@ The template argument specifies the type of Vulkan object we want to wrap and
 the constructor argument specifies the function to use to clean up the object
 when it goes out of scope.
 
-To assign an object to the wrapper, simply pass its pointer to the creation
-function as if it was a normal `VkInstance` variable:
+To assign an object to the wrapper, we would simply want to pass its pointer to
+the creation function as if it was a normal `VkInstance` variable:
 
 ```c++
 vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+```
+
+Unfortunately, taking the address of the handle in the wrapper doesn't
+necessarily mean that we want to overwrite its existing value. A common pattern
+is to simply use `&instance` as short-hand for an array of instances with 1
+item. If we intend to write a new handle, then the wrapper should clean up any
+previous object to not leak memory. Therefore it would be better to have the `&`
+operator return a constant pointer and have an explicit function to state that
+we wish to replace the handle. The `replace` function calls clean up for any
+existing handle and then gives you a non-const pointer to overwrite the handle:
+
+```c++
+vkCreateInstance(&instanceCreateInfo, nullptr, instance.replace());
 ```
 
 Just like that we can now use the `instance` variable wherever a `VkInstance`
@@ -125,13 +138,27 @@ public:
         cleanup();
     }
 
-    T* operator &() {
+    const T* operator &() const {
+        return &object;
+    }
+
+    T* replace() {
         cleanup();
         return &object;
     }
 
     operator T() const {
         return object;
+    }
+
+    void operator=(T rhs) {
+        cleanup();
+        object = rhs;
+    }
+
+    template<typename V>
+    bool operator==(V rhs) {
+        return object == T(rhs);
     }
 
 private:
@@ -165,14 +192,19 @@ can see in the `VDeleter` definition.
 All of the constructors initialize the object handle with the equivalent of
 `nullptr` in Vulkan: `VK_NULL_HANDLE`. Any extra arguments that are needed for
 the deleter functions must also be passed, usually the parent object. It
-overloads the address-of and casting operators to make the wrapper as
-transparent as possible. When the wrapped object goes out of scope, the
-destructor is invoked, which in turn calls the cleanup function we specified.
-Note that the address-of operator should only be used to create a new Vulkan
-object as shown above. It invokes the cleanup function as well because we may
-want to use it to recreate an existing object. There is also a default
-constructor with a dummy deleter function that can be used to initialize it
-later, which will be useful for lists of deleters.
+overloads the address-of, assignment, comparison and casting operators to make
+the wrapper as transparent as possible. When the wrapped object goes out of
+scope, the destructor is invoked, which in turn calls the cleanup function we
+specified.
+
+The address-of operator returns a constant pointer to make sure that the object
+within the wrapper is not unexpectedly changed. If you want to replace the
+handle within the wrapper through a pointer, then you should use the `replace()`
+function instead. It will invoke the cleanup function for the existing handle so
+that you can safely overwrite it afterwards.
+
+There is also a default constructor with a dummy deleter function that can be
+used to initialize it later, which will be useful for lists of deleters.
 
 I've added the class code between the headers and the `HelloTriangleApplication`
 class definition. You can also choose to put it in a separate header file. We'll
