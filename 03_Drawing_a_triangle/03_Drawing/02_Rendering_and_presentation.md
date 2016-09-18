@@ -100,8 +100,8 @@ Future versions of the Vulkan API or extensions may add functionality for the
 the semaphores follows the familiar pattern with `vkCreateSemaphore`:
 
 ```c++
-if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-    vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
+if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, imageAvailableSemaphore.replace()) != VK_SUCCESS ||
+    vkCreateSemaphore(device, &semaphoreInfo, nullptr, renderFinishedSemaphore.replace()) != VK_SUCCESS) {
 
     throw std::runtime_error("failed to create semaphores!");
 }

@@ -53,7 +53,7 @@ I've left out the explicit `viewInfo.components` initialization, because
 image view by calling `vkCreateImageView`:
 
 ```c++
-if (vkCreateImageView(device, &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
+if (vkCreateImageView(device, &viewInfo, nullptr, textureImageView.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create texture image view!");
 }
 ```
@@ -74,7 +74,7 @@ void createImageView(VkImage image, VkFormat format, VDeleter<VkImageView>& imag
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+    if (vkCreateImageView(device, &viewInfo, nullptr, imageView.replace()) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture image view!");
     }
 }
@@ -266,7 +266,7 @@ VDeleter<VkSampler> textureSampler{device, vkDestroySampler};
 void createTextureSampler() {
     ...
 
-    if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(device, &samplerInfo, nullptr, textureSampler.replace()) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }

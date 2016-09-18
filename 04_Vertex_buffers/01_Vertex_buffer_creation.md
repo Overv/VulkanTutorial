@@ -85,7 +85,7 @@ void createVertexBuffer() {
     bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
+    if (vkCreateBuffer(device, &bufferInfo, nullptr, vertexBuffer.replace()) != VK_SUCCESS) {
         throw std::runtime_error("failed to create vertex buffer!");
     }
 }

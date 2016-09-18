@@ -105,7 +105,7 @@ different layers.
 Creating the image view is now a matter of calling `vkCreateImageView`:
 
 ```c++
-if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+if (vkCreateImageView(device, &createInfo, nullptr, swapChainImageViews[i].replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create image views!");
 }
 ```

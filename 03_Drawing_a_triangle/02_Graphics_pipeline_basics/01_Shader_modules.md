@@ -374,7 +374,7 @@ createInfo.pCode = (uint32_t*) code.data();
 The `VkShaderModule` can then be created with a call to `vkCreateShaderModule`:
 
 ```c++
-if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create shader module!");
 }
 ```

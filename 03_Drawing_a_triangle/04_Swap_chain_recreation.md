@@ -50,7 +50,7 @@ if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &newSwapChain) != VK_SUCC
     throw std::runtime_error("failed to create swap chain!");
 }
 
-*&swapChain = newSwapChain;
+swapChain = newSwapChain;
 ```
 
 We need to pass the previous swap chain object in the `oldSwapchain` parameter
@@ -61,7 +61,7 @@ The `VDeleter` would clear the old object before `vkCreateSwapchainKHR` has a
 chance to execute. That's why we use the temporary `newSwapChain` variable.
 
 ```c++
-*&swapChain = newSwapChain;
+swapChain = newSwapChain;
 ```
 
 This line will actually destroy the old swap chain and replace the handle with

@@ -186,7 +186,7 @@ layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 layoutInfo.bindingCount = 1;
 layoutInfo.pBindings = &uboLayoutBinding;
 
-if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, descriptorSetLayout.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor set layout!");
 }
 ```

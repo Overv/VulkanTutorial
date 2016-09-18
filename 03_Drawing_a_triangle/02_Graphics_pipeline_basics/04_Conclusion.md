@@ -75,7 +75,7 @@ VDeleter<VkPipeline> graphicsPipeline{device, vkDestroyPipeline};
 And finally create the graphics pipeline:
 
 ```c++
-if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, graphicsPipeline.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create graphics pipeline!");
 }
 ```

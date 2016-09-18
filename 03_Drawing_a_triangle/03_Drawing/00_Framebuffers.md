@@ -66,7 +66,7 @@ for (size_t i = 0; i < swapChainImageViews.size(); i++) {
     framebufferInfo.height = swapChainExtent.height;
     framebufferInfo.layers = 1;
 
-    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, swapChainFramebuffers[i].replace()) != VK_SUCCESS) {
         throw std::runtime_error("failed to create framebuffer!");
     }
 }

@@ -69,7 +69,7 @@ execute them many times in the main loop, so we're not going to use either of
 these flags.
 
 ```c++
-if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+if (vkCreateCommandPool(device, &poolInfo, nullptr, commandPool.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create command pool!");
 }
 ```

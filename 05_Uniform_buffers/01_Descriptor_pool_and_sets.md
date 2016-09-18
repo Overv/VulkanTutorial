@@ -64,7 +64,7 @@ VDeleter<VkDescriptorPool> descriptorPool{device, vkDestroyDescriptorPool};
 
 ...
 
-if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+if (vkCreateDescriptorPool(device, &poolInfo, nullptr, descriptorPool.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor pool!");
 }
 ```

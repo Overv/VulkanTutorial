@@ -90,7 +90,7 @@ We've now specified everything Vulkan needs to create an instance and we can
 finally issue the `vkCreateInstance` call:
 
 ```c++
-VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+VkResult result = vkCreateInstance(&createInfo, nullptr, instance.replace());
 ```
 
 As you'll see, the general pattern that object creation function parameters in
@@ -106,7 +106,7 @@ type `VkResult` that is either `VK_SUCCESS` or an error code. To check if the
 instance was created successfully, simply add a check for the success value:
 
 ```c++
-if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+if (vkCreateInstance(&createInfo, nullptr, instance.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create instance!");
 }
 ```

@@ -244,7 +244,7 @@ avoid allocating memory to store large volumes of "air" values. We won't be
 using it in this tutorial, so leave it to its default value of `0`.
 
 ```c++
-if (vkCreateImage(device, &imageInfo, nullptr, &stagingImage) != VK_SUCCESS) {
+if (vkCreateImage(device, &imageInfo, nullptr, stagingImage.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create image!");
 }
 ```
@@ -317,7 +317,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+    if (vkCreateImage(device, &imageInfo, nullptr, image.replace()) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
 

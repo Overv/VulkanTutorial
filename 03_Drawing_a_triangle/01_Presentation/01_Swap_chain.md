@@ -519,7 +519,7 @@ VDeleter<VkSwapchainKHR> swapChain{device, vkDestroySwapchainKHR};
 Now creating the swap chain is as simple as calling `vkCreateSwapchainKHR`:
 
 ```c++
-if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+if (vkCreateSwapchainKHR(device, &createInfo, nullptr, swapChain.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
 }
 ```

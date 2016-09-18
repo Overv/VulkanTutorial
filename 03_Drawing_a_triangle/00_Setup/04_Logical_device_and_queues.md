@@ -122,7 +122,7 @@ That's it, we're now ready to instantiate the logical device with a call to the
 appropriately named `vkCreateDevice` function.
 
 ```c++
-if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+if (vkCreateDevice(physicalDevice, &createInfo, nullptr, device.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create logical device!");
 }
 ```

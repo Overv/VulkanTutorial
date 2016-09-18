@@ -379,7 +379,7 @@ pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
 
 if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
-    &pipelineLayout) != VK_SUCCESS) {
+    pipelineLayout.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create pipeline layout!");
 }
 ```
