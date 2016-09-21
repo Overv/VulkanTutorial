@@ -34,7 +34,7 @@ void initVulkan() {
 ...
 
 void createVertexBuffer() {
-    
+
 }
 ```
 
@@ -204,7 +204,7 @@ VDeleter<VkDeviceMemory> vertexBufferMemory{device, vkFreeMemory};
 
 ...
 
-if (vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS) {
+if (vkAllocateMemory(device, &allocInfo, nullptr, vertexBufferMemory.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate vertex buffer memory!");
 }
 ```
