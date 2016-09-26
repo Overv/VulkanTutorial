@@ -158,7 +158,7 @@ to `1`.
 
 However, we're not just interested in a memory type that is suitable for the
 vertex buffer. We also need to be able to write our vertex data to that memory.
-The `memoryTypes` array consists of `VkMemoryHeap` structs that specify the heap
+The `memoryTypes` array consists of `VkMemoryType` structs that specify the heap
 and properties of each type of memory. The properties define special features
 of the memory, like being able to map it so we can write to it from the CPU.
 This property is indicated with `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT`, but we
