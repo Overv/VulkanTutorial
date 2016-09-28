@@ -68,7 +68,7 @@ void initVulkan() {
     ...
     createVertexBuffer();
     createIndexBuffer();
-    ...    
+    ...
 }
 
 void createIndexBuffer() {
@@ -126,12 +126,13 @@ vkCmdDrawIndexed(commandBuffers[i], indices.size(), 1, 0, 0, 0);
 ```
 
 A call to this function is very similar to `vkCmdDraw`. The first two parameters
-specify the number of indices and the number of vertices. The number of indices
-represents the number of vertices that will be passed to the vertex buffer. The
-next parameter specifies an offset into the index buffer, using a value of `1`
-would cause the graphics card to start reading at the second index. The second
-to last parameter specifies an offset to add to the indices in the index buffer.
-The final parameter specifies an offset for instancing, which we're not using.
+specify the number of indices and the number of instances. We're not using
+instancing, so just specify `1` instance. The number of indices represents the
+number of vertices that will be passed to the vertex buffer. The next parameter
+specifies an offset into the index buffer, using a value of `1` would cause the
+graphics card to start reading at the second index. The second to last parameter
+specifies an offset to add to the indices in the index buffer. The final
+parameter specifies an offset for instancing, which we're not using.
 
 Now run your program and you should see the following:
 
