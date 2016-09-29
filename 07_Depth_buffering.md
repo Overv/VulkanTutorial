@@ -249,7 +249,19 @@ VkFormat findDepthFormat() {
 ```
 
 Make sure to use the `VK_FORMAT_FEATURE_` flag instead of `VK_IMAGE_USAGE_` in
-this case. Call this function from `createDepthResources`:
+this case. All of these candidate formats contain a depth component, but the
+latter two also contain a stencil component. We won't be using that yet, but we
+do need to take that into account when performing layout transitions on images
+with these formats. Add a simple helper function that tells us if the chosen
+depth format contains a stencil component:
+
+```c++
+bool hasStencilComponent(VkFormat format) {
+    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+```
+
+Call the function to find a depth format from `createDepthResources`:
 
 ```c++
 VkFormat depthFormat = findDepthFormat();
@@ -293,7 +305,7 @@ render pass like the color attachment, but here I've chosen to use a pipeline
 barrier because the transition only needs to happen once:
 
 ```c++
-transitionImageLayout(depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 ```
 
 The undefined layout can be used as initial layout, because there are no
@@ -303,12 +315,19 @@ in `transitionImageLayout` to use the right subresource aspect:
 ```c++
 if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+    if (hasStencilComponent(format)) {
+        barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
 } else {
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 }
 ```
 
-And add the correct access masks:
+Although we're not using the stencil component, we do need to include it in the
+layout transitions of the depth image.
+
+Finally, add the correct access masks:
 
 ```c++
 if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
