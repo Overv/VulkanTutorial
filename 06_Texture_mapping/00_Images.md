@@ -221,7 +221,7 @@ imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 The `usage` field has the same semantics as the one during buffer creation. The
 staging image is going to be copied to the final texture image, so it should be
-set up as a transfer source. 
+set up as a transfer source.
 
 ```c++
 imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -266,7 +266,7 @@ allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 allocInfo.allocationSize = memRequirements.size;
 allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-if (vkAllocateMemory(device, &allocInfo, nullptr, &stagingImageMemory) != VK_SUCCESS) {
+if (vkAllocateMemory(device, &allocInfo, nullptr, stagingImageMemory.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate image memory!");
 }
 
@@ -329,7 +329,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(device, &allocInfo, nullptr, imageMemory.replace()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");
     }
 
@@ -361,7 +361,7 @@ void createTextureImage() {
     vkMapMemory(device, stagingImageMemory, 0, imageSize, 0, &data);
         memcpy(data, pixels, (size_t) imageSize);
     vkUnmapMemory(device, stagingImageMemory);
-    
+
     stbi_image_free(pixels);
 }
 ```
