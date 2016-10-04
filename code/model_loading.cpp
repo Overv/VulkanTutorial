@@ -96,8 +96,10 @@ public:
     }
 
     void operator=(T rhs) {
-        cleanup();
-        object = rhs;
+        if (rhs != object) {
+            cleanup();
+            object = rhs;
+        }
     }
 
     template<typename V>
