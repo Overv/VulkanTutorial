@@ -1002,6 +1002,8 @@ private:
                     1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
                 };
 
+                vertex.color = {1.0f, 1.0f, 1.0f};
+
                 if (uniqueVertices.count(vertex) == 0) {
                     uniqueVertices[vertex] = vertices.size();
                     vertices.push_back(vertex);
