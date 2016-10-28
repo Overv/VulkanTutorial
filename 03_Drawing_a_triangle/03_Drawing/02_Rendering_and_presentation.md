@@ -225,14 +225,14 @@ first and only one. The `dstSubpass` must always be higher than `srcSubpass` to
 prevent cycles in the dependency graph.
 
 ```c++
-dependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-dependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+dependency.srcAccessMask = 0;
 ```
 
 The next two fields specify the operations to wait on and the stages in which
 these operations occur. We need to wait for the swap chain to finish reading
-from the image before we can access it. This reading happens in the last
-pipeline stage.
+from the image before we can access it. This can be accomplished by waiting on
+the color attachment output stage itself.
 
 ```c++
 dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
