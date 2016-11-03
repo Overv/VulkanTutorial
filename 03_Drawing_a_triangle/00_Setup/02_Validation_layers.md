@@ -315,7 +315,7 @@ couldn't be loaded. We can now call this function to create the extension
 object if it's available:
 
 ```c++
-if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, callback.replace()) != VK_SUCCESS) {
+if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, callback) != VK_SUCCESS) {
     throw std::runtime_error("failed to set up debug callback!");
 }
 ```
@@ -346,6 +346,13 @@ We can then specify it as cleanup function:
 
 ```c++
 VDeleter<VkDebugReportCallbackEXT> callback{instance, DestroyDebugReportCallbackEXT};
+```
+
+Make sure to change the line that creates the debug report callback to use the
+`replace()` method of the wrapper:
+
+```c++
+if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, callback.replace()) != VK_SUCCESS) {
 ```
 
 When you run the program again you'll see that the error message has
