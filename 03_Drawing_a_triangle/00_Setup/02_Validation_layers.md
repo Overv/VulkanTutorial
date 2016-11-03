@@ -342,7 +342,8 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
 }
 ```
 
-We can then specify it as cleanup function:
+Make sure that this function is either a static class function or a function
+outside the class. We can then specify it as cleanup function:
 
 ```c++
 VDeleter<VkDebugReportCallbackEXT> callback{instance, DestroyDebugReportCallbackEXT};
