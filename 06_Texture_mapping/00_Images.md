@@ -545,7 +545,9 @@ that were written so far, for example.
 
 The last three pairs of parameters reference arrays of pipeline barriers of the
 three available types: memory barriers, buffer memory barriers, and image memory
-barriers like the one we're using here.
+barriers like the one we're using here. Note that we're not using the `VkFormat`
+parameter yet, but we'll be using that one for special transitions in the depth
+buffer chapter.
 
 ## Copying images
 
