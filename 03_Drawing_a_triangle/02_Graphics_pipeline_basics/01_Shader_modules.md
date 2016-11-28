@@ -96,7 +96,7 @@ void main() {
 }
 ```
 
-The `main` function is invoked for every vertex the built-in `gl_VertexIndex`
+The `main` function is invoked for every vertex. The built-in `gl_VertexIndex`
 variable contains the index of the current vertex. This is usually an index into
 the vertex buffer, but in our case it will be an index into a hardcoded array
 of vertex data. The position of each vertex is accessed from the constant array
@@ -235,7 +235,7 @@ void main() {
 }
 ```
 
-We're now going to compile these into SPIR-V bytecode using the 
+We're now going to compile these into SPIR-V bytecode using the
 `glslangValidator` program.
 
 **Windows**

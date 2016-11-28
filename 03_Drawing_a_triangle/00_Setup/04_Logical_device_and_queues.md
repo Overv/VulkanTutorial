@@ -77,7 +77,7 @@ VkPhysicalDeviceFeatures deviceFeatures = {};
 ## Creating the logical device
 
 With the previous two structures in place, we can start filling in the main
-`VkDeviceCreationInfo` structure.
+`VkDeviceCreateInfo` structure.
 
 ```c++
 VkDeviceCreateInfo createInfo = {};
