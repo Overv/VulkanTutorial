@@ -142,8 +142,8 @@ us the best performance, as its name implies.
 The subpass is described using a `VkSubpassDescription` structure:
 
 ```c++
-VkSubpassDescription subPass = {};
-subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+VkSubpassDescription subpass = {};
+subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 ```
 
 Vulkan may also support compute subpasses in the future, so we have to be
@@ -151,8 +151,8 @@ explicit about this being a graphics subpass. Next, we specify the reference to
 the color attachment:
 
 ```c++
-subPass.colorAttachmentCount = 1;
-subPass.pColorAttachments = &colorAttachmentRef;
+subpass.colorAttachmentCount = 1;
+subpass.pColorAttachments = &colorAttachmentRef;
 ```
 
 The index of the attachment in this array is directly referenced from the
@@ -187,7 +187,7 @@ renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 renderPassInfo.attachmentCount = 1;
 renderPassInfo.pAttachments = &colorAttachment;
 renderPassInfo.subpassCount = 1;
-renderPassInfo.pSubpasses = &subPass;
+renderPassInfo.pSubpasses = &subpass;
 
 if (vkCreateRenderPass(device, &renderPassInfo, nullptr, renderPass.replace()) != VK_SUCCESS) {
     throw std::runtime_error("failed to create render pass!");

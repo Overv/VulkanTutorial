@@ -208,25 +208,25 @@ private:
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-    
+
     VDeleter<VkSwapchainKHR> swapChain{device, vkDestroySwapchainKHR};
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
     std::vector<VDeleter<VkImageView>> swapChainImageViews;
     std::vector<VDeleter<VkFramebuffer>> swapChainFramebuffers;
-    
+
     VDeleter<VkRenderPass> renderPass{device, vkDestroyRenderPass};
     VDeleter<VkDescriptorSetLayout> descriptorSetLayout{device, vkDestroyDescriptorSetLayout};
     VDeleter<VkPipelineLayout> pipelineLayout{device, vkDestroyPipelineLayout};
     VDeleter<VkPipeline> graphicsPipeline{device, vkDestroyPipeline};
-    
+
     VDeleter<VkCommandPool> commandPool{device, vkDestroyCommandPool};
-    
+
     VDeleter<VkImage> depthImage{device, vkDestroyImage};
     VDeleter<VkDeviceMemory> depthImageMemory{device, vkFreeMemory};
     VDeleter<VkImageView> depthImageView{device, vkDestroyImageView};
-    
+
     VDeleter<VkImage> textureImage{device, vkDestroyImage};
     VDeleter<VkDeviceMemory> textureImageMemory{device, vkFreeMemory};
     VDeleter<VkImageView> textureImageView{device, vkDestroyImageView};
@@ -303,7 +303,7 @@ private:
 
     static void onWindowResized(GLFWwindow* window, int width, int height) {
         if (width == 0 || height == 0) return;
-        
+
         HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
         app->recreateSwapChain();
     }
@@ -533,11 +533,11 @@ private:
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        VkSubpassDescription subPass = {};
-        subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subPass.colorAttachmentCount = 1;
-        subPass.pColorAttachments = &colorAttachmentRef;
-        subPass.pDepthStencilAttachment = &depthAttachmentRef;
+        VkSubpassDescription subpass = {};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+        subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
         VkSubpassDependency dependency = {};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -553,7 +553,7 @@ private:
         renderPassInfo.attachmentCount = attachments.size();
         renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subPass;
+        renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
 
@@ -1008,7 +1008,7 @@ private:
                     uniqueVertices[vertex] = vertices.size();
                     vertices.push_back(vertex);
                 }
-                
+
                 indices.push_back(uniqueVertices[vertex]);
             }
         }
