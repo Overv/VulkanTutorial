@@ -1,6 +1,6 @@
 {
     "title": "Vulkan Tutorial",
-    "tagline": "Vulkan graphics and compute API tutorial extensively covering all the basic principles to draw textured 3D models.",
+    "tagline": "A tutorial that teaches you everything it takes to render 3D graphics with the Vulkan API. It covers everything from Windows/Linux setup to rendering and debugging.",
     "author": "Alexander Overvoorde",
     "live": {
         "inherit_index": true,
