@@ -280,15 +280,92 @@ memory for a buffer. Use `vkGetImageMemoryRequirements` instead of
 able to use `vkMapMemory`, so you should specify that property when looking for
 the right memory type.
 
+We can now use the `vkMapMemory` function to (temporarily) access the memory of
+the staging image directly from our application. It returns a pointer to the
+first byte in the memory buffer:
+
 ```c++
 void* data;
 vkMapMemory(device, stagingImageMemory, 0, imageSize, 0, &data);
+```
+
+Unfortunately we can't just copy the pixel bytes directly into the image memory
+with `memcpy` and assume that this works correctly. The problem is that there
+may be padding bytes between rows of pixels. In other words, the graphics card
+may assume that one row of pixels is not `texWidth * 4` bytes wide, but rather
+`texWidth * 4 + paddingBytes`. To handle this correctly, we need to query how
+bytes are arranged in our staging image using `vkGetImageSubresourceLayout`:
+
+```c++
+VkImageSubresource subresource = {};
+subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+subresource.mipLevel = 0;
+subresource.arrayLayer = 0;
+
+VkSubresourceLayout stagingImageLayout;
+vkGetImageSubresourceLayout(device, stagingImage, &subresource, &stagingImageLayout);
+```
+
+Images contain one or more *subresources*, which are specific images within an
+image. For example, there is one subresource for every entry in an array image.
+In this case we don't have an array image, so there is simply one subresource at
+entry 0 and the base mipmapping level.
+
+The `rowPitch` member of the `VkSubresourceLayout` struct specifies the total
+number of bytes of each row of pixels in the image. If this value is equal to
+`texWidth * 4`, then we're lucky and we *can* use `memcpy`, because there are no
+padding bytes in that case.
+
+```c++
+if (stagingImageLayout.rowPitch == texWidth * 4) {
     memcpy(data, pixels, (size_t) imageSize);
+} else {
+
+}
+```
+
+This is usually the case when your images have a power-of-2 size (e.g. 512 or
+1024). Otherwise, we'll have to copy the pixels row-by-row using the right
+offset:
+
+```c++
+uint8_t* dataBytes = reinterpret_cast<uint8_t*>(data);
+
+for (int y = 0; y < texHeight; y++) {
+    memcpy(
+        &dataBytes[y * stagingImageLayout.rowPitch],
+        &pixels[y * texWidth * 4],
+        texWidth * 4
+    );
+}
+```
+
+Each subsequent row in the image memory is offset by `rowPitch` and the original
+pixels are offset by `texWidth * 4` without padding bytes.
+
+If you're done accessing the memory buffer, then you should unmap it with
+`vkUnmapMemory`. It is not necessary to call `vkUnmapMemory` now if you want to
+access the staging image memory again later on. The writes to the buffer will
+already be visible without calling this function.
+
+```c++
+void* data;
+vkMapMemory(device, stagingImageMemory, 0, imageSize, 0, &data);
+
+    if (stagingImageLayout.rowPitch == texWidth * 4) {
+        memcpy(data, pixels, (size_t) imageSize);
+    } else {
+        uint8_t* dataBytes = reinterpret_cast<uint8_t*>(data);
+
+        for (int y = 0; y < texHeight; y++) {
+            memcpy(&dataBytes[y * stagingImageLayout.rowPitch], &pixels[y * texWidth * 4], texWidth * 4);
+        }
+    }
+
 vkUnmapMemory(device, stagingImageMemory);
 ```
 
-We can now copy the pixel data straight to the memory of the image. Don't forget
-to clean up the pixel array now:
+Don't forget to clean up the original pixel array now:
 
 ```c++
 stbi_image_free(pixels);
@@ -357,9 +434,27 @@ void createTextureImage() {
     VDeleter<VkDeviceMemory> stagingImageMemory{device, vkFreeMemory};
     createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
 
+    VkImageSubresource subresource = {};
+    subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresource.mipLevel = 0;
+    subresource.arrayLayer = 0;
+
+    VkSubresourceLayout stagingImageLayout;
+    vkGetImageSubresourceLayout(device, stagingImage, &subresource, &stagingImageLayout);
+
     void* data;
     vkMapMemory(device, stagingImageMemory, 0, imageSize, 0, &data);
+
+    if (stagingImageLayout.rowPitch == texWidth * 4) {
         memcpy(data, pixels, (size_t) imageSize);
+    } else {
+        uint8_t* dataBytes = reinterpret_cast<uint8_t*>(data);
+
+        for (int y = 0; y < texHeight; y++) {
+            memcpy(&dataBytes[y * stagingImageLayout.rowPitch], &pixels[y * texWidth * 4], texWidth * 4);
+        }
+    }
+
     vkUnmapMemory(device, stagingImageMemory);
 
     stbi_image_free(pixels);
