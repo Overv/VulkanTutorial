@@ -103,7 +103,7 @@ VkPhysicalDeviceFeatures deviceFeatures;
 vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
 ```
 
-There more details that can be queried from devices that we'll discuss later
+There are more details that can be queried from devices that we'll discuss later
 concerning device memory and queue families (see the next section).
 
 As an example, let's say we consider our application only usable for dedicated
@@ -137,16 +137,16 @@ void pickPhysicalDevice() {
     ...
 
     // Use an ordered map to automatically sort candidates by increasing score
-    std::map<int, VkPhysicalDevice> candidates;
+    std::multimap<int, VkPhysicalDevice> candidates;
 
     for (const auto& device : devices) {
         int score = rateDeviceSuitability(device);
-        candidates[score] = device;
+        candidates.insert(std::make_pair(score, device));
     }
 
     // Check if the best candidate is suitable at all
-    if (candidates.begin()->first > 0) {
-        physicalDevice = candidates.begin()->second;
+    if (candidates.rbegin()->first > 0) {
+        physicalDevice = candidates.rbegin()->second;
     } else {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
