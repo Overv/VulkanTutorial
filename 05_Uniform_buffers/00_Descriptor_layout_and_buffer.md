@@ -265,6 +265,8 @@ void mainLoop() {
     }
 
     vkDeviceWaitIdle(device);
+
+    glfwDestroyWindow(window);
 }
 
 ...

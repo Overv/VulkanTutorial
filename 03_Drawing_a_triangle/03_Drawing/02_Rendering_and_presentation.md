@@ -10,6 +10,8 @@ void mainLoop() {
         glfwPollEvents();
         drawFrame();
     }
+
+    glfwDestroyWindow(window);
 }
 
 ...
@@ -319,7 +321,7 @@ may still be going on. Cleaning up resources while that is happening is a bad
 idea.
 
 To fix that problem, we should wait for the logical device to finish operations
-before exiting `mainLoop`:
+before exiting `mainLoop` and destroying the window:
 
 ```c++
 void mainLoop() {
@@ -329,6 +331,8 @@ void mainLoop() {
     }
 
     vkDeviceWaitIdle(device);
+
+    glfwDestroyWindow(window);
 }
 ```
 

@@ -94,6 +94,8 @@ private:
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
         }
+
+        glfwDestroyWindow(window);
     }
 };
 

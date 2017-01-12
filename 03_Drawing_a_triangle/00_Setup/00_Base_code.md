@@ -305,12 +305,15 @@ void mainLoop() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }
+
+    glfwDestroyWindow(window);
 }
 ```
 
 This code should be fairly self-explanatory. It loops and checks for events like
 pressing the X button until the window has been closed by the user. This is also
-the loop where we'll later call a function to render a single frame.
+the loop where we'll later call a function to render a single frame. Once the
+window is closed, we need to clean up resources by destroying it.
 
 When you run the program now you should see a window titled `Vulkan` show up
 until the application is terminated by closing the window. Now that we have the

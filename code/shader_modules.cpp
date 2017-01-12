@@ -167,6 +167,8 @@ private:
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
         }
+
+        glfwDestroyWindow(window);
     }
 
     void createInstance() {
