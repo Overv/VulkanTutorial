@@ -344,7 +344,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
         actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
         actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
-        
+
         return actualExtent;
     }
 }
@@ -352,7 +352,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
 The `max` and `min` functions are used here to clamp the value of `WIDTH` and
 `HEIGHT` between the allowed minimum and maximum extents that are supported by
-the implementation.
+the implementation. Make sure to include the `<algorithm>` header to use them.
 
 ## Creating the swap chain
 
