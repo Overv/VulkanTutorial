@@ -757,7 +757,13 @@ if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_
 
 If we need to do more transitions in the future, then we'll extend the function.
 The application should now run successfully, although there are of course no
-visual changes yet.
+visual changes yet. One thing to note is that command buffer submission results
+in implicit `VK_ACCESS_HOST_WRITE_BIT` synchronization at the beginning. Since
+the `transitionImageLayout` function executes a command buffer with only a
+single command, we can use this implicit synchronization and set `srcAccessMask`
+to `0` for the first two types of transitions. It's up to you if you want to be
+explicit about it or not, but I'm personally not a fan of relying on these
+OpenGL-like "hidden" operations.
 
 There is actually a special type of image layout that supports all operations,
 `VK_IMAGE_LAYOUT_GENERAL`. The problem with it, of course, is that it doesn't
