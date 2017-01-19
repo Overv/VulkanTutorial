@@ -213,4 +213,6 @@ validation layers enabled, you'll see that it complains that there is no vertex
 buffer bound to the binding. The next step is to create a vertex buffer and move
 the vertex data to it so the GPU is able to access it.
 
-[Full code listing](/code/vertex_input.cpp)
+[C++ code](/code/vertex_input.cpp) /
+[Vertex shader](/code/shader_vertexbuffer.vert) /
+[Fragment shader](/code/shader_vertexbuffer.frag)

@@ -97,4 +97,6 @@ successful pipeline creation! We are already getting quite close to seeing
 something pop up on the screen. In the next couple of chapters we'll set up the
 actual framebuffers from the swap chain images and prepare the drawing commands.
 
-[Full code listing](/code/graphics_pipeline_complete.cpp)
+[C++ code](/code/graphics_pipeline_complete.cpp) /
+[Vertex shader](/code/shader_base.vert) /
+[Fragment shader](/code/shader_base.frag)

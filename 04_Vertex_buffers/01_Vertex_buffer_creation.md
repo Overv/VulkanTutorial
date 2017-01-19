@@ -312,4 +312,6 @@ Run the program again and you should see the following:
 In the next chapter we'll look at a different way to copy vertex data to a
 vertex buffer that results in better performance, but takes some more work.
 
-[Full code listing](/code/vertex_buffer.cpp)
+[C++ code](/code/vertex_buffer.cpp) /
+[Vertex shader](/code/shader_vertexbuffer.vert) /
+[Fragment shader](/code/shader_vertexbuffer.frag)

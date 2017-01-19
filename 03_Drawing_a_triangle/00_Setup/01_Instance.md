@@ -170,4 +170,4 @@ list.
 Before continuing with the more complex steps after instance creation, it's time
 to evaluate our debugging options by checking out [validation layers](!Drawing_a_triangle/Setup/Validation_layers).
 
-[Full code listing](/code/instance_creation.cpp)
+[C++ code](/code/instance_creation.cpp) /

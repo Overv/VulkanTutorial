@@ -342,4 +342,6 @@ lighting, post-processing effects and shadow mapping. You should be able to
 learn how these effects work from tutorials for other APIs, because despite
 Vulkan's explicitness, many concepts still work the same.
 
-[Full code listing](/code/model_loading.cpp)
+[C++ code](/code/model_loading.cpp) /
+[Vertex shader](/code/shader_textures.vert) /
+[Fragment shader](/code/shader_textures.frag)

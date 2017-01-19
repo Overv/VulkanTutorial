@@ -89,4 +89,6 @@ We've now reached the milestone where we have all of the objects that are
 required for rendering. In the next chapter we're going to write the first
 actual drawing commands.
 
-[Full code listing](/code/framebuffers.cpp)
+[C++ code](/code/framebuffers.cpp) /
+[Vertex shader](/code/shader_base.vert) /
+[Fragment shader](/code/shader_base.frag)

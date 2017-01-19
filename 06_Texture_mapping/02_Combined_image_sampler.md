@@ -265,4 +265,6 @@ when combined with images that are also written to in framebuffers. You can use
 these images as inputs to implement cool effects like post-processing and camera
 displays within the 3D world.
 
-[Full code listing](/code/texture_mapping.cpp)
+[C++ code](/code/texture_mapping.cpp) /
+[Vertex shader](/code/shader_textures.vert) /
+[Fragment shader](/code/shader_textures.frag)

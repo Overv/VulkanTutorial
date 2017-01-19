@@ -378,4 +378,6 @@ In the next chapter we'll look at descriptor sets, which will actually bind the
 `VkBuffer` to the uniform buffer descriptor so that the shader can access this
 transformation data.
 
-[Full code listing](/code/descriptor_layout.cpp)
+[C++ code](/code/descriptor_layout.cpp) /
+[Vertex shader](/code/shader_ubo.vert) /
+[Fragment shader](/code/shader_ubo.frag)

@@ -215,4 +215,4 @@ In case the queue families are the same, the two handles will most likely have
 the same value now. In the next chapter we're going to look at swap chains and
 how they give us the ability to present images to the surface.
 
-[Full code listing](/code/window_surface.cpp)
+[C++ code](/code/window_surface.cpp) /

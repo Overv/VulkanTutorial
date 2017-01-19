@@ -197,4 +197,6 @@ if (vkCreateRenderPass(device, &renderPassInfo, nullptr, renderPass.replace()) !
 That was a lot of work, but in the next chapter it all comes together to finally
 create the graphics pipeline object!
 
-[Full code listing](/code/render_passes.cpp)
+[C++ code](/code/render_passes.cpp) /
+[Vertex shader](/code/shader_base.vert) /
+[Fragment shader](/code/shader_base.frag)

@@ -281,4 +281,6 @@ a single state.
 In the next chapter we will expose the image and sampler objects to the shaders
 to draw the texture onto the square.
 
-[Full code listing](/code/sampler.cpp)
+[C++ code](/code/sampler.cpp) /
+[Vertex shader](/code/shader_ubo.vert) /
+[Fragment shader](/code/shader_ubo.frag)

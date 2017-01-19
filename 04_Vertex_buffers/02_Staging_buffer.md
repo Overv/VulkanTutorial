@@ -251,4 +251,6 @@ any Vulkan program to properly handle allocations. It's okay to use a separate
 allocation for every resource for this tutorial, because we won't come close to
 hitting any of these limits for now.
 
-[Full code listing](/code/staging_buffer.cpp)
+[C++ code](/code/staging_buffer.cpp) /
+[Vertex shader](/code/shader_vertexbuffer.vert) /
+[Fragment shader](/code/shader_vertexbuffer.frag)

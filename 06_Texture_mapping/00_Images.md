@@ -790,4 +790,6 @@ if you need to update the data in an image often.
 The image now contains the texture, but we still need a way to access it from
 the graphics pipeline. We'll work on that in the next chapter.
 
-[Full code listing](/code/texture_image.cpp)
+[C++ code](/code/texture_image.cpp) /
+[Vertex shader](/code/shader_ubo.vert) /
+[Fragment shader](/code/shader_ubo.frag)
