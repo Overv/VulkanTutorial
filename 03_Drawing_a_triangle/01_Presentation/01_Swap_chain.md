@@ -585,4 +585,4 @@ We now have a set of images that can be drawn onto and can be presented to the
 window. The next two chapters will cover how we can set up the images as render
 targets and then we start looking into the actual drawing commands!
 
-[C++ code](/code/swap_chain_creation.cpp) /
+[C++ code](/code/swap_chain_creation.cpp)

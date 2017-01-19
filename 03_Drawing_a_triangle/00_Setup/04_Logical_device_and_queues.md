@@ -159,4 +159,4 @@ With the logical device and queue handles we can now actually start using the
 graphics card to do things! In the next few chapters we'll set up the resources
 to present results to the window system.
 
-[C++ code](/code/logical_device.cpp) /
+[C++ code](/code/logical_device.cpp)

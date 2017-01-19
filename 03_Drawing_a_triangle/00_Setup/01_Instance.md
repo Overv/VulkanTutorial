@@ -128,7 +128,7 @@ variable that stores the number of extensions and an array of
 optional first parameter that allows us to filter extensions by a specific
 validation layer, which we'll ignore for now.
 
-To allocate an array to hold the extension details we first need to know how 
+To allocate an array to hold the extension details we first need to know how
 many there are. You can request just the number of extensions by leaving the
 latter parameter empty:
 
@@ -170,4 +170,4 @@ list.
 Before continuing with the more complex steps after instance creation, it's time
 to evaluate our debugging options by checking out [validation layers](!Drawing_a_triangle/Setup/Validation_layers).
 
-[C++ code](/code/instance_creation.cpp) /
+[C++ code](/code/instance_creation.cpp)
