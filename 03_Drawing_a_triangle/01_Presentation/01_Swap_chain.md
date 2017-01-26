@@ -508,7 +508,7 @@ be specified in this field. This is a complex topic that we'll learn more about
 in [a future chapter](!Drawing_a_triangle/Swap_chain_recreation). For now we'll
 assume that we'll only ever create one swap chain.
 
-Now add a class member to store the `VkSwapChainKHR` object with a proper
+Now add a class member to store the `VkSwapchainKHR` object with a proper
 deleter. Make sure to add it after `device` so that it gets cleaned up before
 the logical device is.
 
