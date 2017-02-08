@@ -129,6 +129,17 @@ with `glfwGetWindowUserPointer`. We can then proceed to call
 occurs when the window is minimized and it will cause swap chain creation to
 fail.
 
+The `chooseSwapExtent` function should also be updated to take the current width
+and height of the window into account instead of the initial `WIDTH` and
+`HEIGHT`:
+
+```c++
+int width, height;
+glfwGetWindowSize(window, &width, &height);
+
+VkExtent2D actualExtent = {width, height};
+```
+
 ## Suboptimal or out-of-date swap chain
 
 It is also possible for Vulkan to tell us that the swap chain is no longer
