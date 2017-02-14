@@ -274,7 +274,7 @@ because it represents the actual conditions for showing images to the screen.
 There are four possible modes available in Vulkan:
 
 * `VK_PRESENT_MODE_IMMEDIATE_KHR`: Images submitted by your application are
-* transferred to the screen right away, which may result in tearing.
+transferred to the screen right away, which may result in tearing.
 * `VK_PRESENT_MODE_FIFO_KHR`: The swap chain is a queue where the display takes
 an image from the front of the queue on a vertical blank and the program inserts
 rendered images at the back of the queue. If the queue is full then the program
