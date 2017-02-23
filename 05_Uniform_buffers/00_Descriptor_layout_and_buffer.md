@@ -146,11 +146,12 @@ void createDescriptorSetLayout() {
 ```
 
 The first two fields specify the `binding` used in the shader and the type of
-descriptor, which is a uniform buffer. It is possible for a uniform buffer
-descriptor to be an array of data, and `descriptorCount` specifies the number of
-values in the array. This could be used to specify a transformation for each of
-the bones in a skeleton for skeletal animation, for example. Our MVP
-transformation is a single object, so we're using a `descriptorCount` of `1`.
+descriptor, which is a uniform buffer object. It is possible for the shader
+variable to represent an array of uniform buffer objects, and `descriptorCount`
+specifies the number of values in the array. This could be used to specify a
+transformation for each of the bones in a skeleton for skeletal animation, for
+example. Our MVP transformation is in a single uniform buffer object, so we're
+using a `descriptorCount` of `1`.
 
 ```c++
 uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
