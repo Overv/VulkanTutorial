@@ -53,7 +53,7 @@ And finally we have the reference to the render pass and the index of the sub
 pass where this graphics pipeline will be used.
 
 ```c++
-pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 pipelineInfo.basePipelineIndex = -1; // Optional
 ```
 
@@ -62,8 +62,12 @@ There are actually two more parameters: `basePipelineHandle` and
 deriving from an existing pipeline. The idea of pipeline derivatives is that it
 is less expensive to set up pipelines when they have much functionality in
 common with an existing pipeline and switching between pipelines from the same
-parent can also be done quicker. Right now there is only a single pipeline, so
-we'll simply specify a null handle.
+parent can also be done quicker. You can either specify the handle of an
+existing pipeline with `basePipelineHandle` or reference another pipeline that
+is about to be created by index with `basePipelineIndex`. Right now there is
+only a single pipeline, so we'll simply specify a null handle and an invalid
+index. These values are only used if the `VK_PIPELINE_CREATE_DERIVATIVE_BIT`
+flag is also specified in the `flags` field of `VkGraphicsPipelineCreateInfo`.
 
 Now prepare for the final step by creating a class member to hold the
 `VkPipeline` object:
