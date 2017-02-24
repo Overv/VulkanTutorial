@@ -96,6 +96,8 @@ private:
         }
 
         glfwDestroyWindow(window);
+
+        glfwTerminate();
     }
 };
 

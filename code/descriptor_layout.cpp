@@ -261,6 +261,8 @@ private:
         vkDeviceWaitIdle(device);
 
         glfwDestroyWindow(window);
+
+        glfwTerminate();
     }
 
     static void onWindowResized(GLFWwindow* window, int width, int height) {

@@ -188,6 +188,8 @@ private:
         vkDeviceWaitIdle(device);
 
         glfwDestroyWindow(window);
+
+        glfwTerminate();
     }
 
     void createInstance() {

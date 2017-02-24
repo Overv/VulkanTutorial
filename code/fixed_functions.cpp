@@ -173,6 +173,8 @@ private:
         }
 
         glfwDestroyWindow(window);
+
+        glfwTerminate();
     }
 
     void createInstance() {
