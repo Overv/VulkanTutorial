@@ -91,7 +91,7 @@ version can be queried using vkGetPhysicalDeviceProperties.
 
 ```c++
 VkPhysicalDeviceProperties deviceProperties;
-vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+vkGetPhysicalDeviceProperties(device, &deviceProperties);
 ```
 
 The support for optional features like texture compression, 64 bit floats and
@@ -100,7 +100,7 @@ vkGetPhysicalDeviceFeatures:
 
 ```c++
 VkPhysicalDeviceFeatures deviceFeatures;
-vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 ```
 
 There are more details that can be queried from devices that we'll discuss later
