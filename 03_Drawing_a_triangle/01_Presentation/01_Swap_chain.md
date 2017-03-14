@@ -76,7 +76,10 @@ extensions. That way we can easily tick them off while enumerating the sequence
 of available extensions. Of course you can also use a nested loop like in
 `checkValidationLayerSupport`. The performance difference is irrelevant. Now run
 the code and verify that your graphics card is indeed capable of creating a
-swap chain.
+swap chain. It should be noted that the availability of a presentation queue,
+as we checked in the previous chapter, implies that the swap chain extension
+must be supported. However, it's still good to be explicit about things, and
+the extension does have to be explicitly enabled.
 
 Enabling the extension just requires a small change to the logical device
 creation structure:
@@ -312,6 +315,26 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
     }
 
     return VK_PRESENT_MODE_FIFO_KHR;
+}
+```
+
+Unfortunately some drivers currently don't properly support
+`VK_PRESENT_MODE_FIFO_KHR`, so we should prefer `VK_PRESENT_MODE_IMMEDIATE_KHR`
+if `VK_PRESENT_MODE_MAILBOX_KHR` is not available:
+
+```c++
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+    VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
+
+    for (const auto& availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            return availablePresentMode;
+        } else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+            bestMode = availablePresentMode;
+        }
+    }
+
+    return bestMode;
 }
 ```
 
