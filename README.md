@@ -11,7 +11,7 @@ patch is based on commit `d45ccff`.
 Use issues and pull requests to provide feedback related to the website. If you
 have a problem with your code, then use the comments section in the related
 chapter to ask a question. Please provide your operating system, graphics card,
-driver version, source code, expected behaviour and actual behaviour
+driver version, source code, expected behaviour and actual behaviour.
 
 Changing code across chapters
 -----------------------------
