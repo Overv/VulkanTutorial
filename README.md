@@ -31,20 +31,23 @@ using the `incremental_patch.sh` script. Run it like this:
 * Clean up the `base_code_fixed.cpp` and `patch.txt` files.
 * Commit.
 
-Generating the tutorial
+Rendering the tutorial
 -----------------------------
 
-To generate the tutorial, run `daux.phar` against your copy of the
-documentation. Doing this requires installing daux and patching it with some
-tweaks needed for this tutorial.
+To render the tutorial (i.e. convert the markdown to html), you have two options:
 
-### Prerequisites
+1. Serve rendered files on the fly using a web server that has php installed
+2. Generate static html files that you can view locally or put on a server
+
+For either of these options, you'll need php and a patch'ed daux.
+
+### PHP
 
 1. Make sure [PHP](http://php.net/downloads.php) is installed (Daux is written
    in PHP)
     1. Both the `php_mbstring` and `php_openssl` extensions need to be enabled
     2. The `phar.readonly` setting needs to be set to `Off` (to be able to
-	   rebuild Daux)
+       rebuild Daux)
 2. Make sure [Composer](https://getcomposer.org/) is installed, a php dependency
    manager that Daux uses
 
@@ -69,15 +72,31 @@ tweaks needed for this tutorial.
     * And then copy the newly made `bin/daux.phar` to the base directory so you
       don't accidently use the old one
 
-### Using Daux to generate the tutorial
+### Using Daux to serve rendered files on the fly
+
+Once you've completed the above, follow the instructions on the daux site
+for how to [run daux using a web server](https://github.com/justinwalsh/daux.io/blob/master/README.md#running-remotely).
+
+As a simple option considering you have php installed, you can also use php's
+built in development web server if you just need to locally see what things
+look like:
+
+1. In the `daux.io` directory, edit `global.json` so that the `docs_directory`
+   option points at your VulkanTutorial directory
+    * `"docs_directory": "../VulkanTutorial",`
+2. In the `daux.io` directory, run
+    * ` php -S localhost:8080 index.php`
+3. Type `localhost:8080` in your web browser URL bar and hit enter. You should
+   now see the VulkanTutorial front page.
+
+### Using Daux to statically generate html files
 
 Assuming the daux.io and VulkanTutorial directories are next to each other, go
 into the VulkanTutorial directory and run a command similar to:
-`php ../daux.io/generate -s . -d out -f html`.
+`php ../daux.io/generate -s . -d out`.
 
 It should genenerate all of the documentation into the `out` directory. The `-s`
-option tells Daux the source material is in the current directory. `-f` controls
-the output format.
+option tells Daux the source material is in the current directory.
 
 License
 -------
