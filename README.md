@@ -91,12 +91,32 @@ look like:
 
 ### Using Daux to statically generate html files
 
-Assuming the daux.io and VulkanTutorial directories are next to each other, go
-into the VulkanTutorial directory and run a command similar to:
+Before we generate the static files, we need to tweak daux and the tutorial
+setup to prevent it from trying to load a few outside resources (which will
+stall your browser when trying to load the otherwise static page)
+
+1. In the `VulkanTutorial` directory, edit `config.json` and remove the
+   `google_analytics` line so daux doesn't try to load that.
+2. In the `daux.io` directory, edit `themes/daux/config.json` and remove the
+   `font` line so that daux doesn't try to load an external font.
+3. In the `daux.io` directory, edit `templates/content.php` and remove the
+  `<script>` block at the bottom that contains `disqus_config`
+4. Rebuild daux according to the earlier instructions so it picks up the
+   template and theme changes.
+
+We're working on improvements so in the future the above steps won't be
+necessary.
+
+Now with the above done, we can generate the static files. Asuming the daux.io
+and VulkanTutorial directories are next to each other, go into the
+VulkanTutorial directory and run a command similar to:
 `php ../daux.io/generate -s . -d out`.
 
 It should genenerate all of the documentation into the `out` directory. The `-s`
 option tells Daux the source material is in the current directory.
+
+Note: if you want to generate the docs again, delete the `out` directory first
+or daux will make a new `out` directory within the existing `out` directory.
 
 License
 -------
