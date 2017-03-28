@@ -210,7 +210,7 @@ chapter.
 
 ![](/images/vs_template.png)
 
-You are now all set for [the real adventure](!Drawing_a_triangle).
+You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
 
 ## Linux
 
@@ -500,4 +500,4 @@ The `Doc` directory contains useful information about the Vulkan SDK and an
 offline version of the entire Vulkan specification. Feel free to explore the
 other files, but we won't need them for this tutorial.
 
-You are now all set for [the real adventure](!Drawing_a_triangle).
+You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
