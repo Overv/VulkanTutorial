@@ -553,5 +553,5 @@ geometry and have it look right. We're going to try this out in the next chapter
 by drawing a textured model!
 
 [C++ code](/code/depth_buffering.cpp) /
-[Vertex shader](/code/shader_textures.vert) /
-[Fragment shader](/code/shader_textures.frag)
+[Vertex shader](/code/shader_depth.vert) /
+[Fragment shader](/code/shader_depth.frag)

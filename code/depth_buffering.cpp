@@ -1322,7 +1322,11 @@ private:
         VkShaderModuleCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();
-        createInfo.pCode = (uint32_t*) code.data();
+
+        std::vector<uint32_t> codeAligned(code.size() / 4 + 1);
+        memcpy(codeAligned.data(), code.data(), code.size());
+
+        createInfo.pCode = codeAligned.data();
 
         if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module!");
