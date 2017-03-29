@@ -98,7 +98,7 @@ stall your browser when trying to load the otherwise static page)
    `google_analytics` line so daux doesn't try to load that.
 2. In the `daux.io` directory, edit `themes/daux/config.json` and remove the
    `font` line so that daux doesn't try to load an external font.
-4. Rebuild daux according to the earlier instructions so it picks up the theme
+3. Rebuild daux according to the earlier instructions so it picks up the theme
    changes.
 
 We're working on improvements so in the future the above steps won't be
