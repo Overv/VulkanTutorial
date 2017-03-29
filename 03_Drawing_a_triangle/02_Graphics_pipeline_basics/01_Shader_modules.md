@@ -362,13 +362,19 @@ easier to wrap it in a deleter variable when calling `createShaderModule`.
 
 Creating a shader module is simple, we only need to specify a pointer to the
 buffer with the bytecode and the length of it. This information is specified in
-a `VkShaderModuleCreateInfo` structure.
+a `VkShaderModuleCreateInfo` structure. The one catch is that the size of the
+bytecode is specified in bytes, but the bytecode pointer is a `uint32_t` pointer
+rather than a `char` pointer. Therefore we need to temporarily copy the bytecode
+to a container that has the right alignment for `uint32_t`:
 
 ```c++
 VkShaderModuleCreateInfo createInfo = {};
 createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 createInfo.codeSize = code.size();
-createInfo.pCode = (uint32_t*) code.data();
+
+std::vector<uint32_t> codeAligned(code.size() / sizeof(uint32_t) + 1);
+memcpy(codeAligned.data(), code.data(), code.size());
+createInfo.pCode = codeAligned.data();
 ```
 
 The `VkShaderModule` can then be created with a call to `vkCreateShaderModule`:

@@ -1,11 +1,11 @@
-From 627771ccbadfbe51cce873f9d8da6826c1f3075a Mon Sep 17 00:00:00 2001
+From 875d9a377b7904c47583bbaa070b6e35c5c20638 Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Mon, 18 Jul 2016 23:58:13 +0200
+Date: Tue, 28 Mar 2017 11:21:50 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
  daux/VulkanLinkProcessor.php            |  69 ++++
- templates/content.php                   |  24 +-
+ templates/content.php                   |  26 +-
  templates/layout/00_layout.php          |   2 +-
  templates/layout/05_page.php            |  17 +-
  themes/daux/css/theme-blue.min.css      |   2 +-
@@ -20,7 +20,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
  themes/daux/less/structure.less         |  27 +-
  themes/daux/less/theme-blue.less        |  10 +-
  themes/daux_singlepage/css/main.min.css |   2 +-
- 16 files changed, 922 insertions(+), 137 deletions(-)
+ 16 files changed, 924 insertions(+), 137 deletions(-)
  create mode 100644 daux/VulkanLinkProcessor.php
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
@@ -99,7 +99,7 @@ index 0000000..82b908c
 +    }
 +?>
 diff --git a/templates/content.php b/templates/content.php
-index 2febe38..82e79cd 100644
+index 2febe38..03017b7 100644
 --- a/templates/content.php
 +++ b/templates/content.php
 @@ -2,17 +2,14 @@
@@ -122,13 +122,14 @@ index 2febe38..82e79cd 100644
          </div>
      <?php } ?>
  
-@@ -26,5 +23,22 @@
+@@ -26,5 +23,24 @@
          </ul>
      </nav>
      <?php } ?>
 +
 +    <div id="disqus_thread"></div>
 +    <script>
++    if (document.location.host) {
 +        var disqus_config = function() {
 +            var path = location.pathname;
 +            if (path == '/') path = '/Introduction';
@@ -141,6 +142,7 @@ index 2febe38..82e79cd 100644
 +            s.setAttribute('data-timestamp', +new Date());
 +            (d.head || d.body).appendChild(s);
 +        })();
++    }
 +    </script>
 +    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
  </article>

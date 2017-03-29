@@ -343,5 +343,5 @@ learn how these effects work from tutorials for other APIs, because despite
 Vulkan's explicitness, many concepts still work the same.
 
 [C++ code](/code/model_loading.cpp) /
-[Vertex shader](/code/shader_textures.vert) /
-[Fragment shader](/code/shader_textures.frag)
+[Vertex shader](/code/shader_depth.vert) /
+[Fragment shader](/code/shader_depth.frag)
