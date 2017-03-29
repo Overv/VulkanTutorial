@@ -68,9 +68,8 @@ For either of these options, you'll need php and a patch'ed daux.
    Daux needs in order to be built
     * `composer install`
 5. Rebuild Daux
-    * `php bin/compile`
-    * And then copy the newly made `bin/daux.phar` to the base directory so you
-      don't accidently use the old one
+    * `php bin/compile` (this can take a while)
+    * A newly made `daux.phar` will now be in your base directory
 
 ### Using Daux to serve rendered files on the fly
 
@@ -99,21 +98,19 @@ stall your browser when trying to load the otherwise static page)
    `google_analytics` line so daux doesn't try to load that.
 2. In the `daux.io` directory, edit `themes/daux/config.json` and remove the
    `font` line so that daux doesn't try to load an external font.
-3. In the `daux.io` directory, edit `templates/content.php` and remove the
-  `<script>` block at the bottom that contains `disqus_config`
-4. Rebuild daux according to the earlier instructions so it picks up the
-   template and theme changes.
+4. Rebuild daux according to the earlier instructions so it picks up the theme
+   changes.
 
 We're working on improvements so in the future the above steps won't be
 necessary.
 
 Now with the above done, we can generate the static files. Asuming the daux.io
-and VulkanTutorial directories are next to each other, go into the
-VulkanTutorial directory and run a command similar to:
-`php ../daux.io/generate -s . -d out`.
+and VulkanTutorial directories are next to each other, go into the `daux.io`
+directory and run a command similar to:
+`php generate -s ../VulkanTutorial -d ../VulkanTutorial\out`.
 
-It should genenerate all of the documentation into the `out` directory. The `-s`
-option tells Daux the source material is in the current directory.
+`-s` tells it where to find the documentation, while `-d` tells it where to put
+the generated files.
 
 Note: if you want to generate the docs again, delete the `out` directory first
 or daux will make a new `out` directory within the existing `out` directory.
