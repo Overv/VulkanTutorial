@@ -90,7 +90,7 @@ void main() {
 ```
 
 Note that the order of the `uniform`, `in` and `out` declarations doesn't
-matter. The `binding` directive is similar to the `layout` directive for
+matter. The `binding` directive is similar to the `location` directive for
 attributes. We're going to reference this binding in the descriptor layout. The
 line with `gl_Position` is changed to use the transformations to compute the
 final position in clip coordinates.
