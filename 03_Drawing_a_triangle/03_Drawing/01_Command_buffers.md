@@ -270,7 +270,7 @@ have 3 vertices to draw.
 that.
 * `firstVertex`: Used as an offset into the vertex buffer, defines the lowest
 value of `gl_VertexIndex`.
-* `firstIntance`: Used as an offset for instanced rendering, defines the lowest
+* `firstInstance`: Used as an offset for instanced rendering, defines the lowest
 value of `gl_InstanceIndex`.
 
 ## Finishing up
