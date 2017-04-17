@@ -1,6 +1,6 @@
-From 875d9a377b7904c47583bbaa070b6e35c5c20638 Mon Sep 17 00:00:00 2001
+From 40008c88788c97fd4b81e1117a5f029d9a457acd Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Tue, 28 Mar 2017 11:21:50 +0200
+Date: Mon, 17 Apr 2017 20:02:04 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
@@ -25,7 +25,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
 new file mode 100644
-index 0000000..82b908c
+index 0000000..4e4d456
 --- /dev/null
 +++ b/daux/VulkanLinkProcessor.php
 @@ -0,0 +1,69 @@
@@ -72,7 +72,7 @@ index 0000000..82b908c
 +                throw new \InvalidArgumentException('Incompatible inline type: ' . get_class($inline));
 +            }
 +
-+            if (preg_match("/^[vV]k[A-Z][A-Za-z0-9_]+$/", $inline->getContent())) {
++            if (preg_match("/^[vV]k[A-Z][A-Za-z0-9_]+$/", $inline->getContent()) && strpos($inline->getContent(), "KHR") === false && strpos($inline->getContent(), "EXT") === false) {
 +                $attrs = [];
 +                $attrs['href'] = "https://www.khronos.org/registry/vulkan/specs/1.0/man/html/" . $inline->getContent() . ".html";
 +
