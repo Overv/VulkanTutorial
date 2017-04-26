@@ -362,15 +362,15 @@ depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-depthAttachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 ```
 
 The `format` should be the same as the depth image itself. This time we don't
 care about storing the depth data (`storeOp`), because it will not be used after
 drawing has finished. This may allow the hardware to perform additional
-optimizations. The layout of the image will not change during rendering, so the
-`initialLayout` and `finalLayout` are the same.
+optimizations. Just like the color buffer, we don't care about the previous
+depth contents, so we can use `VK_IMAGE_LAYOUT_UNDEFINED` as `initialLayout`.
 
 ```c++
 VkAttachmentReference depthAttachmentRef = {};
