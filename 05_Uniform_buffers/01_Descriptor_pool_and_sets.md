@@ -240,6 +240,6 @@ You can use this feature to put descriptors that vary per-object and descriptors
 that are shared into separate descriptor sets. In that case you avoid rebinding
 most of the descriptors across draw calls which is potentially more efficient.
 
-[C++ code](/code/descriptor_set.cpp) / /
-[Vertex shader](/code/shader_ubo.vert) / /
+[C++ code](/code/descriptor_set.cpp) /
+[Vertex shader](/code/shader_ubo.vert) /
 [Fragment shader](/code/shader_ubo.frag)
