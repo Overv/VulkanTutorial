@@ -46,6 +46,14 @@ linear algebra library and you will be on your own in terms of code structuring.
 We will use C++ features like classes and RAII to organize logic and resource
 lifetimes.
 
+## E-book
+
+If you prefer to read this tutorial as an e-book, then you can download an EPUB
+or PDF version here:
+
+* [EPUB](https://raw.githubusercontent.com/Overv/VulkanTutorial/master/ebook/Vulkan%20Tutorial.epub)
+* [PDF](https://raw.githubusercontent.com/Overv/VulkanTutorial/master/ebook/Vulkan%20Tutorial.pdf)
+
 ## Tutorial structure
 
 We'll start with an overview of how Vulkan works and the work we'll have to do
