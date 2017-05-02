@@ -13,6 +13,14 @@ have a problem with your code, then use the comments section in the related
 chapter to ask a question. Please provide your operating system, graphics card,
 driver version, source code, expected behaviour and actual behaviour.
 
+E-book
+------
+
+This guide is now available in e-book formats as well:
+
+* [EPUB](https://raw.githubusercontent.com/Overv/VulkanTutorial/master/ebook/Vulkan%20Tutorial.epub)
+* [PDF](https://raw.githubusercontent.com/Overv/VulkanTutorial/master/ebook/Vulkan%20Tutorial.pdf)
+
 Changing code across chapters
 -----------------------------
 
