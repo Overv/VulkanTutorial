@@ -208,7 +208,7 @@ visible. The problem is that because of the Y-flip we did in the projection
 matrix, the vertices are now being drawn in clockwise order instead of
 counter-clockwise order. This causes backface culling to kick in and prevents
 any geometry from being drawn. Go to the `createGraphicsPipeline` function and
-modify the `cullFace` in `VkPipelineRasterizationStateCreateInfo` to correct
+modify the `frontFace` in `VkPipelineRasterizationStateCreateInfo` to correct
 this:
 
 ```c++
