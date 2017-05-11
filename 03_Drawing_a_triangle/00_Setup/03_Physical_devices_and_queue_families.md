@@ -22,8 +22,8 @@ void pickPhysicalDevice() {
 
 The graphics card that we'll end up selecting will be stored in a
 VkPhysicalDevice handle that is added as a new class member. This object will be
-implicitly destroyed when the VkInstance is destroyed, so we don't need to add a
-delete wrapper.
+implicitly destroyed when the VkInstance is destroyed, so we won't need to do
+anything new in the `cleanup` function.
 
 ```c++
 VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

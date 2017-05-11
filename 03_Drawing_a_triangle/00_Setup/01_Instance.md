@@ -14,19 +14,12 @@ void initVulkan() {
 }
 ```
 
-Additionally add a class member to hold the handle to the instance, like we saw
-in the resource management section of the previous chapter.
+Additionally add a class member to hold the handle to the instance:
 
 ```c++
 private:
-VDeleter<VkInstance> instance {vkDestroyInstance};
+VkInstance instance;
 ```
-
-The `vkDestroyInstance` function, as you might imagine, will clean up the
-instance that we'll create in a moment. The second parameter is optional and
-allows you to specify callbacks for a custom allocator. You'll see that most of
-the creation and destroy functions have such a callback parameter and we'll
-always pass a `nullptr` as argument, as seen in the `VDeleter` definition.
 
 Now, to create an instance we'll first have to fill in a struct with some
 information about our application. This data is technically optional, but it may
@@ -90,7 +83,7 @@ We've now specified everything Vulkan needs to create an instance and we can
 finally issue the `vkCreateInstance` call:
 
 ```c++
-VkResult result = vkCreateInstance(&createInfo, nullptr, instance.replace());
+VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
 ```
 
 As you'll see, the general pattern that object creation function parameters in
@@ -101,12 +94,12 @@ Vulkan follow is:
 * Pointer to the variable that stores the handle to the new object
 
 If everything went well then the handle to the instance was stored in the
-wrapped `VkInstance` class member. Nearly all Vulkan functions return a value of
-type `VkResult` that is either `VK_SUCCESS` or an error code. To check if the
+`VkInstance` class member. Nearly all Vulkan functions return a value of type
+`VkResult` that is either `VK_SUCCESS` or an error code. To check if the
 instance was created successfully, simply add a check for the success value:
 
 ```c++
-if (vkCreateInstance(&createInfo, nullptr, instance.replace()) != VK_SUCCESS) {
+if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
     throw std::runtime_error("failed to create instance!");
 }
 ```
@@ -166,6 +159,27 @@ some details about the Vulkan support. As a challenge, try to create a function
 that checks if all of the extensions returned by
 `glfwGetRequiredInstanceExtensions` are included in the supported extensions
 list.
+
+## Cleaning up
+
+The `VkInstance` should be only destroyed right before the program exits. It can
+be destroyed in `cleanup` with the `vkDestroyInstance` function:
+
+```c++
+void cleanup() {
+    vkDestroyInstance(instance, nullptr);
+
+    glfwDestroyWindow(window);
+
+    glfwTerminate();
+}
+```
+
+The parameters for the `vkDestroyInstance` function are straightforward. As
+mentioned in the previous chapter, the allocation and deallocation functions
+in Vulkan have an optional allocator callback that we'll ignore by passing
+`nullptr` to it. All of the other Vulkan resources that we'll create in the
+following chapters should be cleaned up before the instance is destroyed.
 
 Before continuing with the more complex steps after instance creation, it's time
 to evaluate our debugging options by checking out [validation layers](!Drawing_a_triangle/Setup/Validation_layers).

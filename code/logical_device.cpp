@@ -21,7 +21,7 @@ const bool enableValidationLayers = true;
 #endif
 
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
-    auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
     if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pCallback);
     } else {
@@ -35,64 +35,6 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
         func(instance, callback, pAllocator);
     }
 }
-
-template <typename T>
-class VDeleter {
-public:
-    VDeleter() : VDeleter([](T, VkAllocationCallbacks*) {}) {}
-
-    VDeleter(std::function<void(T, VkAllocationCallbacks*)> deletef) {
-        this->deleter = [=](T obj) { deletef(obj, nullptr); };
-    }
-
-    VDeleter(const VDeleter<VkInstance>& instance, std::function<void(VkInstance, T, VkAllocationCallbacks*)> deletef) {
-        this->deleter = [&instance, deletef](T obj) { deletef(instance, obj, nullptr); };
-    }
-
-    VDeleter(const VDeleter<VkDevice>& device, std::function<void(VkDevice, T, VkAllocationCallbacks*)> deletef) {
-        this->deleter = [&device, deletef](T obj) { deletef(device, obj, nullptr); };
-    }
-
-    ~VDeleter() {
-        cleanup();
-    }
-
-    const T* operator &() const {
-        return &object;
-    }
-
-    T* replace() {
-        cleanup();
-        return &object;
-    }
-
-    operator T() const {
-        return object;
-    }
-
-    void operator=(T rhs) {
-        if (rhs != object) {
-            cleanup();
-            object = rhs;
-        }
-    }
-
-    template<typename V>
-    bool operator==(V rhs) {
-        return object == T(rhs);
-    }
-
-private:
-    T object{VK_NULL_HANDLE};
-    std::function<void(T)> deleter;
-
-    void cleanup() {
-        if (object != VK_NULL_HANDLE) {
-            deleter(object);
-        }
-        object = VK_NULL_HANDLE;
-    }
-};
 
 struct QueueFamilyIndices {
     int graphicsFamily = -1;
@@ -108,17 +50,17 @@ public:
         initWindow();
         initVulkan();
         mainLoop();
+        cleanup();
     }
 
 private:
     GLFWwindow* window;
 
-    VDeleter<VkInstance> instance{vkDestroyInstance};
-    VDeleter<VkDebugReportCallbackEXT> callback{instance, DestroyDebugReportCallbackEXT};
-    VDeleter<VkSurfaceKHR> surface{instance, vkDestroySurfaceKHR};
+    VkInstance instance;
+    VkDebugReportCallbackEXT callback;
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VDeleter<VkDevice> device{vkDestroyDevice};
+    VkDevice device;
 
     VkQueue graphicsQueue;
 
@@ -142,6 +84,12 @@ private:
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
         }
+    }
+
+    void cleanup() {
+        vkDestroyDevice(device, nullptr);
+        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+        vkDestroyInstance(instance, nullptr);
 
         glfwDestroyWindow(window);
 
@@ -166,17 +114,17 @@ private:
         createInfo.pApplicationInfo = &appInfo;
 
         auto extensions = getRequiredExtensions();
-        createInfo.enabledExtensionCount = extensions.size();
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
         if (enableValidationLayers) {
-            createInfo.enabledLayerCount = validationLayers.size();
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
         } else {
             createInfo.enabledLayerCount = 0;
         }
 
-        if (vkCreateInstance(&createInfo, nullptr, instance.replace()) != VK_SUCCESS) {
+        if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create instance!");
         }
     }
@@ -189,7 +137,7 @@ private:
         createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
         createInfo.pfnCallback = debugCallback;
 
-        if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, callback.replace()) != VK_SUCCESS) {
+        if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug callback!");
         }
     }
@@ -241,13 +189,13 @@ private:
         createInfo.enabledExtensionCount = 0;
         
         if (enableValidationLayers) {
-            createInfo.enabledLayerCount = validationLayers.size();
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
         } else {
             createInfo.enabledLayerCount = 0;
         }
 
-        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, device.replace()) != VK_SUCCESS) {
+        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
 

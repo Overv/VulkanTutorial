@@ -155,7 +155,7 @@ validation layer names if they are enabled:
 
 ```c++
 if (enableValidationLayers) {
-    createInfo.enabledLayerCount = validationLayers.size();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
 } else {
     createInfo.enabledLayerCount = 0;
@@ -205,7 +205,7 @@ We can now use this function in `createInstance`:
 
 ```c++
 auto extensions = getRequiredExtensions();
-createInfo.enabledExtensionCount = extensions.size();
+createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 createInfo.ppEnabledExtensionNames = extensions.data();
 ```
 
@@ -297,7 +297,7 @@ create the `VkDebugReportCallbackEXT` object. Unfortunately, because this
 function is an extension function, it is not automatically loaded. We have to
 look up its address ourselves using `vkGetInstanceProcAddr`. We're going to
 create our own proxy function that handles this in the background. I've added it
-right above the `VDeleter` definition.
+right above the `HelloTriangleApplication` class definition.
 
 ```c++
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
@@ -320,18 +320,21 @@ if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != V
 }
 ```
 
-Let's see if it works... Run the program and close the window once you're fed up
-with staring at the blank window. You'll see that the following message is
-printed to the command prompt:
+The second to last parameter is again the optional allocator callback that we
+set to `nullptr`, other than that the parameters are fairly straightforward.
+Since the debug callback is specific to our Vulkan instance and its layers, it
+needs to be explicitly specified as first argument. You will also see this
+pattern with other *child* objects later on. Let's see if it works... Run the
+program and close the window once you're fed up with staring at the blank
+window. You'll see that the following message is printed to the command prompt:
 
 ![](/images/validation_layer_test.png)
 
 Oops, it has already spotted a bug in our program! The
 `VkDebugReportCallbackEXT` object needs to be cleaned up with a call to
-`vkDestroyDebugReportCallbackEXT`. Change the `callback` variable to use our
-deleter wrapper. Similarly to `vkCreateDebugReportCallbackEXT` the function
-needs to be explicitly loaded. Create another proxy function right below
-`CreateDebugReportCallbackEXT`:
+`vkDestroyDebugReportCallbackEXT`. Similarly to `vkCreateDebugReportCallbackEXT`
+the function needs to be explicitly loaded. Create another proxy function right
+below `CreateDebugReportCallbackEXT`:
 
 ```c++
 void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks* pAllocator) {
@@ -343,20 +346,20 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
 ```
 
 Make sure that this function is either a static class function or a function
-outside the class. We can then specify it as cleanup function:
+outside the class. We can then call it in the `cleanup` function:
 
 ```c++
-VDeleter<VkDebugReportCallbackEXT> callback{instance, DestroyDebugReportCallbackEXT};
+void cleanup() {
+    DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+    vkDestroyInstance(instance, nullptr);
+
+    glfwDestroyWindow(window);
+
+    glfwTerminate();
+}
 ```
 
-Make sure to change the line that creates the debug report callback to use the
-`replace()` method of the wrapper:
-
-```c++
-if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, callback.replace()) != VK_SUCCESS) {
-```
-
-When you run the program again you'll see that the error message has
+When you run the program again you'll see that the error message has 
 disappeared. If you want to see which call triggered a message, you can add a
 breakpoint to the message callback and look at the stack trace.
 
