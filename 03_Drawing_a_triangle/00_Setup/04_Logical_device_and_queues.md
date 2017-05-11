@@ -7,13 +7,10 @@ need to specify which queues to create now that we've queried which queue
 families are available. You can even create multiple logical devices from the
 same physical device if you have varying requirements.
 
-Start by adding a new class member to store the logical device handle in. Make
-sure to place the declaration below the `VkInstance` member, because it needs to
-be cleaned up before the instance is cleaned up. See [C++ destruction order](https://msdn.microsoft.com/en-us/library/6t4fe76c.aspx).
-Logical devices are cleaned up with the `vkDestroyDevice` function.
+Start by adding a new class member to store the logical device handle in.
 
 ```c++
-VDeleter<VkDevice> device{vkDestroyDevice};
+VkDevice device;
 ```
 
 Next, add a `createLogicalDevice` function that is called from `initVulkan`.
@@ -111,7 +108,7 @@ device specific extensions for now.
 createInfo.enabledExtensionCount = 0;
 
 if (enableValidationLayers) {
-    createInfo.enabledLayerCount = validationLayers.size();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
 } else {
     createInfo.enabledLayerCount = 0;
@@ -122,7 +119,7 @@ That's it, we're now ready to instantiate the logical device with a call to the
 appropriately named `vkCreateDevice` function.
 
 ```c++
-if (vkCreateDevice(physicalDevice, &createInfo, nullptr, device.replace()) != VK_SUCCESS) {
+if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
     throw std::runtime_error("failed to create logical device!");
 }
 ```
@@ -132,6 +129,18 @@ info we just specified, the optional allocation callbacks pointer and a pointer
 to a variable to store the logical device handle in. Similarly to the instance
 creation function, this call can return errors based on enabling non-existent
 extensions or specifying the desired usage of unsupported features.
+
+The device should be destroyed in `cleanup` with the `vkDestroyDevice` function:
+
+```c++
+void cleanup() {
+    vkDestroyDevice(device, nullptr);
+    ...
+}
+```
+
+Logical devices don't interact directly with instances, which is why it's not
+included as a parameter.
 
 ## Retrieving queue handles
 
@@ -144,7 +153,7 @@ VkQueue graphicsQueue;
 ```
 
 Device queues are implicitly cleaned up when the device is destroyed, so we
-don't need to wrap it in a deleter object.
+don't need to do anything in `cleanup`.
 
 We can use the `vkGetDeviceQueue` function to retrieve queue handles for each
 queue family. The parameters are the logical device, queue family, queue index
