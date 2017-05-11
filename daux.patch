@@ -1,11 +1,11 @@
-From 40008c88788c97fd4b81e1117a5f029d9a457acd Mon Sep 17 00:00:00 2001
+From b3713faf02ab4ace5be4dbc57f9deb45510c57dd Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Mon, 17 Apr 2017 20:02:04 +0200
+Date: Thu, 11 May 2017 15:48:53 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
  daux/VulkanLinkProcessor.php            |  69 ++++
- templates/content.php                   |  26 +-
+ templates/content.php                   |  25 +-
  templates/layout/00_layout.php          |   2 +-
  templates/layout/05_page.php            |  17 +-
  themes/daux/css/theme-blue.min.css      |   2 +-
@@ -20,7 +20,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
  themes/daux/less/structure.less         |  27 +-
  themes/daux/less/theme-blue.less        |  10 +-
  themes/daux_singlepage/css/main.min.css |   2 +-
- 16 files changed, 924 insertions(+), 137 deletions(-)
+ 16 files changed, 923 insertions(+), 137 deletions(-)
  create mode 100644 daux/VulkanLinkProcessor.php
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
@@ -99,7 +99,7 @@ index 0000000..4e4d456
 +    }
 +?>
 diff --git a/templates/content.php b/templates/content.php
-index 2febe38..03017b7 100644
+index 2febe38..f1083bd 100644
 --- a/templates/content.php
 +++ b/templates/content.php
 @@ -2,17 +2,14 @@
@@ -122,7 +122,7 @@ index 2febe38..03017b7 100644
          </div>
      <?php } ?>
  
-@@ -26,5 +23,24 @@
+@@ -26,5 +23,23 @@
          </ul>
      </nav>
      <?php } ?>
@@ -131,8 +131,7 @@ index 2febe38..03017b7 100644
 +    <script>
 +    if (document.location.host) {
 +        var disqus_config = function() {
-+            var path = location.pathname;
-+            if (path == '/') path = '/Introduction';
++            var path = '/<?= $page['request'] ?>';
 +            this.page.identifier = path;
 +        };
 +
