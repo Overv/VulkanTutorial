@@ -85,7 +85,7 @@ Enabling the extension just requires a small change to the logical device
 creation structure:
 
 ```c++
-createInfo.enabledExtensionCount = deviceExtensions.size();
+createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 ```
 
@@ -531,26 +531,32 @@ be specified in this field. This is a complex topic that we'll learn more about
 in [a future chapter](!Drawing_a_triangle/Swap_chain_recreation). For now we'll
 assume that we'll only ever create one swap chain.
 
-Now add a class member to store the `VkSwapchainKHR` object with a proper
-deleter. Make sure to add it after `device` so that it gets cleaned up before
-the logical device is.
+Now add a class member to store the `VkSwapchainKHR` object:
 
 ```c++
-VDeleter<VkSwapchainKHR> swapChain{device, vkDestroySwapchainKHR};
+VkSwapchainKHR swapChain;
 ```
 
-Now creating the swap chain is as simple as calling `vkCreateSwapchainKHR`:
+Creating the swap chain is now as simple as calling `vkCreateSwapchainKHR`:
 
 ```c++
-if (vkCreateSwapchainKHR(device, &createInfo, nullptr, swapChain.replace()) != VK_SUCCESS) {
+if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
 }
 ```
 
 The parameters are the logical device, swap chain creation info, optional custom
 allocators and a pointer to the variable to store the handle in. No surprises
-there. Now run the application to ensure that the swap chain is created
-successfully!
+there. It should be cleaned up using `vkDestroySwapchainKHR` before the device:
+
+```c++
+void cleanup() {
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
+    ...
+}
+```
+
+Now run the application to ensure that the swap chain is created successfully!
 
 Try removing the `createInfo.imageExtent = extent;` line with validation layers
 enabled. You'll see that one of the validation layers immediately catches the
@@ -570,7 +576,7 @@ std::vector<VkImage> swapChainImages;
 
 The images were created by the implementation for the swap chain and they will
 be automatically cleaned up once the swap chain has been destroyed, therefore we
-don't need a deleter here.
+don't need to add any cleanup code.
 
 I'm adding the code to retrieve the handles to the end of the `createSwapChain`
 function, right after the `vkCreateSwapchainKHR` call. Retrieving them is very
@@ -593,7 +599,7 @@ One last thing, store the format and extent we've chosen for the swap chain
 images in member variables. We'll need them in future chapters.
 
 ```c++
-VDeleter<VkSwapchainKHR> swapChain{device, vkDestroySwapchainKHR};
+VkSwapchainKHR swapChain;
 std::vector<VkImage> swapChainImages;
 VkFormat swapChainImageFormat;
 VkExtent2D swapChainExtent;
@@ -605,7 +611,8 @@ swapChainExtent = extent;
 ```
 
 We now have a set of images that can be drawn onto and can be presented to the
-window. The next two chapters will cover how we can set up the images as render
-targets and then we start looking into the actual drawing commands!
+window. The next chapter will begin to cover how we can set up the images as
+render targets and then we start looking into the actual graphics pipeline and
+drawing commands!
 
 [C++ code](/code/swap_chain_creation.cpp)
