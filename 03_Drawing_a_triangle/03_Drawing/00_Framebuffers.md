@@ -14,7 +14,7 @@ at drawing time.
 To that end, create another `std::vector` class member to hold the framebuffers:
 
 ```c++
-std::vector<VDeleter<VkFramebuffer>> swapChainFramebuffers;
+std::vector<VkFramebuffer> swapChainFramebuffers;
 ```
 
 We'll create the objects for this array in a new function `createFramebuffers`
@@ -45,7 +45,7 @@ Start by resizing the container to hold all of the framebuffers:
 
 ```c++
 void createFramebuffers() {
-    swapChainFramebuffers.resize(swapChainImageViews.size(), VDeleter<VkFramebuffer>{device, vkDestroyFramebuffer});
+    swapChainFramebuffers.resize(swapChainImageViews.size());
 }
 ```
 
@@ -66,7 +66,7 @@ for (size_t i = 0; i < swapChainImageViews.size(); i++) {
     framebufferInfo.height = swapChainExtent.height;
     framebufferInfo.layers = 1;
 
-    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, swapChainFramebuffers[i].replace()) != VK_SUCCESS) {
+    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
         throw std::runtime_error("failed to create framebuffer!");
     }
 }
@@ -84,6 +84,19 @@ the render pass `pAttachment` array.
 The `width` and `height` parameters are self-explanatory and `layers` refers to
 the number of layers in image arrays. Our swap chain images are single images,
 so the number of layers is `1`.
+
+We should delete the framebuffers before the image views and render pass that
+they are based on, but only after we've finished rendering:
+
+```c++
+void cleanup() {
+    for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
+        vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
+    }
+
+    ...
+}
+```
 
 We've now reached the milestone where we have all of the objects that are
 required for rendering. In the next chapter we're going to write the first

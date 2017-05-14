@@ -12,7 +12,7 @@ pools manage the memory that is used to store the buffers and command buffers
 are allocated from them. Add a new class member to store a `VkCommandPool`:
 
 ```c++
-VDeleter<VkCommandPool> commandPool{device, vkDestroyCommandPool};
+VkCommandPool commandPool;
 ```
 
 Then create a new function `createCommandPool` and call it from `initVulkan`
@@ -69,13 +69,23 @@ execute them many times in the main loop, so we're not going to use either of
 these flags.
 
 ```c++
-if (vkCreateCommandPool(device, &poolInfo, nullptr, commandPool.replace()) != VK_SUCCESS) {
+if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
     throw std::runtime_error("failed to create command pool!");
 }
 ```
 
 Finish creating the command pool using the `vkCreateCommandPool` function. It
-doesn't have any special parameters.
+doesn't have any special parameters. Commands will be used throughout the
+program to draw things on the screen, so the pool should only be destroyed at
+the end:
+
+```c++
+void cleanup() {
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    
+    ...
+}
+```
 
 ## Command buffer allocation
 
@@ -84,7 +94,7 @@ them. Because one of the drawing commands involves binding the right
 `VkFramebuffer`, we'll actually have to record a command buffer for every image
 in the swap chain once again. To that end, create a list of `VkCommandBuffer`
 objects as class member. Command buffers will be automatically freed when their
-command pool is destroyed, so we don't need a `VDeleter`.
+command pool is destroyed, so we don't need an explicit cleanup.
 
 ```c++
 std::vector<VkCommandBuffer> commandBuffers;

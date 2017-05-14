@@ -55,8 +55,8 @@ presentation can happen. Create two class members to store these semaphore
 objects:
 
 ```c++
-VDeleter<VkSemaphore> imageAvailableSemaphore{device, vkDestroySemaphore};
-VDeleter<VkSemaphore> renderFinishedSemaphore{device, vkDestroySemaphore};
+VkSemaphore imageAvailableSemaphore;
+VkSemaphore renderFinishedSemaphore;
 ```
 
 To create the semaphores, we'll add the last `create` function for this part of
@@ -102,8 +102,8 @@ Future versions of the Vulkan API or extensions may add functionality for the
 the semaphores follows the familiar pattern with `vkCreateSemaphore`:
 
 ```c++
-if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, imageAvailableSemaphore.replace()) != VK_SUCCESS ||
-    vkCreateSemaphore(device, &semaphoreInfo, nullptr, renderFinishedSemaphore.replace()) != VK_SUCCESS) {
+if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+    vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
 
     throw std::runtime_error("failed to create semaphores!");
 }
@@ -310,8 +310,8 @@ something resembling the following when you run your program:
 ![](/images/triangle.png)
 
 Yay! Unfortunately, you'll see that when validation layers are enabled, the
-program crashes as soon as you close it. The message printed to the terminal
-from `debugCallback` tells us why:
+program crashes as soon as you close it. The messages printed to the terminal
+from `debugCallback` tell us why:
 
 ![](/images/semaphore_in_use.png)
 
@@ -331,8 +331,6 @@ void mainLoop() {
     }
 
     vkDeviceWaitIdle(device);
-
-    glfwDestroyWindow(window);
 }
 ```
 
