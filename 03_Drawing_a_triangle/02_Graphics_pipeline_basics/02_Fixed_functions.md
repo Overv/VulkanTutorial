@@ -365,7 +365,7 @@ Create a class member to hold this object, because we'll refer to it from other
 functions at a later point in time:
 
 ```c++
-VDeleter<VkPipelineLayout> pipelineLayout{device, vkDestroyPipelineLayout};
+VkPipelineLayout pipelineLayout;
 ```
 
 And then create the object in the `createGraphicsPipeline` function:
@@ -378,14 +378,22 @@ pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
 pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
 
-if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
-    pipelineLayout.replace()) != VK_SUCCESS) {
+if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
     throw std::runtime_error("failed to create pipeline layout!");
 }
 ```
 
 The structure also specifies *push constants*, which are another way of passing
-dynamic values to shaders that we'll get into later.
+dynamic values to shaders that we may get into in a future chapter. The pipeline
+layout is may be referenced throughout the program's lifetime, so it should be
+destroyed at the end:
+
+```c++
+void cleanup() {
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    ...
+}
+```
 
 ## Conclusion
 
