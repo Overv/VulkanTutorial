@@ -173,7 +173,8 @@ we can create the render pass itself. Create a new class member variable to hold
 the `VkRenderPass` object right above the `pipelineLayout` variable:
 
 ```c++
-VDeleter<VkRenderPass> renderPass{device, vkDestroyRenderPass};
+VkRenderPass renderPass;
+VkPipelineLayout pipelineLayout;
 ```
 
 The render pass object can then be created by filling in the
@@ -189,8 +190,19 @@ renderPassInfo.pAttachments = &colorAttachment;
 renderPassInfo.subpassCount = 1;
 renderPassInfo.pSubpasses = &subpass;
 
-if (vkCreateRenderPass(device, &renderPassInfo, nullptr, renderPass.replace()) != VK_SUCCESS) {
+if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
     throw std::runtime_error("failed to create render pass!");
+}
+```
+
+Just like the pipeline layout, the render pass will be referenced throughout the
+program, so it should only be cleaned up at the end:
+
+```c++
+void cleanup() {
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    vkDestroyRenderPass(device, renderPass, nullptr);
+    ...
 }
 ```
 

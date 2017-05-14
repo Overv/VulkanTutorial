@@ -2,9 +2,8 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include <stdexcept>
-#include <functional>
 #include <fstream>
+#include <stdexcept>
 #include <algorithm>
 #include <vector>
 #include <cstring>
@@ -43,64 +42,6 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
     }
 }
 
-template <typename T>
-class VDeleter {
-public:
-    VDeleter() : VDeleter([](T, VkAllocationCallbacks*) {}) {}
-
-    VDeleter(std::function<void(T, VkAllocationCallbacks*)> deletef) {
-        this->deleter = [=](T obj) { deletef(obj, nullptr); };
-    }
-
-    VDeleter(const VDeleter<VkInstance>& instance, std::function<void(VkInstance, T, VkAllocationCallbacks*)> deletef) {
-        this->deleter = [&instance, deletef](T obj) { deletef(instance, obj, nullptr); };
-    }
-
-    VDeleter(const VDeleter<VkDevice>& device, std::function<void(VkDevice, T, VkAllocationCallbacks*)> deletef) {
-        this->deleter = [&device, deletef](T obj) { deletef(device, obj, nullptr); };
-    }
-
-    ~VDeleter() {
-        cleanup();
-    }
-
-    const T* operator &() const {
-        return &object;
-    }
-
-    T* replace() {
-        cleanup();
-        return &object;
-    }
-
-    operator T() const {
-        return object;
-    }
-
-    void operator=(T rhs) {
-        if (rhs != object) {
-            cleanup();
-            object = rhs;
-        }
-    }
-
-    template<typename V>
-    bool operator==(V rhs) {
-        return object == T(rhs);
-    }
-
-private:
-    T object{VK_NULL_HANDLE};
-    std::function<void(T)> deleter;
-
-    void cleanup() {
-        if (object != VK_NULL_HANDLE) {
-            deleter(object);
-        }
-        object = VK_NULL_HANDLE;
-    }
-};
-
 struct QueueFamilyIndices {
     int graphicsFamily = -1;
     int presentFamily = -1;
@@ -122,30 +63,29 @@ public:
         initWindow();
         initVulkan();
         mainLoop();
+        cleanup();
     }
 
 private:
     GLFWwindow* window;
 
-    VDeleter<VkInstance> instance{vkDestroyInstance};
-    VDeleter<VkDebugReportCallbackEXT> callback{instance, DestroyDebugReportCallbackEXT};
-    VDeleter<VkSurfaceKHR> surface{instance, vkDestroySurfaceKHR};
+    VkInstance instance;
+    VkDebugReportCallbackEXT callback;
+    VkSurfaceKHR surface;
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VDeleter<VkDevice> device{vkDestroyDevice};
+    VkDevice device;
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;
     
-    VDeleter<VkSwapchainKHR> swapChain{device, vkDestroySwapchainKHR};
+    VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
-    std::vector<VDeleter<VkImageView>> swapChainImageViews;
-    std::vector<VDeleter<VkFramebuffer>> swapChainFramebuffers;
+    std::vector<VkImageView> swapChainImageViews;
     
-    VDeleter<VkRenderPass> renderPass{device, vkDestroyRenderPass};
-    VDeleter<VkPipelineLayout> pipelineLayout{device, vkDestroyPipelineLayout};
+    VkPipelineLayout pipelineLayout;
 
     void initWindow() {
         glfwInit();
@@ -171,6 +111,20 @@ private:
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
         }
+    }
+
+    void cleanup() {
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
+        for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+            vkDestroyImageView(device, swapChainImageViews[i], nullptr);
+        }
+
+        vkDestroySwapchainKHR(device, swapChain, nullptr);
+        vkDestroyDevice(device, nullptr);
+        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        vkDestroyInstance(instance, nullptr);
 
         glfwDestroyWindow(window);
 
@@ -195,17 +149,17 @@ private:
         createInfo.pApplicationInfo = &appInfo;
 
         auto extensions = getRequiredExtensions();
-        createInfo.enabledExtensionCount = extensions.size();
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
         if (enableValidationLayers) {
-            createInfo.enabledLayerCount = validationLayers.size();
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
         } else {
             createInfo.enabledLayerCount = 0;
         }
 
-        if (vkCreateInstance(&createInfo, nullptr, instance.replace()) != VK_SUCCESS) {
+        if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create instance!");
         }
     }
@@ -218,13 +172,13 @@ private:
         createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
         createInfo.pfnCallback = debugCallback;
 
-        if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, callback.replace()) != VK_SUCCESS) {
+        if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug callback!");
         }
     }
 
     void createSurface() {
-        if (glfwCreateWindowSurface(instance, window, nullptr, surface.replace()) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
     }
@@ -273,22 +227,22 @@ private:
         VkDeviceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pQueueCreateInfos = queueCreateInfos.data();
-        createInfo.queueCreateInfoCount = (uint32_t) queueCreateInfos.size();
 
         createInfo.pEnabledFeatures = &deviceFeatures;
 
-        createInfo.enabledExtensionCount = deviceExtensions.size();
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
         createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
         if (enableValidationLayers) {
-            createInfo.enabledLayerCount = validationLayers.size();
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
         } else {
             createInfo.enabledLayerCount = 0;
         }
 
-        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, device.replace()) != VK_SUCCESS) {
+        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
 
@@ -337,10 +291,10 @@ private:
 
         createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        if (vkCreateSwapchainKHR(device, &createInfo, nullptr, swapChain.replace()) != VK_SUCCESS) {
+        if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swap chain!");
         }
-        
+
         vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
         vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
@@ -350,9 +304,9 @@ private:
     }
 
     void createImageViews() {
-        swapChainImageViews.resize(swapChainImages.size(), VDeleter<VkImageView>{device, vkDestroyImageView});
+        swapChainImageViews.resize(swapChainImages.size());
 
-        for (uint32_t i = 0; i < swapChainImages.size(); i++) {
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
             VkImageViewCreateInfo createInfo = {};
             createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             createInfo.image = swapChainImages[i];
@@ -368,7 +322,7 @@ private:
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(device, &createInfo, nullptr, swapChainImageViews[i].replace()) != VK_SUCCESS) {
+            if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create image views!");
             }
         }
@@ -378,10 +332,8 @@ private:
         auto vertShaderCode = readFile("shaders/vert.spv");
         auto fragShaderCode = readFile("shaders/frag.spv");
 
-        VDeleter<VkShaderModule> vertShaderModule{device, vkDestroyShaderModule};
-        VDeleter<VkShaderModule> fragShaderModule{device, vkDestroyShaderModule};
-        createShaderModule(vertShaderCode, vertShaderModule);
-        createShaderModule(fragShaderCode, fragShaderModule);
+        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -461,12 +413,15 @@ private:
         pipelineLayoutInfo.setLayoutCount = 0;
         pipelineLayoutInfo.pushConstantRangeCount = 0;
         
-        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, pipelineLayout.replace()) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
+
+        vkDestroyShaderModule(device, fragShaderModule, nullptr);
+        vkDestroyShaderModule(device, vertShaderModule, nullptr);
     }
 
-    void createShaderModule(const std::vector<char>& code, VDeleter<VkShaderModule>& shaderModule) {
+    VkShaderModule createShaderModule(const std::vector<char>& code) {
         VkShaderModuleCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();
@@ -476,9 +431,12 @@ private:
 
         createInfo.pCode = codeAligned.data();
 
-        if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
+        VkShaderModule shaderModule;
+        if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module!");
         }
+
+        return shaderModule;
     }
 
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -517,7 +475,7 @@ private:
 
             actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
             actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
-            
+
             return actualExtent;
         }
     }

@@ -350,15 +350,13 @@ Before we can pass the code to the pipeline, we have to wrap it in a
 do that.
 
 ```c++
-void createShaderModule(const std::vector<char>& code, VDeleter<VkShaderModule>& shaderModule) {
+VkShaderModule createShaderModule(const std::vector<char>& code) {
 
 }
 ```
 
 The function will take a buffer with the bytecode as parameter and create a
-`VkShaderModule` from it. Instead of returning this handle directly, it's
-written to the variable specified for the second parameter, which makes it
-easier to wrap it in a deleter variable when calling `createShaderModule`.
+`VkShaderModule` from it.
 
 Creating a shader module is simple, we only need to specify a pointer to the
 buffer with the bytecode and the length of it. This information is specified in
@@ -380,7 +378,8 @@ createInfo.pCode = codeAligned.data();
 The `VkShaderModule` can then be created with a call to `vkCreateShaderModule`:
 
 ```c++
-if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
+VkShaderModule shaderModule;
+if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
     throw std::runtime_error("failed to create shader module!");
 }
 ```
@@ -395,17 +394,26 @@ process, so instead of declaring them as class members, we'll make them local
 variables in the `createGraphicsPipeline` function:
 
 ```c++
-VDeleter<VkShaderModule> vertShaderModule{device, vkDestroyShaderModule};
-VDeleter<VkShaderModule> fragShaderModule{device, vkDestroyShaderModule};
+VkShaderModule vertShaderModule;
+VkShaderModule fragShaderModule;
 ```
 
-They will be automatically cleaned up when the graphics pipeline has been
-created and `createGraphicsPipeline` returns. Now just call the helper function
-we created and we're done:
+Call the helper function we created to load the shader modules:
 
 ```c++
-createShaderModule(vertShaderCode, vertShaderModule);
-createShaderModule(fragShaderCode, fragShaderModule);
+vertShaderModule = createShaderModule(vertShaderCode);
+fragShaderModule = createShaderModule(fragShaderCode);
+```
+
+They should be cleaned up when the graphics pipeline has been created and
+`createGraphicsPipeline` returns, so make sure that they are deleted at the end
+of the function:
+
+```c++
+    ...
+    vkDestroyShaderModule(device, fragShaderModule, nullptr);
+    vkDestroyShaderModule(device, vertShaderModule, nullptr);
+}
 ```
 
 ## Shader stage creation

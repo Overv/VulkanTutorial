@@ -73,13 +73,13 @@ Now prepare for the final step by creating a class member to hold the
 `VkPipeline` object:
 
 ```c++
-VDeleter<VkPipeline> graphicsPipeline{device, vkDestroyPipeline};
+VkPipeline graphicsPipeline;
 ```
 
 And finally create the graphics pipeline:
 
 ```c++
-if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, graphicsPipeline.replace()) != VK_SUCCESS) {
+if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
     throw std::runtime_error("failed to create graphics pipeline!");
 }
 ```
@@ -95,6 +95,17 @@ store and reuse data relevant to pipeline creation across multiple calls to
 `vkCreateGraphicsPipelines` and even across program executions if the cache is
 stored to a file. This makes it possible to significantly speed up pipeline
 creation at a later time. We'll get into this in the pipeline cache chapter.
+
+The graphics pipeline is required for all common drawing operations, so it
+should also only be destroyed at the end of the program:
+
+```c++
+void cleanup() {
+    vkDestroyPipeline(device, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    ...
+}
+```
 
 Now run your program to confirm that all this hard work has resulted in a
 successful pipeline creation! We are already getting quite close to seeing
