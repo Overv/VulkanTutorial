@@ -60,17 +60,28 @@ the descriptor set after creating it, so we don't need this flag. You can leave
 `flags` to its default value of `0`.
 
 ```c++
-VDeleter<VkDescriptorPool> descriptorPool{device, vkDestroyDescriptorPool};
+VkDescriptorPool descriptorPool;
 
 ...
 
-if (vkCreateDescriptorPool(device, &poolInfo, nullptr, descriptorPool.replace()) != VK_SUCCESS) {
+if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor pool!");
 }
 ```
 
 Add a new class member to store the handle of the descriptor pool and call
-`vkCreateDescriptorPool` to create it.
+`vkCreateDescriptorPool` to create it. The descriptor pool should be destroyed
+only at the end of the program, much like the other drawing related resources:
+
+```c++
+void cleanup() {
+    cleanupSwapChain();
+
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+
+    ...
+}
+```
 
 ## Descriptor set
 
@@ -109,7 +120,7 @@ Add a class member to hold the descriptor set handle and allocate it with
 `vkAllocateDescriptorSets`:
 
 ```c++
-VDeleter<VkDescriptorPool> descriptorPool{device, vkDestroyDescriptorPool};
+VkDescriptorPool descriptorPool;
 VkDescriptorSet descriptorSet;
 
 ...
@@ -119,7 +130,7 @@ if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet) != VK_SUCCESS) 
 }
 ```
 
-You don't need to use a deleter for descriptor sets, because they will be
+You don't need to explicitly clean up descriptor sets, because they will be
 automatically freed when the descriptor pool is destroyed. The call to
 `vkAllocateDescriptorSets` will allocate one descriptor set with one uniform
 buffer descriptor.
@@ -182,8 +193,8 @@ vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 
 The updates are applied using `vkUpdateDescriptorSets`. It accepts two kinds of
 arrays as parameters: an array of `VkWriteDescriptorSet` and an array of
-`VkCopyDescriptorSet`. The latter can be used to copy the configuration of
-descriptors, as its name implies.
+`VkCopyDescriptorSet`. The latter can be used to copy descriptors to each other,
+as its name implies.
 
 ## Using a descriptor set
 
