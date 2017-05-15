@@ -66,8 +66,7 @@ allocators and the variable for the surface handle to be stored in.
 ```c++
 auto CreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR) vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
 
-if (!CreateWin32SurfaceKHR || CreateWin32SurfaceKHR(instance, &createInfo,
-   nullptr, surface.replace()) != VK_SUCCESS) {
+if (!CreateWin32SurfaceKHR || CreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
     throw std::runtime_error("failed to create window surface!");
 }
 ```

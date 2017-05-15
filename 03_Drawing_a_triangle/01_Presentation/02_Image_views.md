@@ -119,10 +119,6 @@ void cleanup() {
 }
 ```
 
-That's it, now run the program to verify that the image views are created
-properly and destroyed properly. Checking the latter requires enabling the
-validation layers, or putting a print statement in the deleter function.
-
 An image view is sufficient to start using an image as a texture, but it's not
 quite ready to be used as a render target just yet. That requires one more step
 of indirection, known as a framebuffer. But first we'll have to set up the
