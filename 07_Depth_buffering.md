@@ -130,9 +130,9 @@ running at once. The depth image will again require the trifecta of resources:
 image, memory and image view.
 
 ```c++
-VDeleter<VkImage> depthImage{device, vkDestroyImage};
-VDeleter<VkDeviceMemory> depthImageMemory{device, vkFreeMemory};
-VDeleter<VkImageView> depthImageView{device, vkDestroyImageView};
+VkImage depthImage;
+VkDeviceMemory depthImageMemory;
+VkImageView depthImageView;
 ```
 
 Create a new function `createDepthResources` to set up these resources:
@@ -272,7 +272,7 @@ We now have all the required information to invoke our `createImage` and
 
 ```c++
 createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-createImageView(depthImage, depthFormat, depthImageView);
+depthImageView = createImageView(depthImage, depthFormat);
 ```
 
 However, the `createImageView` function currently assumes that the subresource
@@ -280,7 +280,7 @@ is always the `VK_IMAGE_ASPECT_COLOR_BIT`, so we will need to turn that field
 into a parameter:
 
 ```c++
-void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VDeleter<VkImageView>& imageView) {
+VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
     ...
     viewInfo.subresourceRange.aspectMask = aspectFlags;
     ...
@@ -290,11 +290,11 @@ void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFl
 Update all calls to this function to use the right aspect:
 
 ```c++
-createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, swapChainImageViews[i]);
+swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 ...
-createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, depthImageView);
+depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 ...
-createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, textureImageView);
+textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 ```
 
 That's it for creating the depth image. We don't need to map it or copy another
@@ -396,7 +396,7 @@ buffers.
 std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 VkRenderPassCreateInfo renderPassInfo = {};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-renderPassInfo.attachmentCount = attachments.size();
+renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 renderPassInfo.pAttachments = attachments.data();
 renderPassInfo.subpassCount = 1;
 renderPassInfo.pSubpasses = &subpass;
@@ -422,7 +422,7 @@ std::array<VkImageView, 2> attachments = {
 VkFramebufferCreateInfo framebufferInfo = {};
 framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 framebufferInfo.renderPass = renderPass;
-framebufferInfo.attachmentCount = attachments.size();
+framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 framebufferInfo.pAttachments = attachments.data();
 framebufferInfo.width = swapChainExtent.width;
 framebufferInfo.height = swapChainExtent.height;
@@ -456,7 +456,7 @@ std::array<VkClearValue, 2> clearValues = {};
 clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
 clearValues[1].depthStencil = {1.0f, 0};
 
-renderPassInfo.clearValueCount = clearValues.size();
+renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 renderPassInfo.pClearValues = clearValues.data();
 ```
 
@@ -545,6 +545,18 @@ void recreateSwapChain() {
     createDepthResources();
     createFramebuffers();
     createCommandBuffers();
+}
+```
+
+The cleanup operations should happen in the swap chain cleanup function:
+
+```c++
+void cleanupSwapChain() {
+    vkDestroyImageView(device, depthImageView, nullptr);
+    vkDestroyImage(device, depthImage, nullptr);
+    vkFreeMemory(device, depthImageMemory, nullptr);
+
+    ...
 }
 ```
 

@@ -341,6 +341,14 @@ The `vkGetPhysicalDeviceFeatures` repurposes the `VkPhysicalDeviceFeatures`
 struct to indicate which features are supported rather than requested by setting
 the boolean values.
 
+Instead of enforcing the availability of anisotropic filtering, it's also
+possible to simply not use it by conditionally setting:
+
+```c++
+samplerInfo.anisotropyEnable = VK_FALSE;
+samplerInfo.maxAnisotropy = 1;
+```
+
 In the next chapter we will expose the image and sampler objects to the shaders
 to draw the texture onto the square.
 
