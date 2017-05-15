@@ -132,7 +132,7 @@ private:
         vkDeviceWaitIdle(device);
     }
 
-    void cleanupSwapChainDependents() {
+    void cleanupSwapChain() {
         for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
             vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
         }
@@ -146,17 +146,18 @@ private:
         for (size_t i = 0; i < swapChainImageViews.size(); i++) {
             vkDestroyImageView(device, swapChainImageViews[i], nullptr);
         }
+
+        vkDestroySwapchainKHR(device, swapChain, nullptr);
     }
 
     void cleanup() {
-        cleanupSwapChainDependents();
+        cleanupSwapChain();
 
         vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
         vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 
         vkDestroyCommandPool(device, commandPool, nullptr);
 
-        vkDestroySwapchainKHR(device, swapChain, nullptr);
         vkDestroyDevice(device, nullptr);
         DestroyDebugReportCallbackEXT(instance, callback, nullptr);
         vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -177,7 +178,7 @@ private:
     void recreateSwapChain() {
         vkDeviceWaitIdle(device);
         
-        cleanupSwapChainDependents();
+        cleanupSwapChain();
 
         createSwapChain();
         createImageViews();
@@ -345,14 +346,8 @@ private:
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
 
-        createInfo.oldSwapchain = swapChain;
-
         if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swap chain!");
-        }
-
-        if (createInfo.oldSwapchain != VK_NULL_HANDLE) {
-            vkDestroySwapchainKHR(device, createInfo.oldSwapchain, nullptr);
         }
 
         vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);

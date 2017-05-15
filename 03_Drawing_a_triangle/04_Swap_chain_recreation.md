@@ -39,17 +39,17 @@ chain images.
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
 that we can call from the `recreateSwapChain` function. Let's call it
-`cleanupSwapChainDependents`:
+`cleanupSwapChain`:
 
 ```c++
-void cleanupSwapChainDependents() {
+void cleanupSwapChain() {
     
 }
 
 void recreateSwapChain() {
     vkDeviceWaitIdle(device);
     
-    cleanupSwapChainDependents();
+    cleanupSwapChain();
 
     createSwapChain();
     createImageViews();
@@ -60,11 +60,11 @@ void recreateSwapChain() {
 }
 ```
 
-we'll move the cleanup code of all objects that are recreated after a swap chain
-renewal from `cleanup` to `cleanupSwapChainDependents`:
+we'll move the cleanup code of all objects that are recreated as part of a swap
+chain refresh from `cleanup` to `cleanupSwapChain`:
 
 ```c++
-void cleanupSwapChainDependents() {
+void cleanupSwapChain() {
     for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
         vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
     }
@@ -78,17 +78,18 @@ void cleanupSwapChainDependents() {
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         vkDestroyImageView(device, swapChainImageViews[i], nullptr);
     }
+
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
 }
 
 void cleanup() {
-    cleanupSwapChainDependents();
+    cleanupSwapChain();
 
     vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
     vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 
     vkDestroyCommandPool(device, commandPool, nullptr);
 
-    vkDestroySwapchainKHR(device, swapChain, nullptr);
     vkDestroyDevice(device, nullptr);
     DestroyDebugReportCallbackEXT(instance, callback, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -103,44 +104,14 @@ void cleanup() {
 We could recreate the command pool from scratch, but that is rather wasteful.
 Instead I've opted to clean up the existing command buffers with the
 `vkFreeCommandBuffers` function. This way we can reuse the existing pool to
-allocate the new command buffers.
+allocate the new command buffers. 
 
-So why aren't we also destroying the swap chain itself in this function? Vulkan
-requires us to keep the old swap chain around until after the new one has been
-created. We're now going to use a new field in the `VkSwapchainCreateInfoKHR`
-struct called `oldSwapChain`:
-
-```c++
-createInfo.oldSwapchain = swapChain;
-
-if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create swap chain!");
-}
-```
-
-We need to pass the previous swap chain object in the `oldSwapchain` parameter
-of `VkSwapchainCreateInfoKHR` to indicate that we intend to replace it. After
-the new swap chain has been successfully created, we can destroy the old one:
-
-```c++
-if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create swap chain!");
-}
-
-if (createInfo.oldSwapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(device, createInfo.oldSwapchain, nullptr);
-}
-```
-
-To make sure that the old swap chain is set to `VK_NULL_HANDLE` when the program
-has just started, make sure that the class member variable is properly
-initialized:
-
-```c++
-VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-```
-
-That's all it takes to recreate the swap chain!
+That's all it takes to recreate the swap chain! However, the disadvantage of
+this approach is that we need to stop all rendering before creating the new swap
+chain. It is possible to create a new swap chain while drawing commands on an
+image from the old swap chain are still in-flight. You need to pass the previous
+swap chain to the `oldSwapChain` field in the `VkSwapchainCreateInfoKHR` struct
+and destroy the old swap chain as soon as you've finished using it.
 
 ## Window resizing
 
