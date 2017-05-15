@@ -88,8 +88,8 @@ non-const containers as class members:
 ```c++
 std::vector<Vertex> vertices;
 std::vector<uint32_t> indices;
-VDeleter<VkBuffer> vertexBuffer{device, vkDestroyBuffer};
-VDeleter<VkDeviceMemory> vertexBufferMemory{device, vkFreeMemory};
+VkBuffer vertexBuffer;
+VkDeviceMemory vertexBufferMemory;
 ```
 
 You should change the type of the indices from `uint16_t` to `uint32_t`, because
@@ -249,14 +249,14 @@ Unfortunately we're not really taking advantage of the index buffer yet. The
 vertices are included in multiple triangles. We should keep only the unique
 vertices and use the index buffer to reuse them whenever they come up. A
 straightforward way to implement this is to use a `map` or `unordered_map` to
-keep track of the unique vertices and their index:
+keep track of the unique vertices and respective indices:
 
 ```c++
 #include <unordered_map>
 
 ...
 
-std::unordered_map<Vertex, int> uniqueVertices = {};
+std::unordered_map<Vertex, uint32_t> uniqueVertices = {};
 
 for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
@@ -265,7 +265,7 @@ for (const auto& shape : shapes) {
         ...
 
         if (uniqueVertices.count(vertex) == 0) {
-            uniqueVertices[vertex] = vertices.size();
+            uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
             vertices.push_back(vertex);
         }
 
@@ -336,6 +336,7 @@ like:
 * Pipeline cache
 * Multi-threaded command buffer generation
 * Multiple subpasses
+* Compute shaders
 
 The current program can be extended in many ways, like adding Blinn-Phong
 lighting, post-processing effects and shadow mapping. You should be able to
