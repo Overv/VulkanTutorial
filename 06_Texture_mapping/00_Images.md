@@ -148,8 +148,8 @@ as texels and we'll use that name from this point on. Add the following two
 variables in the `createTextureImage` function:
 
 ```c++
-VDeleter<VkImage> stagingImage{device, vkDestroyImage};
-VDeleter<VkDeviceMemory> stagingImageMemory{device, vkFreeMemory};
+VkImage stagingImage;
+VkDeviceMemory stagingImageMemory;
 ```
 
 The parameters for an image are specified in a `VkImageCreateInfo` struct:
@@ -244,7 +244,7 @@ avoid allocating memory to store large volumes of "air" values. We won't be
 using it in this tutorial, so leave it to its default value of `0`.
 
 ```c++
-if (vkCreateImage(device, &imageInfo, nullptr, stagingImage.replace()) != VK_SUCCESS) {
+if (vkCreateImage(device, &imageInfo, nullptr, &stagingImage) != VK_SUCCESS) {
     throw std::runtime_error("failed to create image!");
 }
 ```
@@ -266,7 +266,7 @@ allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 allocInfo.allocationSize = memRequirements.size;
 allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-if (vkAllocateMemory(device, &allocInfo, nullptr, stagingImageMemory.replace()) != VK_SUCCESS) {
+if (vkAllocateMemory(device, &allocInfo, nullptr, &stagingImageMemory) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate image memory!");
 }
 
@@ -378,7 +378,7 @@ for buffers. Create the function and move the image object creation and memory
 allocation to it:
 
 ```c++
-void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VDeleter<VkImage>& image, VDeleter<VkDeviceMemory>& imageMemory) {
+void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -394,7 +394,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateImage(device, &imageInfo, nullptr, image.replace()) != VK_SUCCESS) {
+    if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
 
@@ -406,7 +406,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(device, &allocInfo, nullptr, imageMemory.replace()) != VK_SUCCESS) {
+    if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");
     }
 
@@ -430,8 +430,8 @@ void createTextureImage() {
         throw std::runtime_error("failed to load texture image!");
     }
 
-    VDeleter<VkImage> stagingImage{device, vkDestroyImage};
-    VDeleter<VkDeviceMemory> stagingImageMemory{device, vkFreeMemory};
+    VkImage stagingImage;
+    VkDeviceMemory stagingImageMemory;
     createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
 
     VkImageSubresource subresource = {};
@@ -465,10 +465,10 @@ The next step is to create the actual texture image. Define two new class
 members to hold the handle to the image and its memory:
 
 ```c++
-VDeleter<VkCommandPool> commandPool{device, vkDestroyCommandPool};
-VDeleter<VkImage> textureImage{device, vkDestroyImage};
-VDeleter<VkDeviceMemory> textureImageMemory{device, vkFreeMemory};
-VDeleter<VkBuffer> vertexBuffer{device, vkDestroyBuffer};
+VkCommandPool commandPool;
+VkImage textureImage;
+VkDeviceMemory textureImageMemory;
+VkBuffer vertexBuffer;
 ```
 
 The final texture image can now be created using the same function:
@@ -786,6 +786,32 @@ it's also possible to use a buffer and copy pixels from it using
 `vkCmdCopyBufferToImage`. It is recommended to use this approach for improved
 performance on [some hardware](https://developer.nvidia.com/vulkan-memory-management)
 if you need to update the data in an image often.
+
+## Cleanup
+
+Finish the `createTextureImage` function by cleaning up the staging image and
+its memory at the end:
+
+```c++
+    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    vkDestroyImage(device, stagingImage, nullptr);
+    vkFreeMemory(device, stagingImageMemory, nullptr);
+}
+```
+
+The main texture image is used until the end of the program:
+
+```c++
+void cleanup() {
+    cleanupSwapChain();
+
+    vkDestroyImage(device, textureImage, nullptr);
+    vkFreeMemory(device, textureImageMemory, nullptr);
+
+    ...
+}
+```
 
 The image now contains the texture, but we still need a way to access it from
 the graphics pipeline. We'll work on that in the next chapter.
