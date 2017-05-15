@@ -54,10 +54,10 @@ the GPU to be able to access them. Define two new class members to hold the
 resources for the index buffer:
 
 ```c++
-VDeleter<VkBuffer> vertexBuffer{device, vkDestroyBuffer};
-VDeleter<VkDeviceMemory> vertexBufferMemory{device, vkFreeMemory};
-VDeleter<VkBuffer> indexBuffer{device, vkDestroyBuffer};
-VDeleter<VkDeviceMemory> indexBufferMemory{device, vkFreeMemory};
+VkBuffer vertexBuffer;
+VkDeviceMemory vertexBufferMemory;
+VkBuffer indexBuffer;
+VkDeviceMemory indexBufferMemory;
 ```
 
 The `createIndexBuffer` function that we'll add now is almost identical to
@@ -74,8 +74,8 @@ void initVulkan() {
 void createIndexBuffer() {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-    VDeleter<VkBuffer> stagingBuffer{device, vkDestroyBuffer};
-    VDeleter<VkDeviceMemory> stagingBufferMemory{device, vkFreeMemory};
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
@@ -86,6 +86,9 @@ void createIndexBuffer() {
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
     copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 ```
 
@@ -96,6 +99,23 @@ number of indices times the size of the index type, either `uint16_t` or
 `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`, which makes sense. Other than that, the
 process is exactly the same. We create a staging buffer to copy the contents of
 `indices` to and then copy it to the final device local index buffer.
+
+The index buffer should be cleaned up at the end of the program, just like the
+vertex buffer:
+
+```c++
+void cleanup() {
+    cleanupSwapChain();
+
+    vkDestroyBuffer(device, indexBuffer, nullptr);
+    vkFreeMemory(device, indexBufferMemory, nullptr);
+
+    vkDestroyBuffer(device, vertexBuffer, nullptr);
+    vkFreeMemory(device, vertexBufferMemory, nullptr);
+
+    ...
+}
+```
 
 ## Using an index buffer
 
@@ -122,7 +142,7 @@ the drawing command to tell Vulkan to use the index buffer. Remove the
 `vkCmdDraw` line and replace it with `vkCmdDrawIndexed`:
 
 ```c++
-vkCmdDrawIndexed(commandBuffers[i], indices.size(), 1, 0, 0, 0);
+vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
 A call to this function is very similar to `vkCmdDraw`. The first two parameters
