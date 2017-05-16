@@ -213,7 +213,7 @@ multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 multisampling.sampleShadingEnable = VK_FALSE;
 multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 multisampling.minSampleShading = 1.0f; // Optional
-multisampling.pSampleMask = nullptr; /// Optional
+multisampling.pSampleMask = nullptr; // Optional
 multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 multisampling.alphaToOneEnable = VK_FALSE; // Optional
 ```
@@ -301,7 +301,7 @@ You can find all of the possible operations in the `VkBlendFactor` and
 
 The second structure references the array of structures for all of the
 framebuffers and allows you to set blend constants that you can use as blend
-factors in the aforementioned calculations. 
+factors in the aforementioned calculations.
 
 ```c++
 VkPipelineColorBlendStateCreateInfo colorBlending = {};
