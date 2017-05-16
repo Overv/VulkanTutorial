@@ -109,6 +109,15 @@ if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore)
 }
 ```
 
+The semaphores should be cleaned up at the end of the program, when all commands
+have finished and no more synchronization is necessary:
+
+```c++
+void cleanup() {
+    vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+```
+
 ## Acquiring an image from the swap chain
 
 As mentioned before, the first thing we need to do in the `drawFrame` function
