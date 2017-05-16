@@ -41,8 +41,8 @@ void createRenderPass() {
 }
 ```
 
-The `format` of the color attachment should match the one of the swap chain
-images and we're not doing anything with multisampling, so we stick to 1 sample.
+The `format` of the color attachment should match one of the swap chain
+images, and we're not doing anything with multisampling, so we'll stick to 1 sample.
 
 ```c++
 colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
