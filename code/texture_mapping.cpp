@@ -706,45 +706,25 @@ private:
             throw std::runtime_error("failed to load texture image!");
         }
 
-        VkImage stagingImage;
-        VkDeviceMemory stagingImageMemory;
-        createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingImage, stagingImageMemory);
-
-        VkImageSubresource subresource = {};
-        subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        subresource.mipLevel = 0;
-        subresource.arrayLayer = 0;
-
-        VkSubresourceLayout stagingImageLayout;
-        vkGetImageSubresourceLayout(device, stagingImage, &subresource, &stagingImageLayout);
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         void* data;
-        vkMapMemory(device, stagingImageMemory, 0, imageSize, 0, &data);
+        vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+            memcpy(data, pixels, static_cast<size_t>(imageSize));
+        vkUnmapMemory(device, stagingBufferMemory);
 
-        if (stagingImageLayout.rowPitch == texWidth * 4) {
-            memcpy(data, pixels, (size_t) imageSize);
-        } else {
-            uint8_t* dataBytes = reinterpret_cast<uint8_t*>(data);
-
-            for (int y = 0; y < texHeight; y++) {
-                memcpy(&dataBytes[y * stagingImageLayout.rowPitch], &pixels[y * texWidth * 4], texWidth * 4);
-            }
-        }
-
-        vkUnmapMemory(device, stagingImageMemory);
-        
         stbi_image_free(pixels);
 
         createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
-        transitionImageLayout(stagingImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
         transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyImage(stagingImage, textureImage, texWidth, texHeight);
-
+            copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
         transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        vkDestroyImage(device, stagingImage, nullptr);
-        vkFreeMemory(device, stagingImageMemory, nullptr);
+        vkDestroyBuffer(device, stagingBuffer, nullptr);
+        vkFreeMemory(device, stagingBufferMemory, nullptr);
     }
 
     void createTextureImageView() {
@@ -843,10 +823,7 @@ private:
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
 
-        if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
-            barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-            barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        } else if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
             barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
             barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
@@ -855,7 +832,7 @@ private:
         } else {
             throw std::invalid_argument("unsupported layout transition!");
         }
-        
+
         vkCmdPipelineBarrier(
             commandBuffer,
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -868,30 +845,25 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    void copyImage(VkImage srcImage, VkImage dstImage, uint32_t width, uint32_t height) {
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-        VkImageSubresourceLayers subResource = {};
-        subResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        subResource.baseArrayLayer = 0;
-        subResource.mipLevel = 0;
-        subResource.layerCount = 1;
+        VkBufferImageCopy region = {};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageOffset = {0, 0, 0};
+        region.imageExtent = {
+            width,
+            height,
+            1
+        };
 
-        VkImageCopy region = {};
-        region.srcSubresource = subResource;
-        region.dstSubresource = subResource;
-        region.srcOffset = {0, 0, 0};
-        region.dstOffset = {0, 0, 0};
-        region.extent.width = width;
-        region.extent.height = height;
-        region.extent.depth = 1;
-
-        vkCmdCopyImage(
-            commandBuffer,
-            srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1, &region
-        );
+        vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
         endSingleTimeCommands(commandBuffer);
     }
