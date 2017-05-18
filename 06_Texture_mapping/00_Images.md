@@ -222,7 +222,7 @@ for the texels as the pixels in the buffer, otherwise the copy operation will
 fail.
 
 ```c++
-imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 ```
 
 The `tiling` field can have one of two values:
