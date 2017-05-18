@@ -306,7 +306,7 @@ vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
 VkMemoryAllocateInfo allocInfo = {};
 allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 allocInfo.allocationSize = memRequirements.size;
-allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMemory) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate image memory!");
@@ -318,9 +318,7 @@ vkBindImageMemory(device, textureImage, textureImageMemory, 0);
 Allocating memory for an image works in exactly the same way as allocating
 memory for a buffer. Use `vkGetImageMemoryRequirements` instead of
 `vkGetBufferMemoryRequirements`, and use `vkBindImageMemory` instead of
-`vkBindBufferMemory`. Remember that we need the memory to be host visible to be
-able to use `vkMapMemory`, so you should specify that property when looking for
-the right memory type.
+`vkBindBufferMemory`.
 
 This function is already getting quite large and there'll be a need to create
 more images in later chapters, so we should abstract image creation into a
