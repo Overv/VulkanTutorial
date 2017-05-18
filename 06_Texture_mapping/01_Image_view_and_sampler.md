@@ -256,7 +256,7 @@ samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 
 If a comparison function is enabled, then texels will first be compared to a
 value, and the result of that comparison is used in filtering operations. This
-is mainly used for [percentage-closer filtering](http://http.developer.nvidia.com/GPUGems/gpugems_ch11.html)
+is mainly used for [percentage-closer filtering](http://developer.nvidia.com/GPUGems/gpugems_ch11.html)
 on shadow maps. We'll look at this in a future chapter.
 
 ```c++
