@@ -301,7 +301,7 @@ this in the depth buffer chapter, where we'll implement such a system.
 
 ```c++
 VkMemoryRequirements memRequirements;
-vkGetImageMemoryRequirements(device, stagingImage, &memRequirements);
+vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
 
 VkMemoryAllocateInfo allocInfo = {};
 allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -312,7 +312,7 @@ if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMemory) != VK_SUC
     throw std::runtime_error("failed to allocate image memory!");
 }
 
-vkBindImageMemory(device, stagingImage, textureImageMemory, 0);
+vkBindImageMemory(device, textureImage, textureImageMemory, 0);
 ```
 
 Allocating memory for an image works in exactly the same way as allocating
