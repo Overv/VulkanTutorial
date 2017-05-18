@@ -204,7 +204,7 @@ imageInfo.mipLevels = 1;
 imageInfo.arrayLayers = 1;
 ```
 
-The image type, specified in the `imageType` field, tells Vulkan with that kind
+The image type, specified in the `imageType` field, tells Vulkan with what kind
 of coordinate system the texels in the image are going to be addressed. It is
 possible to create 1D, 2D and 3D images. One dimensional images can be used to
 store an array of data or gradient, two dimensional images are mainly used for
