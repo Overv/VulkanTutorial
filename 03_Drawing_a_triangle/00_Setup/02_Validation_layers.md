@@ -54,10 +54,10 @@ Validation layers can only be used if they have been installed onto the system.
 For example, the LunarG validation layers are only available on PCs with the
 Vulkan SDK installed.
 
-There were formerly two different types of validation layers in Vulkan. Instance
-and device specific layers. The idea was that instance layers would only check
-calls related to global Vulkan objects like instances and device specific layers
-only calls related to a specific GPU. Device specific layers have now been
+There were formerly two different types of validation layers in Vulkan: instance
+and device specific. The idea was that instance layers would only check
+calls related to global Vulkan objects like instances, and device specific layers
+would only check calls related to a specific GPU. Device specific layers have now been
 deprecated, which means that instance validation layers apply to all Vulkan
 calls. The specification document still recommends that you enable validation
 layers at device level as well for compatibility, which is required by some
