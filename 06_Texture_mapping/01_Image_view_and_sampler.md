@@ -229,7 +229,7 @@ There is no graphics hardware available today that will use more than 16
 samples, because the difference is negligible beyond that point.
 
 ```c++
-samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK ;
+samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 ```
 
 The `borderColor` field specifies which color is returned when sampling beyond
