@@ -93,7 +93,7 @@ private:
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
 
-    VkSemaphore imageAvailableSemaphore;
+    VkFence imageAvailableFence;
     VkSemaphore renderFinishedSemaphore;
 
     void initWindow() {
@@ -120,7 +120,7 @@ private:
         createFramebuffers();
         createCommandPool();
         createCommandBuffers();
-        createSemaphores();
+        createSynchronizationPrimitives();
     }
 
     void mainLoop() {
@@ -154,7 +154,7 @@ private:
         cleanupSwapChain();
 
         vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
-        vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+        vkDestroyFence(device, imageAvailableFence, nullptr);
 
         vkDestroyCommandPool(device, commandPool, nullptr);
 
@@ -617,20 +617,25 @@ private:
         }
     }
     
-    void createSemaphores() {
+    void createSynchronizationPrimitives() {
+        VkFenceCreateInfo fenceInfo = {};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+        if (vkCreateFence(device, &fenceInfo, nullptr, &imageAvailableFence) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create fence!");
+        }
+
         VkSemaphoreCreateInfo semaphoreInfo = {};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
-
-            throw std::runtime_error("failed to create semaphores!");
+        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create semaphore!");
         }
     }
 
     void drawFrame() {
         uint32_t imageIndex;
-        VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), VK_NULL_HANDLE, imageAvailableFence, &imageIndex);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             recreateSwapChain();
@@ -639,14 +644,15 @@ private:
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
+        vkWaitForFences(device, 1, &imageAvailableFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+        vkResetFences(device, 1, &imageAvailableFence);
+
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.waitSemaphoreCount = 0;
+        submitInfo.pWaitSemaphores = nullptr;
+        submitInfo.pWaitDstStageMask = nullptr;
 
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
