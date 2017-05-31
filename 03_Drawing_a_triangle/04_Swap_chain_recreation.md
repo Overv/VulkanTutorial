@@ -204,6 +204,8 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
 } else if (result != VK_SUCCESS) {
     throw std::runtime_error("failed to present swap chain image!");
 }
+
+vkQueueWaitIdle(presentQueue);
 ```
 
 The `vkQueuePresentKHR` function returns the same values with the same meaning.

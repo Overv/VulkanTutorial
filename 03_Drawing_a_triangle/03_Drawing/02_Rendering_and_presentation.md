@@ -348,6 +348,27 @@ You can also wait for operations in a specific command queue to be finished with
 perform synchronization. You'll see that the program now exits without problems
 when closing the window.
 
+## Memory leak
+
+If you run your application with validation layers enabled and you monitor the
+memory usage of your application, you may notice that it is slowly growing. The
+reason for this is that the validation layer implementation expects the
+application to explicitly synchronize with the GPU. Although this is technically
+not required, doing so once a frame will not noticeably affect performance.
+
+We can do this by explicitly waiting for presentation to finish before starting
+to draw the next frame:
+
+```c++
+void drawFrame() {
+    ...
+
+    vkQueuePresentKHR(presentQueue, &presentInfo);
+
+    vkQueueWaitIdle(presentQueue);
+}
+```
+
 ## Conclusion
 
 About 800 lines of code later, we've finally gotten to the stage of seeing

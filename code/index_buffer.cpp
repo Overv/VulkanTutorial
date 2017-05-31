@@ -860,6 +860,8 @@ private:
         } else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");
         }
+
+        vkQueueWaitIdle(presentQueue);
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code) {
