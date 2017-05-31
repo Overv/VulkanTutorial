@@ -638,6 +638,8 @@ private:
         presentInfo.pImageIndices = &imageIndex;
 
         vkQueuePresentKHR(presentQueue, &presentInfo);
+
+        vkQueueWaitIdle(presentQueue);
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code) {
