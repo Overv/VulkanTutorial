@@ -44,31 +44,23 @@ The difference is that the state of fences can be accessed from your program
 using calls like `vkWaitForFences` and semaphores cannot be. Fences are mainly
 designed to synchronize your application itself with rendering operation,
 whereas semaphores are used to synchronize operations within or across command
-queues. We will use a fence to synchronize swap chain image acquisition and a
-semaphore to synchronize drawing commands with presentation.
+queues. We want to synchronize the queue operations of draw commands and
+presentation, which makes semaphores the best fit.
 
-## Fence
+## Semaphores
 
-A fence is a synchronization primitive in Vulkan that allows you to synchronize
-your program with GPU operations. You can set up GPU operations like drawing
-commands to put such a fence is a *signalled* state when they are completed and
-use a function call like `vkWaitForFences` in your own program to wait for them
-to become signalled. This is useful because many functions in Vulkan that start
-operations return immediately and the actual operation is finished at some point
-in the background. With fences you can wait for one or more of these operations
-to finish before continuing code execution.
-
-We'll be using a fence to signal that an image has been acquired from the swap
-chain and is ready for rendering. Create a class member to store this fence
-object:
+We'll need one semaphore to signal that an image has been acquired and is ready
+for rendering, and another one to signal that rendering has finished and
+presentation can happen. Create two class members to store these semaphore
+objects:
 
 ```c++
-VkFence imageAvailableFence;
+VkSemaphore imageAvailableSemaphore;
+VkSemaphore renderFinishedSemaphore;
 ```
 
-To create the fence, we'll add the last `create` function for this part of the
-tutorial: `createSynchronizationPrimitives`. It's named that way because we'll
-also create the semaphore in this function later on.
+To create the semaphores, we'll add the last `create` function for this part of
+the tutorial: `createSemaphores`:
 
 ```c++
 void initVulkan() {
@@ -84,70 +76,22 @@ void initVulkan() {
     createFramebuffers();
     createCommandPool();
     createCommandBuffers();
-    createSynchronizationPrimitives();
+    createSemaphores();
 }
 
 ...
 
-void createSynchronizationPrimitives() {
+void createSemaphores() {
 
 }
 ```
 
-Creating a fence requires filling in the `VkFenceCreateInfo` struct, but in the
-current version of the API we'll only need to fill in the `sType` field. There
-is an optional `flags` field that allows you to initialize a fence to already be
-signalled, but we don't need that.
+Creating semaphores requires filling in the `VkSemaphoreCreateInfo`, but in the
+current version of the API it doesn't actually have any required fields besides
+`sType`:
 
 ```c++
-void createSynchronizationPrimitives() {
-    VkFenceCreateInfo fenceInfo = {};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-}
-```
-
-Creating the fence follows the familiar pattern with `vkCreateFence`:
-
-```c++
-if (vkCreateFence(device, &fenceInfo, nullptr, &imageAvailableFence) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create fence!");
-}
-```
-
-The fence should be cleaned up at the end of the program, when all commands have
-finished and no more synchronization is necessary:
-
-```c++
-void cleanup() {
-    vkDestroyFence(device, imageAvailableFence, nullptr);
-```
-
-## Semaphore
-
-We will also need to synchronize the completion of drawing operations with the
-operation to present an image to the screen. We could accomplish this with
-fences as well, but for this operation we'll look at another synchronization
-primitive: *semaphores*. Fences are required for synchronization between the
-code on the CPU and operations on the GPU, but semaphores are a more efficient
-way to synchronize only GPU operations.
-
-We'll need a semaphore to signal that rendering has finished and presentation
-can happen. Add a class member to store this semaphore object:
-
-```c++
-VkFence imageAvailableFence;
-VkSemaphore renderFinishedSemaphore;
-```
-
-We'll continue working in the `createSynchronizationPrimitives` function.
-Creating semaphores requires filling in the `VkSemaphoreCreateInfo` struct, but
-in the current version of the API it doesn't actually have any required fields
-besides `sType`:
-
-```c++
- void createSynchronizationPrimitives() {
-    ...
-
+void createSemaphores() {
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 }
@@ -155,21 +99,23 @@ besides `sType`:
 
 Future versions of the Vulkan API or extensions may add functionality for the
 `flags` and `pNext` parameters like it does for the other structures. Creating
-a semaphore is done through `vkCreateSemaphore`:
+the semaphores follows the familiar pattern with `vkCreateSemaphore`:
 
 ```c++
-if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create semaphore!");
+if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+    vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
+
+    throw std::runtime_error("failed to create semaphores!");
 }
 ```
 
-The semaphore should be cleaned up at the end of the program, when all commands
+The semaphores should be cleaned up at the end of the program, when all commands
 have finished and no more synchronization is necessary:
 
 ```c++
 void cleanup() {
     vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
-    vkDestroyFence(device, imageAvailableFence, nullptr);
+    vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 ```
 
 ## Acquiring an image from the swap chain
@@ -182,7 +128,7 @@ convention:
 ```c++
 void drawFrame() {
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), VK_NULL_HANDLE, imageAvailableFence, &imageIndex);
+    vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 }
 ```
 
@@ -194,33 +140,13 @@ maximum value of a 64 bit unsigned integer disables the timeout.
 The next two parameters specify synchronization objects that are to be signaled
 when the presentation engine is finished using the image. That's the point in
 time where we can start drawing to it. It is possible to specify a semaphore,
-fence or both. We're going to use our `imageAvailableFence` for that purpose
+fence or both. We're going to use our `imageAvailableSemaphore` for that purpose
 here.
 
 The last parameter specifies a variable to output the index of the swap chain
 image that has become available. The index refers to the `VkImage` in our
 `swapChainImages` array. We're going to use that index to pick the right command
 buffer.
-
-This function returns immediately, possibly before an image is actually
-available. To wait for this to happen, we should now wait on our fence to be
-signalled using `vkWaitForFences`:
-
-```c++
-vkWaitForFences(device, 1, &imageAvailableFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-```
-
-This function takes an array of fences to wait on. The fourth parameter can be
-set to `VK_TRUE` to indicate that all fences should be signalled or `VK_FALSE`
-if only one is sufficient. In our case it doesn't make a difference. The last
-parameter is a timeout parameter, just like the one in `vkAcquireNextImageKHR`.
-
-The `vkWaitForFences` function doesn't automatically reset the fence, so it is
-still signalled at this point. We should reset it to be used for the next frame:
-
-```c++
-vkResetFences(device, 1, &imageAvailableFence);
-```
 
 ## Submitting the command buffer
 
@@ -231,15 +157,20 @@ Queue submission and synchronization is configured through parameters in the
 VkSubmitInfo submitInfo = {};
 submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-submitInfo.waitSemaphoreCount = 0; // Optional
-submitInfo.pWaitSemaphores = nullptr; // Optional
-submitInfo.pWaitDstStageMask = nullptr; // Optional
+VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+submitInfo.waitSemaphoreCount = 1;
+submitInfo.pWaitSemaphores = waitSemaphores;
+submitInfo.pWaitDstStageMask = waitStages;
 ```
 
-The rendering operations should wait with writing to the image until after it
-has successfully been acquired. We've already explicitly synchronized this by
-waiting on the image acquisition fence to be signalled before submitting the
-drawing command buffer in the first place, so no semaphore is necessary here.
+The first three parameters specify which semaphores to wait on before execution
+begins and in which stage(s) of the pipeline to wait. We want to wait with
+writing colors to the image until it's available, so we're specifying the stage
+of the graphics pipeline that writes to the color attachment. That means that
+theoretically the implementation can already start executing our vertex shader
+and such while the image is not available yet. Each entry in the `waitStages`
+array corresponds to the semaphore with the same index in `pWaitSemaphores`.
 
 ```c++
 submitInfo.commandBufferCount = 1;
@@ -268,9 +199,10 @@ if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) 
 
 We can now submit the command buffer to the graphics queue using
 `vkQueueSubmit`. The function takes an array of `VkSubmitInfo` structures as
-argument for efficiency when the workload is much larger. The last parameter can
-be used to signal a fence once the drawing commands have finished execution, but
-we're using a semaphore in this case so we'll just pass a `VK_NULL_HANDLE` here.
+argument for efficiency when the workload is much larger. The last parameter
+references an optional fence that will be signaled when the command buffers
+finish execution. We're using semaphores for synchronization, so we'll just pass
+a `VK_NULL_HANDLE`.
 
 ## Subpass dependencies
 
@@ -392,7 +324,7 @@ from `debugCallback` tell us why:
 
 ![](/images/semaphore_in_use.png)
 
-Remember that many of the operations in `drawFrame` are asynchronous. That means
+Remember that all of the operations in `drawFrame` are asynchronous. That means
 that when we exit the loop in `mainLoop`, drawing and presentation operations
 may still be going on. Cleaning up resources while that is happening is a bad
 idea.
@@ -416,43 +348,9 @@ You can also wait for operations in a specific command queue to be finished with
 perform synchronization. You'll see that the program now exits without problems
 when closing the window.
 
-## Fence versus semaphore
-
-We now used a fence to synchronize image acquisition with drawing commands and a
-semaphore to synchronize drawing with presentation. As you saw, it is also
-possible for `vkAcquireNextImageKHR` to signal a semaphore instead of a fence
-and have `vkQueueSubmit` wait on a semaphore through fields in `VkSubmitInfo`.
-
-Doing this synchronization with a semaphore would look like this:
-
-```c++
-vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-
-...
-
-VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
-VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-submitInfo.waitSemaphoreCount = 1;
-submitInfo.pWaitSemaphores = waitSemaphores;
-submitInfo.pWaitDstStageMask = waitStages;
-```
-
-The rendering operations would then wait with writing colors to the image until
-it's available. That means that theoretically the implementation can already
-start executing our vertex shader and such while the image is not available yet.
-Each entry in the `waitStages` array corresponds to the semaphore with the same
-index in `pWaitSemaphores`.
-
-Semaphores offer more fine-grained control over synchronization than fences, and
-therefore they should always be used if possible. However, if you use no
-explicit synchronization with the CPU code at all through either fences or other
-commands like `vkQueueWaitIdle`, then it is harder for the validation layers to
-properly function and this may lead to memory leaks. That's why I've opted to
-explicitly synchronize image acquisition with a fence for this tutorial.
-
 ## Conclusion
 
-About 900 lines of code later, we've finally gotten to the stage of seeing
+About 800 lines of code later, we've finally gotten to the stage of seeing
 something pop up on the screen! Bootstrapping a Vulkan program is definitely a
 lot of work, but the take-away message is that Vulkan gives you an immense
 amount of control through its explicitness. I recommend you to take some time
