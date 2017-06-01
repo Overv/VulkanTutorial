@@ -282,11 +282,11 @@ transferred to the screen right away, which may result in tearing.
 an image from the front of the queue on a vertical blank and the program inserts
 rendered images at the back of the queue. If the queue is full then the program
 has to wait. This is most similar to vertical sync as found in modern games.
-* `VK_PRESENT_MODE_FIFO_RELAXED_KHR`: This mode only differs from the first one
-if the application is late and the queue was empty at the last vertical blank.
-Instead of waiting for the next vertical blank, the image is transferred right
-away when it finally arrives. This may result in visible tearing.
-* `VK_PRESENT_MODE_MAILBOX_KHR`: This is another variation of the first mode.
+* `VK_PRESENT_MODE_FIFO_RELAXED_KHR`: This mode only differs from the previous
+one if the application is late and the queue was empty at the last vertical
+blank. Instead of waiting for the next vertical blank, the image is transferred
+right away when it finally arrives. This may result in visible tearing.
+* `VK_PRESENT_MODE_MAILBOX_KHR`: This is another variation of the second mode.
 Instead of blocking the application when the queue is full, the images that are
 already queued are simply replaced with the newer ones. This mode can be used to
 implement triple buffering, which allows you to avoid tearing with significantly
