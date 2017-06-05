@@ -387,7 +387,12 @@ if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCC
 The parameters are the same as those in previous object creation functions: the
 logical device, pointer to create info structure, optional pointer to custom
 allocators and handle output variable. The buffer with the code can be freed
-immediately after creating the shader module.
+immediately after creating the shader module. Don't forget to return the created
+shader module:
+
+```c++
+return shaderModule;
+```
 
 The shader module objects are only required during the pipeline creation
 process, so instead of declaring them as class members, we'll make them local
