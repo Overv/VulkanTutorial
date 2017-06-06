@@ -82,7 +82,7 @@ the end:
 ```c++
 void cleanup() {
     vkDestroyCommandPool(device, commandPool, nullptr);
-    
+
     ...
 }
 ```
@@ -125,10 +125,6 @@ void createCommandBuffers() {
     commandBuffers.resize(swapChainFramebuffers.size());
 }
 ```
-
-Cleaning up command buffers involves a slightly different function than other
-objects. The `vkFreeCommandBuffers` function takes the command pool and an array
-of command buffers as parameters.
 
 Command buffers are allocated with the `vkAllocateCommandBuffers` function,
 which takes a `VkCommandBufferAllocateInfo` struct as parameter that specifies
