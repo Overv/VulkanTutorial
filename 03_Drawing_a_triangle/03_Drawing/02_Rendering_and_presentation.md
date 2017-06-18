@@ -10,8 +10,6 @@ void mainLoop() {
         glfwPollEvents();
         drawFrame();
     }
-
-    glfwDestroyWindow(window);
 }
 
 ...
