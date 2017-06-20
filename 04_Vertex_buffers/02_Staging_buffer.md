@@ -258,10 +258,10 @@ objects at the same time is to create a custom allocator that splits up a single
 allocation among many different objects by using the `offset` parameters that
 we've seen in many functions.
 
-You will currently have to write such an allocator yourself, but the author
-expects that there will be a library at some point that can be integrated into
-any Vulkan program to properly handle allocations. It's okay to use a separate
-allocation for every resource for this tutorial, because we won't come close to
+You can either implement such an allocator yourself, or use the
+[VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
+library provided by the GPUOpen initiative. However, for this tutorial it's okay
+to use a separate allocation for every resource, because we won't come close to
 hitting any of these limits for now.
 
 [C++ code](/code/staging_buffer.cpp) /
