@@ -215,11 +215,11 @@ start of the render pass and at the end of the render pass, but the former does
 not occur at the right time. It assumes that the transition occurs at the start
 of the pipeline, but we haven't acquired the image yet at that point! There are
 two ways to deal with this problem. We could change the `waitStages` for the
-`imageAvailableSemaphore` to `VK_PIPELINE_STAGE_TOP_OF_PIPELINE_BIT` to ensure
-that the render passes don't begin until the image is available, or we can make
-the render pass wait for the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT`
-stage. I've decided to go with the second option here, because it's a good
-excuse to have a look at subpass dependencies and how they work.
+`imageAvailableSemaphore` to `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` to ensure that
+the render passes don't begin until the image is available, or we can make the
+render pass wait for the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` stage.
+I've decided to go with the second option here, because it's a good excuse to
+have a look at subpass dependencies and how they work.
 
 Subpass dependencies are specified in `VkSubpassDependency` structs. Go to the
 `createRenderPass` function and add one:
