@@ -367,6 +367,25 @@ void drawFrame() {
 }
 ```
 
+The state of the application is also updated every frame in many applications.
+In that case it would be most efficient to draw a frame this way:
+
+```c++
+void drawFrame() {
+    updateAppState();
+    
+    vkQueueWaitIdle(presentQueue);
+
+    submitDrawCommands();
+
+    vkQueuePresentKHR(presentQueue, &presentInfo);
+}
+```
+
+This approach allows you to update the state of the application, for example run
+the AI routines in a game, while the previous frame is being rendered. That way
+you keep both the GPU and CPU busy at all times.
+
 ## Conclusion
 
 About 800 lines of code later, we've finally gotten to the stage of seeing
