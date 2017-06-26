@@ -248,10 +248,15 @@ any of the following bit flags:
 The `objType` parameter specifies the type of object that is the subject of the
 message. For example if `obj` is a `VkPhysicalDevice` then `objType` would be
 `VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT`. This works because internally all
-Vulkan handles are typedef'd as `uint64_t`.
+Vulkan handles are typedef'd as `uint64_t`. The `msg` parameter contains the
+pointer to the message itself. Finally, there's a `userData` parameter to pass
+your own data to the callback.
 
-The `msg` parameter contains the pointer to the message itself. Finally, there's
-a `userData` parameter to pass your own data to the callback.
+The callback returns a boolean that indicates if the Vulkan call that triggered
+the validation layer message should be aborted. If the callback returns true,
+then the call is aborted with the `VK_ERROR_VALIDATION_FAILED_EXT` error. This
+is normally only used to test the validation layers themselves, so you should
+always return `VK_FALSE`.
 
 All that remains now is telling Vulkan about the callback function. Perhaps
 somewhat surprisingly, even the debug callback in Vulkan is managed with a
@@ -359,7 +364,7 @@ void cleanup() {
 }
 ```
 
-When you run the program again you'll see that the error message has 
+When you run the program again you'll see that the error message has
 disappeared. If you want to see which call triggered a message, you can add a
 breakpoint to the message callback and look at the stack trace.
 
