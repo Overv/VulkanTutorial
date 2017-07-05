@@ -189,11 +189,11 @@ for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 }
 ```
 
-In the future we may have more than one desirable property, so we should check
-if the result of the bitwise AND is not just non-zero, but equal to the desired
-properties bit field. If there is a memory type suitable for the buffer that
-also has all of the properties we need, then we return its index, otherwise we
-throw an exception.
+We may have more than one desirable property, so we should check if the result
+of the bitwise AND is not just non-zero, but equal to the desired properties bit
+field. If there is a memory type suitable for the buffer that also has all of
+the properties we need, then we return its index, otherwise we throw an
+exception.
 
 ## Memory allocation
 
