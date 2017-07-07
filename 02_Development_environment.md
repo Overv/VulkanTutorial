@@ -199,8 +199,9 @@ The number of extensions should be non-zero. Congratulations, you're all set for
 playing with Vulkan!
 
 To avoid having to repeat this work all over again every time, you can create a
-template from it. Select `File -> Export Template...`. Select `Project template`
-and fill in a nice name and description for the template.
+template from it. Select `File -> Export Template...` in Visual Studio 2015 or
+`Project -> Export Template...` in Visual Studio 2017. Then select
+`Project template` and fill in a nice name and description for the template.
 
 ![](/images/vs_export_template.png)
 
