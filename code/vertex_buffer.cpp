@@ -117,23 +117,23 @@ private:
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-    
+
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
     std::vector<VkFramebuffer> swapChainFramebuffers;
-    
+
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
-    
+
     VkCommandPool commandPool;
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
-    
+
     std::vector<VkCommandBuffer> commandBuffers;
 
     VkSemaphore imageAvailableSemaphore;
@@ -217,14 +217,14 @@ private:
 
     static void onWindowResized(GLFWwindow* window, int width, int height) {
         if (width == 0 || height == 0) return;
-        
+
         HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
         app->recreateSwapChain();
     }
 
     void recreateSwapChain() {
         vkDeviceWaitIdle(device);
-        
+
         cleanupSwapChain();
 
         createSwapChain();
