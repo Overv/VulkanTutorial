@@ -373,8 +373,10 @@ In that case it would be most efficient to draw a frame this way:
 ```c++
 void drawFrame() {
     updateAppState();
-    
+
     vkQueueWaitIdle(presentQueue);
+
+    vkAcquireNextImageKHR(...)
 
     submitDrawCommands();
 
