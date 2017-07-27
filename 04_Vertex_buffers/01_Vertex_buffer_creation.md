@@ -230,7 +230,7 @@ the buffer using `vkBindBufferMemory`:
 vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
 ```
 
-The first two parameters are self-explanatory and the third parameter is the
+The first three parameters are self-explanatory and the fourth parameter is the
 offset within the region of memory. Since this memory is allocated specifically
 for this the vertex buffer, the offset is simply `0`. If the offset is non-zero,
 then it is required to be divisible by `memRequirements.alignment`.
