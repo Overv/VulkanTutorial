@@ -216,7 +216,7 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 }
 ```
 
-Each `VkSurfaceFormatKHR` entry contains `format` and `colorSpace` member. The
+Each `VkSurfaceFormatKHR` entry contains a `format` and a `colorSpace` member. The
 `format` member specifies the color channels and types. For example,
 `VK_FORMAT_B8G8R8A8_UNORM` means that we store the B, G, R and alpha channels in
 that order with an 8 bit unsigned integer for a total of 32 bits per pixel. The
