@@ -41,12 +41,12 @@ like:
 
 * `VK_PRIMITIVE_TOPOLOGY_POINT_LIST`: points from vertices
 * `VK_PRIMITIVE_TOPOLOGY_LINE_LIST`: line from every 2 vertices without reuse
-* `VK_PRIMITIVE_TOPOLOGY_LINE_STRIP`: every second vertex is used as start
-vertex for the next line
+* `VK_PRIMITIVE_TOPOLOGY_LINE_STRIP`: the end vertex of every line is used as
+start vertex for the next line
 * `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST`: triangle from every 3 vertices without
 reuse
-* `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP `: every third vertex is used as first
-vertex for the next triangle
+* `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP `: the second and third vertex of every
+triangle are used as first two vertices of the next triangle
 
 Normally, the vertices are loaded from the vertex buffer by index in sequential
 order, but with an *element buffer* you can specify the indices to use yourself.
