@@ -93,7 +93,11 @@ Note that the order of the `uniform`, `in` and `out` declarations doesn't
 matter. The `binding` directive is similar to the `location` directive for
 attributes. We're going to reference this binding in the descriptor layout. The
 line with `gl_Position` is changed to use the transformations to compute the
-final position in clip coordinates.
+final position in clip coordinates. Unlike the 2D triangles, the last component
+of the clip coordinates may not be `1`, which will result in a division when
+converted to the final normalized device coordinates on the screen. This is used
+in perspective projection as the *perspective division* and is essential for
+making closer objects look larger than objects that are further away.
 
 ## Descriptor set layout
 
