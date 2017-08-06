@@ -239,7 +239,7 @@ buffer instead of a staging image, so this won't be necessary. We will be using
 `VK_IMAGE_TILING_OPTIMAL` for efficient access from the shader.
 
 ```c++
-imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 ```
 
 There are only two possible values for the `initialLayout` of an image:
@@ -249,11 +249,14 @@ transition will discard the texels.
 * `VK_IMAGE_LAYOUT_PREINITIALIZED`: Not usable by the GPU, but the first
 transition will preserve the texels.
 
-An initially undefined layout is suitable for images that will be used as
-attachments, like color and depth buffers. In that case we don't care about any
-initial data, because it'll probably be cleared by a render pass before use. If
-you want to fill it with data, like a texture, then you should use the
-preinitialized layout.
+There are few situations where it is necessary for the texels to be preserved
+during the first transition. One example, however, would be if you wanted to use
+an image as a staging image in combination with the `VK_IMAGE_TILING_LINEAR`
+layout. In that case, you'd want to upload the texel data to it and then
+transition the image to be a transfer source without losing the data. In our
+case, however, we're first going to transition the image to be a transfer
+destination and then copy texel data to it from a buffer object, so we don't
+need this property and can safely use `VK_IMAGE_LAYOUT_UNDEFINED`.
 
 ```c++
 imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -337,7 +340,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     imageInfo.arrayLayers = 1;
     imageInfo.format = format;
     imageInfo.tiling = tiling;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = usage;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -619,13 +622,14 @@ buffer to the texture image. This involves two steps:
 This is easy to do with the functions we just created:
 
 ```c++
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 ```
 
-Both `VK_IMAGE_LAYOUT_PREINITIALIZED` and `VK_IMAGE_LAYOUT_UNDEFINED` are valid
-values for old layout when transitioning `textureImage`, because we don't care
-about its contents before the copy operation.
+The image was created with the `VK_IMAGE_LAYOUT_UNDEFINED` layout, so that one
+should be specified as old layout when transitioning `textureImage`. Remember
+that we can do this because we don't care about its contents before performing
+the copy operation.
 
 To be able to start sampling from the texture image in the shader, we need one
 last transition to prepare it for shader access:
@@ -640,19 +644,17 @@ If run your application with validation layers enabled now, then you'll see that
 it complains about the access masks in `transitionImageLayout` being invalid.
 We still need to set those based on the layouts in the transition.
 
-There are three transitions we need to handle:
+There are two transitions we need to handle:
 
-* Preinitialized → transfer source: transfer reads should wait on host writes
-* Preinitialized → transfer destination: transfer writes should wait on host
-writes
+* Undefined → transfer destination: transfer writes that don't need to wait
 * Transfer destination → shader reading: shader reads should wait on transfer
 writes
 
 These rules are specified using the following access masks:
 
 ```c++
-if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-    barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    barrier.srcAccessMask = 0;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -664,13 +666,15 @@ if (oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED && newLayout == VK_IMAGE_LAYOUT_
 
 If we need to do more transitions in the future, then we'll extend the function.
 The application should now run successfully, although there are of course no
-visual changes yet. One thing to note is that command buffer submission results
-in implicit `VK_ACCESS_HOST_WRITE_BIT` synchronization at the beginning. Since
-the `transitionImageLayout` function executes a command buffer with only a
-single command, we can use this implicit synchronization and set `srcAccessMask`
-to `0` for the first two types of transitions. It's up to you if you want to be
-explicit about it or not, but I'm personally not a fan of relying on these
-OpenGL-like "hidden" operations.
+visual changes yet.
+
+One thing to note is that command buffer submission results in implicit
+`VK_ACCESS_HOST_WRITE_BIT` synchronization at the beginning. Since the
+`transitionImageLayout` function executes a command buffer with only a single
+command, you could use this implicit synchronization and set `srcAccessMask` to
+`0` if you ever needed a `VK_ACCESS_HOST_WRITE_BIT` dependency in a layout
+transition. It's up to you if you want to be explicit about it or not, but I'm
+personally not a fan of relying on these OpenGL-like "hidden" operations.
 
 There is actually a special type of image layout that supports all operations,
 `VK_IMAGE_LAYOUT_GENERAL`. The problem with it, of course, is that it doesn't
