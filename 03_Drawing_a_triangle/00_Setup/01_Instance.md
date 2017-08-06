@@ -96,7 +96,8 @@ Vulkan follow is:
 If everything went well then the handle to the instance was stored in the
 `VkInstance` class member. Nearly all Vulkan functions return a value of type
 `VkResult` that is either `VK_SUCCESS` or an error code. To check if the
-instance was created successfully, simply add a check for the success value:
+instance was created successfully, we don't need to store the result and can
+just use a check for the success value instead:
 
 ```c++
 if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
