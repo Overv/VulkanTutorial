@@ -53,11 +53,14 @@ on to the fragment shader, like color and texture coordinates. These values will
 then be interpolated over the fragments by the rasterizer to produce a smooth
 gradient.
 
-Clip coordinates are [homogeneous coordinates](https://en.wikipedia.org/wiki/Homogeneous_coordinates)
+A *clip coordinate* is a four dimensional vector from the vertex shader that is
+subsequently turned into a *normalized device coordinate* by dividing the whole
+vector by its last component. These normalized device coordinates are
+[homogeneous coordinates](https://en.wikipedia.org/wiki/Homogeneous_coordinates)
 that map the framebuffer to a [-1, 1] by [-1, 1] coordinate system that looks
 like the following:
 
-![](/images/clip_coordinates.svg)
+![](/images/normalized_device_coordinates.svg)
 
 You should already be familiar with these if you have dabbed in computer
 graphics before. If you have used OpenGL before, then you'll notice that the
@@ -65,10 +68,15 @@ sign of the Y coordinates is now flipped. The Z coordinate now uses the same
 range as it does in Direct3D, from 0 to 1.
 
 For our first triangle we won't be applying any transformations, we'll just
-specify the positions of the three vertices directly in clip coordinates to
-create the following shape:
+specify the positions of the three vertices directly as normalized device
+coordinates to create the following shape:
 
 ![](/images/triangle_coordinates.svg)
+
+We can directly output normalized device coordinates by outputting them as clip
+coordinates from the vertex shader with the last component set to `1`. That way
+the division to transform clip coordinates to normalized device coordinates will
+not change anything.
 
 Normally these coordinates would be stored in a vertex buffer, but creating a
 vertex buffer in Vulkan and filling it with data is not trivial. Therefore I've
