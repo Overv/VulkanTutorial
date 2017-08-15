@@ -520,7 +520,7 @@ back to this once we've figured out which transitions we're going to use.
 ```c++
 vkCmdPipelineBarrier(
     commandBuffer,
-    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+    0 /* TODO */, 0 /* TODO */,
     0,
     0, nullptr,
     0, nullptr,
@@ -529,10 +529,19 @@ vkCmdPipelineBarrier(
 ```
 
 All types of pipeline barriers are submitted using the same function. The first
-parameter specifies in which pipeline stage the operations occur that should
-happen before the barrier. The second parameter specifies the pipeline stage in
-which operations will wait on the barrier. We want it to happen immediately, so
-we're going with the top of the pipeline.
+parameter after the command buffer specifies in which pipeline stage the
+operations occur that should happen before the barrier. The second parameter
+specifies the pipeline stage in which operations will wait on the barrier. The
+pipeline stages that you are allowed to specify before and after the barrier
+depend on how you use the resource before and after the barrier. The allowed
+values are listed in [this table](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#synchronization-access-types-supported)
+of the specification. For example, if you're going to read from a uniform after
+the barrier, you would specify a usage of `VK_ACCESS_UNIFORM_READ_BIT` and the
+earliest shader that will read from the uniform as pipeline stage, for example
+`VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT`. It would not make sense to specify
+a non-shader pipeline stage for this type of usage and the validation layers
+will warn you when you specify a pipeline stage that does not match the type of
+usage.
 
 The third parameter is either `0` or `VK_DEPENDENCY_BY_REGION_BIT`. The latter
 turns the barrier into a per-region condition. That means that the
@@ -641,28 +650,58 @@ transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TR
 ## Transition barrier masks
 
 If run your application with validation layers enabled now, then you'll see that
-it complains about the access masks in `transitionImageLayout` being invalid.
-We still need to set those based on the layouts in the transition.
+it complains about the access masks and pipeline stages in
+`transitionImageLayout` being invalid. We still need to set those based on the
+layouts in the transition.
 
 There are two transitions we need to handle:
 
-* Undefined → transfer destination: transfer writes that don't need to wait
+* Undefined → transfer destination: transfer writes that don't need to wait on
+anything
 * Transfer destination → shader reading: shader reads should wait on transfer
-writes
+writes, specifically the shader reads in the fragment shader, because that's
+where we're going to use the texture
 
-These rules are specified using the following access masks:
+These rules are specified using the following access masks and pipeline stages:
 
 ```c++
+VkPipelineStageFlags sourceStage;
+VkPipelineStageFlags destinationStage;
+
 if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
     barrier.srcAccessMask = 0;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 } else {
     throw std::invalid_argument("unsupported layout transition!");
 }
+
+vkCmdPipelineBarrier(
+    commandBuffer,
+    sourceStage, destinationStage,
+    0,
+    0, nullptr,
+    0, nullptr,
+    1, &barrier
+);
 ```
+
+As you can see in the aforementioned table, transfer writes must occur in the
+pipeline transfer stage. Since the writes don't have to wait on anything, you
+may specify an empty access mask and the earliest possible pipeline stage
+`VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` for the pre-barrier operations.
+
+The image will be written in the same pipeline stage and subsequently read by
+the fragment shader, which is why we specify shader reading access in the
+fragment shader pipeline stage.
 
 If we need to do more transitions in the future, then we'll extend the function.
 The application should now run successfully, although there are of course no
