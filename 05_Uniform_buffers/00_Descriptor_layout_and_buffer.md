@@ -347,11 +347,11 @@ Z-axis using the `time` variable:
 
 ```c++
 UniformBufferObject ubo = {};
-ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 ```
 
 The `glm::rotate` function takes an existing transformation, rotation angle and
-rotation axis as parameters. The `glm::mat4()` default constructor returns an
+rotation axis as parameters. The `glm::mat4(1.0f)` constructor returns an 
 identity matrix. Using a rotation angle of `time * glm::radians(90.0f)`
 accomplishes the purpose of rotation 90 degrees per second.
 
