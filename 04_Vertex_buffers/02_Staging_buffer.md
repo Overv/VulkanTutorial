@@ -242,10 +242,10 @@ clean it up:
 }
 ```
 
-Run your program to verify that you're seeing the familiar triangle again. It
-may not be visible, but its vertex data is now being loaded from high
-performance memory. This will matter when we're going to start rendering more
-complex geometry.
+Run your program to verify that you're seeing the familiar triangle again. The
+improvement may not be visible right now, but its vertex data is now being
+loaded from high performance memory. This will matter when we're going to start
+rendering more complex geometry.
 
 ## Conclusion
 
