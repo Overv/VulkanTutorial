@@ -335,6 +335,11 @@ window. You'll see that the following message is printed to the command prompt:
 
 ![](/images/validation_layer_test.png)
 
+*If this message is not printed when the program exits, then there may be a
+problem with your Vulkan SDK installation. See [this page](https://vulkan.lunarg.com/doc/sdk/1.0.61.0/windows/getting_started.html) for more information. You can prevent the command prompt from
+immediately closing in Visual Studio by running your program with Ctrl-F5 instead
+of just F5.*
+
 Oops, it has already spotted a bug in our program! The
 `VkDebugReportCallbackEXT` object needs to be cleaned up with a call to
 `vkDestroyDebugReportCallbackEXT`. Similarly to `vkCreateDebugReportCallbackEXT`
