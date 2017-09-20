@@ -2,8 +2,8 @@ This page lists solutions to common problems that you may encounter while
 developing Vulkan applications.
 
 * **I get an access violation error in the core validation layer**: Make sure
-that the RivaTuner Statistics Server is not running, because it has some
-compatibility problems with Vulkan.
+that MSI Afterburner / RivaTuner Statistics Server is not running, because it
+has some compatibility problems with Vulkan.
 
 * **I don't see any messages from the validation layers**: First make sure that
 the validation layers get a chance to print errors by keeping the terminal open
