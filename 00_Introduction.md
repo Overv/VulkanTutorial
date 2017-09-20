@@ -112,4 +112,9 @@ in mind that once you have that boring looking triangle, drawing fully textured
 3D models does not take that much extra work, and each step beyond that point is
 much more rewarding.
 
+If you encounter any problems while following the tutorial, then first check the
+FAQ to see if your problem and its solution is already listed there. If you are
+still stuck after that, then feel free to ask for help in the comment section of
+the closest related chapter.
+
 Ready to dive into the future of high performance graphics APIs? [Let's go!](!Overview)
