@@ -30,11 +30,12 @@ shouldn't touch resources that may still be in use. Obviously, the first thing
 we'll have to do is recreate the swap chain itself. The image views need to be
 recreated because they are based directly on the swap chain images. The render
 pass needs to be recreated because it depends on the format of the swap chain
-images. Viewport and scissor rectangle size is specified during graphics
-pipeline creation, so the pipeline also needs to be rebuilt. It is possible to
-avoid this by using dynamic state for the viewports and scissor rectangles.
-Finally, the framebuffers and command buffers also directly depend on the swap
-chain images.
+images. It is rare for the swap chain image format to change during an operation
+like a window resize, but it should still be handled. Viewport and scissor
+rectangle size is specified during graphics pipeline creation, so the pipeline
+also needs to be rebuilt. It is possible to avoid this by using dynamic state
+for the viewports and scissor rectangles. Finally, the framebuffers and command
+buffers also directly depend on the swap chain images.
 
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
@@ -43,12 +44,12 @@ that we can call from the `recreateSwapChain` function. Let's call it
 
 ```c++
 void cleanupSwapChain() {
-    
+
 }
 
 void recreateSwapChain() {
     vkDeviceWaitIdle(device);
-    
+
     cleanupSwapChain();
 
     createSwapChain();
@@ -104,7 +105,7 @@ void cleanup() {
 We could recreate the command pool from scratch, but that is rather wasteful.
 Instead I've opted to clean up the existing command buffers with the
 `vkFreeCommandBuffers` function. This way we can reuse the existing pool to
-allocate the new command buffers. 
+allocate the new command buffers.
 
 That's all it takes to recreate the swap chain! However, the disadvantage of
 this approach is that we need to stop all rendering before creating the new swap
