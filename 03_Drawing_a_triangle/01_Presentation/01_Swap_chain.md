@@ -1,5 +1,4 @@
-In this chapter we will look at the infrastructure that gives you images to
-render to that can be presented to the screen afterwards. This infrastructure is
+In this chapter we will look at the infrastructure that gives you the images you can either render to or that can be presented to the screen, generally after being drawn. This infrastructure is
 known as the *swap chain* and must be created explicitly in Vulkan. The swap
 chain is essentially a queue of images that are waiting to be presented to the
 screen. Our application will acquire such an image to draw to it, and then
