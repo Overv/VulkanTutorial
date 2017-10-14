@@ -1,4 +1,4 @@
-In this chapter we will look at the infrastructure that gives you the images you can either render to or that can be presented to the screen, generally after being drawn. This infrastructure is
+Vulkan does not have the concept of a "default framebuffer", hence it requires an infrastructure that will own the buffers we will render to before we visualize them on the screen. This infrastructure is
 known as the *swap chain* and must be created explicitly in Vulkan. The swap
 chain is essentially a queue of images that are waiting to be presented to the
 screen. Our application will acquire such an image to draw to it, and then
