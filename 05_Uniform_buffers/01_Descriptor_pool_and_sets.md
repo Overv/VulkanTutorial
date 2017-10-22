@@ -232,7 +232,7 @@ Run your program again and you should now see the following:
 ![](/images/spinning_quad.png)
 
 The rectangle has changed into a square because the projection matrix now
-corrects for aspect ratio. The `updateUniformData` takes care of screen
+corrects for aspect ratio. The `updateUniformBuffer` takes care of screen
 resizing, so we don't need to recreate the descriptor set in
 `recreateSwapChain`.
 
