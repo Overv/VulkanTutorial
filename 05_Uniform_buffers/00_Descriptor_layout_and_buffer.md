@@ -332,14 +332,12 @@ void updateUniformBuffer() {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 }
 ```
 
 The `updateUniformBuffer` function will start out with some logic to calculate
-the time in seconds since rendering has started with millisecond accuracy. If
-you need timing to be more precise, then you can use `std::chrono::microseconds`
-and divide by `1e6f`, which is short for `1000000.0f`.
+the time in seconds since rendering has started with floating point accuracy.
 
 We will now define the model, view and projection transformations in the
 uniform buffer object. The model rotation will be a simple rotation around the
@@ -351,7 +349,7 @@ ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0
 ```
 
 The `glm::rotate` function takes an existing transformation, rotation angle and
-rotation axis as parameters. The `glm::mat4(1.0f)` constructor returns an 
+rotation axis as parameters. The `glm::mat4(1.0f)` constructor returns an
 identity matrix. Using a rotation angle of `time * glm::radians(90.0f)`
 accomplishes the purpose of rotation 90 degrees per second.
 
