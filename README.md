@@ -21,6 +21,17 @@ This guide is now available in e-book formats as well:
 * [EPUB](https://raw.githubusercontent.com/Overv/VulkanTutorial/master/ebook/Vulkan%20Tutorial.epub)
 * [PDF](https://raw.githubusercontent.com/Overv/VulkanTutorial/master/ebook/Vulkan%20Tutorial.pdf)
 
+The e-book can be built from the existing content by running:
+
+     python3 build_ebook.py
+
+This script depends on the following utilities being available on the path:
+
+* `inkscape`: SVG to PNG conversion
+* `pandoc`: Building a PDF and EPUB from the Markdown code
+
+You also need to install a LaTeX distribution for PDF generation.
+
 Changing code across chapters
 -----------------------------
 
