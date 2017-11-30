@@ -303,7 +303,7 @@ namespace std {
     template<> struct hash<Vertex> {
         size_t operator()(Vertex const& vertex) const {
             return ((hash<glm::vec3>()(vertex.pos) ^
-                   (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ 
+                   (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
                    (hash<glm::vec2>()(vertex.texCoord) << 1);
         }
     };
@@ -314,8 +314,14 @@ This code should be placed outside the `Vertex` struct. The hash functions for
 the GLM types need to be included using the following header:
 
 ```c++
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 ```
+
+The hash functions are defined in the `gtx` folder, which means that it is
+technically still an experimental extension to GLM. Therefore you need to define
+`GLM_ENABLE_EXPERIMENTAL` to use it. It means that the API could change with a
+new version of GLM in the future, but in practice the API is very stable.
 
 You should now be able to successfully compile and run your program. If you
 check the size of `vertices`, then you'll see that it has shrunk down from
