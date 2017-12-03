@@ -62,7 +62,7 @@ the window system. GLFW has a handy built-in function that returns the
 extension(s) it needs to do that which we can pass to the struct:
 
 ```c++
-unsigned int glfwExtensionCount = 0;
+uint32_t glfwExtensionCount = 0;
 const char** glfwExtensions;
 
 glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
