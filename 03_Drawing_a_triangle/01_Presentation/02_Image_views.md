@@ -111,8 +111,8 @@ a similar loop to destroy them again at the end of the program:
 
 ```c++
 void cleanup() {
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        vkDestroyImageView(device, swapChainImageViews[i], nullptr);
+    for (auto imageView : swapChainImageViews) {
+        vkDestroyImageView(device, imageView, nullptr);
     }
 
     ...
