@@ -162,7 +162,7 @@ uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 ```
 
 We also need to specify in which shader stages the descriptor is going to be
-referenced. The `stageFlags` field can be a combination of `VkShaderStage` flags
+referenced. The `stageFlags` field can be a combination of `VkShaderStageFlagBits` values
 or the value `VK_SHADER_STAGE_ALL_GRAPHICS`. In our case, we're only referencing
 the descriptor from the vertex shader.
 
