@@ -548,6 +548,8 @@ function to recreate the depth resources in that case:
 ```c++
 void recreateSwapChain() {
     vkDeviceWaitIdle(device);
+    
+    cleanupSwapChain();
 
     createSwapChain();
     createImageViews();
