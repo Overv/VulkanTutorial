@@ -137,8 +137,6 @@ void initWindow() {
 ...
 
 static void onWindowResized(GLFWwindow* window, int width, int height) {
-    if (width == 0 || height == 0) return;
-
     HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
     app->recreateSwapChain();
 }
@@ -163,6 +161,22 @@ int width, height;
 glfwGetWindowSize(window, &width, &height);
 
 VkExtent2D actualExtent = {width, height};
+```
+
+We have to be careful with this, because the width and height may be 0 if the
+window is minimized, for example. Therefore we should check if it makes sense
+to recreate the swap chain:
+
+```c++
+void recreateSwapChain() {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    if (width == 0 || height == 0) return;
+
+    vkDeviceWaitIdle(device);
+
+    ...
+}
 ```
 
 ## Suboptimal or out-of-date swap chain
