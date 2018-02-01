@@ -48,7 +48,7 @@ important parameters: `hwnd` and `hinstance`. These are the handles to the
 window and the process.
 
 ```c++
-VkWin32SurfaceCreateInfoKHR createInfo;
+VkWin32SurfaceCreateInfoKHR createInfo = {};
 createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 createInfo.hwnd = glfwGetWin32Window(window);
 createInfo.hinstance = GetModuleHandle(nullptr);
