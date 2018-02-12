@@ -577,6 +577,6 @@ Congratulations, your application is now finally ready to render arbitrary 3D
 geometry and have it look right. We're going to try this out in the next chapter
 by drawing a textured model!
 
-[C++ code](/code/depth_buffering.cpp) /
-[Vertex shader](/code/shader_depth.vert) /
-[Fragment shader](/code/shader_depth.frag)
+[C++ code](/code/26_depth_buffering.cpp) /
+[Vertex shader](/code/26_shader_depth.vert) /
+[Fragment shader](/code/26_shader_depth.frag)

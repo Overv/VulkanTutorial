@@ -491,6 +491,6 @@ VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShade
 That's all there is to describing the programmable stages of the pipeline. In
 the next chapter we'll look at the fixed-function stages.
 
-[C++ code](/code/shader_modules.cpp) /
-[Vertex shader](/code/shader_base.vert) /
-[Fragment shader](/code/shader_base.frag)
+[C++ code](/code/09_shader_modules.cpp) /
+[Vertex shader](/code/09_shader_base.vert) /
+[Fragment shader](/code/09_shader_base.frag)

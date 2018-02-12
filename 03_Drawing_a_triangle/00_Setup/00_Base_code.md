@@ -211,4 +211,4 @@ When you run the program now you should see a window titled `Vulkan` show up
 until the application is terminated by closing the window. Now that we have the
 skeleton for the Vulkan application, let's [create the first Vulkan object](!Drawing_a_triangle/Setup/Instance)!
 
-[C++ code](/code/base_code.cpp)
+[C++ code](/code/00_base_code.cpp)

@@ -406,6 +406,6 @@ is not what you expect.
 There is however one more object to create before we can finally create the
 graphics pipeline and that is a [render pass](!Drawing_a_triangle/Graphics_pipeline_basics/Render_passes).
 
-[C++ code](/code/fixed_functions.cpp) /
-[Vertex shader](/code/shader_base.vert) /
-[Fragment shader](/code/shader_base.frag)
+[C++ code](/code/10_fixed_functions.cpp) /
+[Vertex shader](/code/09_shader_base.vert) /
+[Fragment shader](/code/09_shader_base.frag)
