@@ -615,4 +615,4 @@ window. The next chapter will begin to cover how we can set up the images as
 render targets and then we start looking into the actual graphics pipeline and
 drawing commands!
 
-[C++ code](/code/swap_chain_creation.cpp)
+[C++ code](/code/06_swap_chain_creation.cpp)

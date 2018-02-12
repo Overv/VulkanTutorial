@@ -402,6 +402,6 @@ from this point on.
 In the next chapter we'll deal with one more small thing that is required for a
 well-behaved Vulkan program.
 
-[C++ code](/code/hello_triangle.cpp) /
-[Vertex shader](/code/shader_base.vert) /
-[Fragment shader](/code/shader_base.frag)
+[C++ code](/code/15_hello_triangle.cpp) /
+[Vertex shader](/code/09_shader_base.vert) /
+[Fragment shader](/code/09_shader_base.frag)

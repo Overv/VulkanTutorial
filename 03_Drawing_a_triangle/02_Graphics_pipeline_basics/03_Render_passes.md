@@ -210,6 +210,6 @@ void cleanup() {
 That was a lot of work, but in the next chapter it all comes together to finally
 create the graphics pipeline object!
 
-[C++ code](/code/render_passes.cpp) /
-[Vertex shader](/code/shader_base.vert) /
-[Fragment shader](/code/shader_base.frag)
+[C++ code](/code/11_render_passes.cpp) /
+[Vertex shader](/code/09_shader_base.vert) /
+[Fragment shader](/code/09_shader_base.frag)

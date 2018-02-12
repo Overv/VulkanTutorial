@@ -96,4 +96,4 @@ void createGraphicsPipeline() {
 }
 ```
 
-[C++ code](/code/graphics_pipeline.cpp)
+[C++ code](/code/08_graphics_pipeline.cpp)

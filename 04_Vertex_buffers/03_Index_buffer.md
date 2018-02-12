@@ -174,6 +174,6 @@ provided that their data is refreshed, of course. This is known as *aliasing*
 and some Vulkan functions have explicit flags to specify that you want to do
 this.
 
-[C++ code](/code/index_buffer.cpp) /
-[Vertex shader](/code/shader_vertexbuffer.vert) /
-[Fragment shader](/code/shader_vertexbuffer.frag)
+[C++ code](/code/20_index_buffer.cpp) /
+[Vertex shader](/code/17_shader_vertexbuffer.vert) /
+[Fragment shader](/code/17_shader_vertexbuffer.frag)

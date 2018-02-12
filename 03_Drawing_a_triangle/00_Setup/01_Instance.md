@@ -185,4 +185,4 @@ following chapters should be cleaned up before the instance is destroyed.
 Before continuing with the more complex steps after instance creation, it's time
 to evaluate our debugging options by checking out [validation layers](!Drawing_a_triangle/Setup/Validation_layers).
 
-[C++ code](/code/instance_creation.cpp)
+[C++ code](/code/01_instance_creation.cpp)
