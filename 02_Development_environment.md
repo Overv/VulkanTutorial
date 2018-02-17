@@ -196,22 +196,7 @@ and a window pop up like this:
 ![](/images/vs_test_window.png)
 
 The number of extensions should be non-zero. Congratulations, you're all set for
-playing with Vulkan!
-
-To avoid having to repeat this work all over again every time, you can create a
-template from it. Select `File -> Export Template...` in Visual Studio 2015 or
-`Project -> Export Template...` in Visual Studio 2017. Then select
-`Project template` and fill in a nice name and description for the template.
-
-![](/images/vs_export_template.png)
-
-Press `Finish` and you should now have a handy template in the `New Project`
-dialog!  Use it to create a `Hello Triangle` project as preparation for the next
-chapter.
-
-![](/images/vs_template.png)
-
-You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
+[playing with Vulkan](!Drawing_a_triangle/Setup/Base_code)!
 
 ## Linux
 
