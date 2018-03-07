@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <cstring>
+#include <cstdlib>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
