@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vector>
 #include <cstring>
+#include <cstdlib>
 #include <set>
 
 const int WIDTH = 800;

@@ -10,6 +10,7 @@ from scratch with the following code:
 #include <iostream>
 #include <stdexcept>
 #include <functional>
+#include <cstdlib>
 
 class HelloTriangleApplication {
 public:
@@ -50,7 +51,8 @@ int main() {
 We first include the Vulkan header from the LunarG SDK, which provides the
 functions, structures and enumerations. The `stdexcept` and `iostream` headers
 are included for reporting and propagating errors. The `functional` headers will
-be used for a lambda functions in the resource management section.
+be used for a lambda functions in the resource management section. The `cstdlib`
+header provides the `EXIT_SUCCESS` and `EXIT_FAILURE` macros.
 
 The program itself is wrapped into a class where we'll store the Vulkan objects
 as private class members and add functions to initiate each of them, which will
