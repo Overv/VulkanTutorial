@@ -62,7 +62,7 @@ like the following:
 
 ![](/images/normalized_device_coordinates.svg)
 
-You should already be familiar with these if you have dabbed in computer
+You should already be familiar with these if you have dabbled in computer
 graphics before. If you have used OpenGL before, then you'll notice that the
 sign of the Y coordinates is now flipped. The Z coordinate now uses the same
 range as it does in Direct3D, from 0 to 1.
