@@ -36,6 +36,18 @@ properties that are specified per-vertex in the vertex buffer, just like we
 manually specified a position and color per vertex using the two arrays. Make
 sure to recompile the vertex shader!
 
+Just like `fragColor`, the `layout(location = x)` annotations assign indices to
+the inputs that we can later use to reference them. It is important to know that
+some types, like `dvec3` 64 bit vectors, use multiple *slots*. That means that
+the index after it must be at least 2 higher:
+
+```glsl
+layout(location = 0) in dvec3 inPosition;
+layout(location = 2) in vec3 inColor;
+```
+
+You can find more info about the layout qualifier in the [OpenGL wiki](https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)).
+
 ## Vertex data
 
 We're moving the vertex data from the shader code to an array in the code of our
