@@ -351,7 +351,10 @@ outside the class. We can then call it in the `cleanup` function:
 
 ```c++
 void cleanup() {
-    DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+    if (enableValidationLayers) {
+        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+    }
+
     vkDestroyInstance(instance, nullptr);
 
     glfwDestroyWindow(window);

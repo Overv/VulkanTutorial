@@ -93,7 +93,11 @@ private:
 
     void cleanup() {
         vkDestroyDevice(device, nullptr);
-        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+
+        if (enableValidationLayers) {
+            DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+        }
+
         vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyInstance(instance, nullptr);
 
