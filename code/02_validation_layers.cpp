@@ -72,7 +72,10 @@ private:
     }
 
     void cleanup() {
-        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+        if (enableValidationLayers) {
+            DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+        }
+
         vkDestroyInstance(instance, nullptr);
 
         glfwDestroyWindow(window);
