@@ -101,26 +101,22 @@ We're now going to write the function generates the mipmaps:
 ```c++
     void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-        ...
+        
+        VkImageMemoryBarrier barrier = {};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.image = image;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.subresourceRange.levelCount = 1;
+        
         endSingleTimeCommands(commandBuffer);
     }
 ```
 
-Since we can't use `transitionImageLayout`, we need to record and submit another `VkCommandBuffer`.
-
-```c++
-    VkImageMemoryBarrier barrier = {};
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.image = image;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
-    barrier.subresourceRange.levelCount = 1;
-```
-
-We're going to insert several pipeline barriers, so we'll reuse this `VkImageMemoryBarrier` for each transition.
+We're going to make several transitions, so we'll reuse this `VkImageMemoryBarrier`.
 
 ```c++
     int32_t mipWidth = texWidth;
