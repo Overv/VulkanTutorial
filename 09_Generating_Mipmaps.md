@@ -233,17 +233,49 @@ Our texture image's mipmaps are now completely filled.
 
 ## Sampler
 
-One last thing we need to do before we see the results is modify `textureSampler`.
+While the `VkImage` holds the mipmap data, `VkSampler` controls how that data is read while rendering. Vulkan allows us to specify `minLod`, `maxLod`, `mipLodBias`, and `mipmapMode`. When a texture is sampled, the sampler selects a mip level according to the following pseudocode:
+
+```c++
+    lod = getLodLevelFromScreenSize(); //smaller when the object is close, may be negative
+    lod = clamp(lod + mipLodBias, minLod, maxLod);
+    
+    level = clamp(floor(lod), 0, texture.mipLevels - 1);  //clamped to the number of mip levels in the texture
+    
+    if (mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST) {
+        color = sample(level);
+    } else {
+        color = blend(sample(level), sample(level + 1));
+    }
+```
+
+If `samplerInfo.mipmapMode` is `VK_SAMPLER_MIPMAP_MODE_NEAREST`, `lod` selects the mip level to sample from. If the mipmap mode is `VK_SAMPLER_MIPMAP_MODE_LINEAR`, `lod` is used to select two mip levels to be sampled. Those levels are sampled and the results are linearly blended.
+
+The sample operation is also affected by `lod`:
+
+```c++
+    if (lod <= 0) {
+        color = readTexture(uv, magFilter);
+    } else {
+        color = readTexture(uv, minFilter);
+    }
+```
+
+If the object is close to the camera, `magFilter` is used as the filter. If the object is further from the camera, `minFilter` is used. Normally, `lod` is non-negative, and is only 0 when close the camera. `mipLodBias` lets us force Vulkan to use lower mip levels than it normally would.
+
+To see the results of this chapter, we need to choose values for our `textureSampler`. We've already set the `minFilter` and `magFilter` to use `VK_FILTER_LINEAR`. We just need to choose values for `minLod`, `maxLod`, `mipLodBias`, and `mipmapMode`.
 
 ```c++
     void createTextureSampler() {
         ...
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.minLod = 0; // Optional
         samplerInfo.maxLod = static_cast<float>(mipLevels);
+        samplerInfo.mipLodBias = 0; // Optional
         ...
     }
 ```
 
-This configures the sampler to sample from all mip levels up to `mipLevels`.
+To allow the full range of mip levels to be used, we set `minLod` to 0, and `maxLod` to the number of mip levels. We have no reason to change the `lod` value , so we set `mipLodBias` to 0.
 
 Now run your program and you should see the following:
 
