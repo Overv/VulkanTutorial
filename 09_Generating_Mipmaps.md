@@ -172,10 +172,13 @@ Next, we specify the regions that will be used in the blit operation. The source
     vkCmdBlitImage(commandBuffer,
         textureImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1, &blit, VK_FILTER_LINEAR);
+        1, &blit,
+        VK_FILTER_LINEAR);
 ```
 
-Now, we record the blit command. Note that `textureImage` is used for both the `srcImage` and `dstImage` parameter. The source mip level was just transitioned to `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` and the destination level is still in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` from `createTextureImage`. The last parameter says to use a linear filter when scaling the data.
+Now, we record the blit command. Note that `textureImage` is used for both the `srcImage` and `dstImage` parameter. This is because we're blitting between different levels of the same image. The source mip level was just transitioned to `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` and the destination level is still in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` from `createTextureImage`.
+
+The last parameter allows us to specify a `VkFilter` to use in the blit. We have the same filtering options here that we had when making the `VkSampler`. We use the `VK_FILTER_LINEAR` to enable filtering.
 
 ```c++
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
