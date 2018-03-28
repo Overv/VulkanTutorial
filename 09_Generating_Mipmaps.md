@@ -1,11 +1,9 @@
 ## Introduction
 Our program can now load and render 3D models. In this chapter, we will add one more feature, mipmap generation. Mipmaps are widely used in games and rendering software, and Vulkan gives us complete control over how they are created. 
 
-Mipmaps are precalculated, downscaled versions of an image. Each new image is half the width and height of the previous one. The smaller images are used when an object is far away from the camera. Since the smaller images use less memory, they are faster to sample from. Since they are precalculated, using them avoids artifacts such as [Moiré patterns](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern). An example of what mip maps look like:
-
+Mipmaps are precalculated, downscaled versions of an image. Each new image is half the width and height of the previous one.  Mip maps are used as a form of *Level of Detail.* Objects that are far away from the camera will sample their textures from the smaller mip images. Using smaller images increases the rendering speed and avoids artifacts such as [Moiré patterns](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern). An example of what mip maps look like:
 
 ![](/images/mipmaps_example.jpg)
-
 
 ## Image creation
 
