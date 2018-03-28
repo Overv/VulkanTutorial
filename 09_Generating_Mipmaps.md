@@ -33,22 +33,6 @@ The `max` function selects the largest dimension. The `log2` function calculates
 To use this value, we need to change the `createImage` and `createImageView` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
 
 ```c++
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    ...
-    mipLevels = 1;
-    int32_t mipWidth = texWidth;
-    int32_t mipHeight = texHeight;
-    while (mipWidth > 1 && mipHeight > 1) {
-        mipLevels++;
-        mipWidth /= 2;
-        mipHeight /= 2;
-    }
-```
-
-The loop counts the number of mip levels by halving the dimensions of the current mip level, until either dimension is 1. To use this value, we need to change the `createImage` and `createImageView` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
-
-```c++
     void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
         ...
         imageInfo.mipLevels = mipLevels;
