@@ -81,9 +81,9 @@ Update all calls to these functions to use the right values:
 
 ## Generating Mipmaps
 
-Our texture image now has multiple mip levels, but the staging buffer can only be used to fill mip level 0. The other levels are still undefined. To fill these levels we need to generate the data from the single level that we have. We will use `vkCmdBlitImage` command. This command performs copying, scaling, filtering operations. We will use this to *blit* data from each level of our texture image.
+Our texture image now has multiple mip levels, but the staging buffer can only be used to fill mip level 0. The other levels are still undefined. To fill these levels we need to generate the data from the single level that we have. We will use `vkCmdBlitImage` command. This command performs copying, scaling, and filtering operations. We will use this to *blit* data to each level of our texture image.
 
-Like other image operations, `vkCmdBlitImage` depends on the layout of the image it operates on. For optimal performance, the source image should be in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` and the destination image should be in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` while blitting data. Vulkan allows us to transition each mip level of an image independently. `transitionImageLayout` only performs layout transitions on the entire image, so first we need to remove the existing transition to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` in `createTextureImage`:
+Like other image operations, `vkCmdBlitImage` depends on the layout of the image it operates on. For optimal performance, the source image should be in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` and the destination image should be in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` while blitting data. Vulkan allows us to transition each mip level of an image independently. `transitionImageLayout` only performs layout transitions on the entire image, so we'll need to write a few more pipeline barrier commands. First, remove the existing transition to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` in `createTextureImage`:
 
 ```c++
     ...
