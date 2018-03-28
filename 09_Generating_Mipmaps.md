@@ -197,12 +197,12 @@ This barrier transitions mip level `i - 1` to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_
 
 ```c++
         ...
-        mipWidth /= 2;
-        mipHeight /= 2;
+        if (mipWidth > 1) mipWidth /= 2;
+        if (mipHeight > 1) mipHeight /= 2;
     }
 ```
 
-At the end of the loop, we divide the current mip dimensions by two.
+At the end of the loop, we divide the current mip dimensions by two. We check each dimension before the division to ensure that dimension never becomes 0. This handles cases where the image is not square, since one of the mip dimensions would reach 1 before the other dimension. When this happens, that dimension should remain 1 for all remaining levels.
 
 ```c++
 

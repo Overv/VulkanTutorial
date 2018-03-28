@@ -880,8 +880,8 @@ private:
                 0, nullptr,
                 1, &barrier);
 
-            mipWidth /= 2;
-            mipHeight /= 2;
+            if (mipWidth > 1) mipWidth /= 2;
+            if (mipHeight > 1) mipHeight /= 2;
         }
 
         barrier.subresourceRange.baseMipLevel = mipLevels - 1;
