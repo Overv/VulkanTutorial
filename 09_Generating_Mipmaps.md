@@ -99,7 +99,7 @@ This will leave each level of the texture image in `VK_IMAGE_LAYOUT_TRANSFER_DST
 We're now going to write the function generates the mipmaps:
 
 ```c++
-    void generateMipmaps(int32_t texWidth, int32_t texHeight) {
+    void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
         ...
         endSingleTimeCommands(commandBuffer);
@@ -108,11 +108,10 @@ We're now going to write the function generates the mipmaps:
 
 Since we can't use `transitionImageLayout`, we need to record and submit another `VkCommandBuffer`.
 
-
 ```c++
     VkImageMemoryBarrier barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.image = textureImage;
+    barrier.image = image;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -170,8 +169,8 @@ Next, we specify the regions that will be used in the blit operation. The source
 
 ```c++
     vkCmdBlitImage(commandBuffer,
-        textureImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1, &blit,
         VK_FILTER_LINEAR);
 ```
@@ -227,7 +226,11 @@ Before we end the command buffer, we insert one more pipeline barrier. This barr
 Finally, add the call to `generateMipmaps` in `createTextureImage`:
 
 ```c++
-    generateMipmaps(texWidth, texHeight);
+    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+        copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
+    ...
+    generateMipmaps(textureImage, texWidth, texHeight, mipLevels);
 ```
 
 Our texture image's mipmaps are now completely filled.
