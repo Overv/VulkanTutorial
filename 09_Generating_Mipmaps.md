@@ -7,7 +7,9 @@ Mipmaps are precalculated, downscaled versions of an image. Each new image is ha
 
 ## Image creation
 
-In Vulkan, each of the mip images is stored in different *mip levels* of a `VkImage`. Mip level 0 is the original image, and each mip level after that is half the size of previous level. The number of mip levels is specified when the `VkImage` is created. Up until now, we have always set this value to one. In `createTextureImage`, we need to calculate the number of mip levels from the dimensions of the image. First, add a class member to store this number:
+In Vulkan, each of the mip images is stored in different *mip levels* of a `VkImage`. Mip level 0 is the original image, and each mip level after that is half the size of previous level. The mip levels after level 0 are commonly referred to as the *mip chain.* 
+
+The number of mip levels is specified when the `VkImage` is created. Up until now, we have always set this value to one. We need to calculate the number of mip levels from the dimensions of the image. First, add a class member to store this number:
 
 ```c++
     ...
@@ -15,7 +17,20 @@ In Vulkan, each of the mip images is stored in different *mip levels* of a `VkIm
     VkImage textureImage;
     ...
 ```
-The value for `mipLevels` can be found with a simple loop in `createTextureImage`:
+
+The value for `mipLevels` can be found once we've loaded the texture in `createTextureImage`:
+
+```c++
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    ...
+    mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+
+```
+
+The `max` function selects the largest dimension. The `log2` function calculates how many times that dimension can be divided by 2. The `floor` function handles cases where the largest dimension is not a power of 2. This value is the number of levels in the mip chain. `1` is added so that the original image has a mip level.
+
+To use this value, we need to change the `createImage` and `createImageView` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
 
 ```c++
     int texWidth, texHeight, texChannels;
