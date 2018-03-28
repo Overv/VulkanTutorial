@@ -1,7 +1,7 @@
 ## Introduction
 Our program can now load and render 3D models. In this chapter, we will add one more feature, mipmap generation. Mipmaps are widely used in games and rendering software, and Vulkan gives us complete control over how they are created. 
 
-Mipmaps are precalculated, downscaled versions of an image. Each new image is half the width and height of the previous one.  Mip maps are used as a form of *Level of Detail.* Objects that are far away from the camera will sample their textures from the smaller mip images. Using smaller images increases the rendering speed and avoids artifacts such as [Moiré patterns](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern). An example of what mip maps look like:
+Mipmaps are precalculated, downscaled versions of an image. Each new image is half the width and height of the previous one.  Mipmaps are used as a form of *Level of Detail.* Objects that are far away from the camera will sample their textures from the smaller mip images. Using smaller images increases the rendering speed and avoids artifacts such as [Moiré patterns](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern). An example of what mipmaps look like:
 
 ![](/images/mipmaps_example.jpg)
 
@@ -96,7 +96,7 @@ Like other image operations, `vkCmdBlitImage` depends on the layout of the image
 ```
 This will leave each level of the texture image in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`.
 
-We're now going to write the function that generates the mip maps:
+We're now going to write the function generates the mipmaps:
 
 ```c++
     void generateMipmaps(int32_t texWidth, int32_t texHeight) {
@@ -230,7 +230,7 @@ Finally, add the call to `generateMipmaps` in `createTextureImage`:
     generateMipmaps(texWidth, texHeight);
 ```
 
-Our texture image's mip maps are now completely filled.
+Our texture image's mipmaps are now completely filled.
 
 ## Sampler
 
