@@ -96,7 +96,7 @@ Like other image operations, `vkCmdBlitImage` depends on the layout of the image
 ```
 This will leave each level of the texture image in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`.
 
-We're now going to write the function generates the mip maps:
+We're now going to write the function that generates the mip maps:
 
 ```c++
     void generateMipmaps(int32_t texWidth, int32_t texHeight) {
