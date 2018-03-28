@@ -249,12 +249,12 @@ To see the results of this chapter, we need to choose values for our `textureSam
 
 ```c++
 void createTextureSampler() {
-...
-samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-samplerInfo.minLod = 0; // Optional
-samplerInfo.maxLod = static_cast<float>(mipLevels);
-samplerInfo.mipLodBias = 0; // Optional
-...
+    ...
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.minLod = 0; // Optional
+    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.mipLodBias = 0; // Optional
+    ...
 }
 ```
 
