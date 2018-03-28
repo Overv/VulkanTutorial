@@ -283,10 +283,9 @@ Now run your program and you should see the following:
 
 It's not a dramatic difference, since our scene is so simple. There are subtle differences if you look closely.
 
-
 ![](/images/mipmaps_comparison.png)
 
-The left image is our new program. The right image is our program without mipmaps. The most noticeable difference is the writing on the signs. With mipmaps, the writing has been smoothed. Without mipmaps, the writing has harsh edges and gaps from Moiré artifacts.
+The most noticeable difference is the writing on the signs. With mipmaps, the writing has been smoothed. Without mipmaps, the writing has harsh edges and gaps from Moiré artifacts.
 
 You can play around with the sampler settings to see how they affect mipmapping. For example, by changing `minLod`, you can force the sampler to not use the lowest mip levels:
 
