@@ -80,7 +80,7 @@ transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UN
 ```
 This will leave each level of the texture image in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`.
 
-We're now going to write the function generates the mipmaps:
+We're now going to write the function that generates the mipmaps:
 
 ```c++
 void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
