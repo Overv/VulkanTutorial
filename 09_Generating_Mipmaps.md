@@ -273,7 +273,7 @@ The most noticeable difference is the writing on the signs. With mipmaps, the wr
 You can play around with the sampler settings to see how they affect mipmapping. For example, by changing `minLod`, you can force the sampler to not use the lowest mip levels:
 
 ```c++
-    samplerInfo.minLod = static_cast<float>(mipLevels / 2);
+samplerInfo.minLod = static_cast<float>(mipLevels / 2);
 ```
 
 These settings will produce this image:
