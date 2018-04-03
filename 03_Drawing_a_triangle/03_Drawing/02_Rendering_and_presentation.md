@@ -119,7 +119,7 @@ void cleanup() {
 ## Acquiring an image from the swap chain
 
 As mentioned before, the first thing we need to do in the `drawFrame` function
-is acquiring an image from the swap chain. Recall that the swap chain is an
+is acquire an image from the swap chain. Recall that the swap chain is an
 extension feature, so we must use a function with the `vk*KHR` naming
 convention:
 
@@ -167,7 +167,7 @@ begins and in which stage(s) of the pipeline to wait. We want to wait with
 writing colors to the image until it's available, so we're specifying the stage
 of the graphics pipeline that writes to the color attachment. That means that
 theoretically the implementation can already start executing our vertex shader
-and such while the image is not available yet. Each entry in the `waitStages`
+and such while the image is not yet available. Each entry in the `waitStages`
 array corresponds to the semaphore with the same index in `pWaitSemaphores`.
 
 ```c++
