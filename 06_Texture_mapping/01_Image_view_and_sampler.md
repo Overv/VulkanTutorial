@@ -267,7 +267,7 @@ samplerInfo.maxLod = 0.0f;
 ```
 
 All of these fields apply to mipmapping. We will look at mipmapping in a [later
-chapter](/09_Generating_Mipmaps.md), but basically it's another type of filter that can be applied.
+chapter](/Generating_Mipmaps), but basically it's another type of filter that can be applied.
 
 The functioning of the sampler is now fully defined. Add a class member to
 hold the handle of the sampler object and create the sampler with
