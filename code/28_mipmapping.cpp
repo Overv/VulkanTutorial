@@ -1431,7 +1431,9 @@ private:
             throw std::runtime_error("failed to present swap chain image!");
         }
 
-        vkQueueWaitIdle(presentQueue);
+        if (enableValidationLayers) {
+            vkQueueWaitIdle(presentQueue);
+        }
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code) {

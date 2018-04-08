@@ -644,7 +644,9 @@ private:
 
         vkQueuePresentKHR(presentQueue, &presentInfo);
 
-        vkQueueWaitIdle(presentQueue);
+        if (enableValidationLayers) {
+            vkQueueWaitIdle(presentQueue);
+        }
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code) {
