@@ -363,7 +363,9 @@ void drawFrame() {
 
     vkQueuePresentKHR(presentQueue, &presentInfo);
 
-    vkQueueWaitIdle(presentQueue);
+    if (enableValidationLayers) {
+        vkQueueWaitIdle(presentQueue);
+    }
 }
 ```
 
