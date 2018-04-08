@@ -30,7 +30,7 @@ mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHei
 
 This calculates the number of levels in the mip chain. The `max` function selects the largest dimension. The `log2` function calculates how many times that dimension can be divided by 2. The `floor` function handles cases where the largest dimension is not a power of 2.  `1` is added so that the original image has a mip level.
 
-To use this value, we need to change the `createImage` and `createImageView` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
+To use this value, we need to change the `createImage`, `createImageView`, and 'transitionImageLayout` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -43,6 +43,12 @@ void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat f
 VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
     ...
     viewInfo.subresourceRange.levelCount = mipLevels;
+    ...
+```
+```c++
+void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+    ...
+    barrier.subresourceRange.levelCount = mipLevels;
     ...
 ```
 
@@ -59,6 +65,11 @@ swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageForma
 depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 ...
 textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+```
+```c++
+transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+...
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 ```
 
 
