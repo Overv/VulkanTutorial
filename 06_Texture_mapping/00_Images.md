@@ -502,7 +502,7 @@ barrier.subresourceRange.layerCount = 1;
 ```
 
 The `image` and `subresourceRange` specify the image that is affected and the
-specific part of the image. Our image is not an array and does not mipmapping
+specific part of the image. Our image is not an array and does not have mipmapping
 levels, so only one level and layer are specified.
 
 ```c++
@@ -649,7 +649,7 @@ transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TR
 
 ## Transition barrier masks
 
-If run your application with validation layers enabled now, then you'll see that
+If you run your application with validation layers enabled now, then you'll see that
 it complains about the access masks and pipeline stages in
 `transitionImageLayout` being invalid. We still need to set those based on the
 layouts in the transition.

@@ -93,7 +93,7 @@ We can now start allocating command buffers and recording drawing commands in
 them. Because one of the drawing commands involves binding the right
 `VkFramebuffer`, we'll actually have to record a command buffer for every image
 in the swap chain once again. To that end, create a list of `VkCommandBuffer`
-objects as class member. Command buffers will be automatically freed when their
+objects as a class member. Command buffers will be automatically freed when their
 command pool is destroyed, so we don't need an explicit cleanup.
 
 ```c++
