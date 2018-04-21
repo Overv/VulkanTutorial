@@ -167,7 +167,9 @@ for (size_t i = 0; i < commandBuffers.size(); i++) {
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
     beginInfo.pInheritanceInfo = nullptr; // Optional
 
-    vkBeginCommandBuffer(commandBuffers[i], &beginInfo);
+    if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
 }
 ```
 
