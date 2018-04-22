@@ -62,7 +62,7 @@ As mentioned before, Vulkan by itself is a platform agnostic API and does not
 include tools for creating a window to display the rendered results. To benefit
 from the cross-platform advantages of Vulkan and to avoid the horrors of Win32,
 we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
-supports both Windows and Linux. There are other libraries available for this
+supports Windows, Linux and MacOS. There are other libraries available for this
 purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that
 it also abstracts away some of the other platform-specific things in Vulkan
 besides just window creation.
@@ -266,7 +266,7 @@ As mentioned before, Vulkan by itself is a platform agnostic API and does not
 include tools for creation a window to display the rendered results. To benefit
 from the cross-platform advantages of Vulkan and to avoid the horrors of X11,
 we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
-supports both Windows and Linux. There are other libraries available for this
+supports Windows, Linux and MacOS. There are other libraries available for this
 purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that
 it also abstracts away some of the other platform-specific things in Vulkan
 besides just window creation.
@@ -487,3 +487,125 @@ offline version of the entire Vulkan specification. Feel free to explore the
 other files, but we won't need them for this tutorial.
 
 You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
+
+## MacOS
+
+These instructions will assume you are using Xcode and the [Homebrew package manager](https://brew.sh/). Also, keep in mind that you will need at least MacOS version 10.11, and your device needs to support the [Metal API](https://en.wikipedia.org/wiki/Metal_(API)#Supported_GPUs).
+
+### MoltenVK
+
+For MacOS what we will be using to develop Vulkan application is [MoltenVK](https://moltengl.com/). This is a library that maps Vulkan to Apple's Metal graphics framework, with this you can take advantage of debugging and performance benefits of Apple's Metal framework.
+
+To install and build MoltenVK go the the project's [github repository](https://github.com/KhronosGroup/MoltenVK) and follow the instructions. By the end you should have built one of the runtime distribution packages, either the Release or the Debug configuration. To make sure everything was done successfully, we will run one of the examples from the repository. Go to the folder where you cloned the repository, find and open the file `../MoltenVK/Demos/Demos.xcworkspace`. Now all the projects should open on Xcode, select the application `Cube-macOS`, build and run it. You should see the following:
+
+![](/images/cube_demo_mac.png)
+
+### GLFW
+
+As mentioned before, Vulkan by itself is a platform agnostic API and does not include tools for creation a window to display the rendered results. To benefit from the cross-platform advantages of Vulkan and to avoid the horrors of X11, we'll use the [GLFW library](http://www.glfw.org/) to create a window, which supports Windows, Linux and MacOS. There are other libraries available for this purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that it also abstracts away some of the other platform-specific things in Vulkan besides just window creation.
+
+To install GLFW on MacOS you can follow the same instructions to install it on Linux, so please refer to that topic on this chapter.
+
+### GLM
+
+Unlike DirectX 12, Vulkan does not include a library for linear algebra
+operations, so we'll have to download one. [GLM](http://glm.g-truc.net/) is a
+nice library that is designed for use with graphics APIs and is also commonly
+used with OpenGL.
+
+It is a header-only library that can be installed from the `glm` package:
+
+```bash
+brew install glm
+```
+
+### Setting up Xcode
+
+Now that all the dependencies are installed we can set up a basic Xcode project for Vulkan. Most of the instructions here are essentially a lot of "plumbing" so we can get all the dependencies linked to the project.
+
+Start Xcode and create a new Xcode project. On the window that will open select Application > Command Line Tool.
+
+![](/images/xcode_new_project.png)
+
+Select `Next`, write a name for the project and for `Language` select `C++`.
+
+![](/images/xcode_new_project_2.png)
+
+Press `Next` and the project should have been created. Now, let's change the code on the generated `main.cpp` file to the following code:
+
+```c++
+#include <vulkan/vulkan.h>
+#include <GLFW/glfw3.h>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+
+#include <iostream>
+
+int main() {
+    glfwInit();
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+    std::cout << extensionCount << " extensions supported" << std::endl;
+
+    glm::mat4 matrix;
+    glm::vec4 vec;
+    auto test = matrix * vec;
+
+    while(!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+
+    glfwTerminate();
+
+    return 0;
+}
+```
+
+Xcode should already be complaining of errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the *Project Navigator* panel select your project. Open the *Build Settings* tab and then:
+
+* Find the **Framework Search Paths** field and add a link to the `../MoltenVK/macOS` folder (which should be in the folder you clonned the MoltenVK project).
+* Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew install libraries, so the glm header files should be there), a link to `../glfw-3.2.1/include` for the glfw headers, and finally a link to `../MoltenVK/Package/Release/MoltenVK/include` for the Vulkan headers (in this example I built the framework for the Release configuration).
+* Find the **Library Search Paths** field and add a link to `../glfw-3.2.1/src`.
+
+It should look like so (obviously, paths will be different depending on where you placed on your files):
+
+![](/images/xcode_paths.png)
+
+Above I have added the values for the Release configurations because it's the one I'm using, you just need to add the paths on the configuration that you picked.
+
+Now, on the *General* tab, on **Linked Frameworks and Libraries** you will need to add the following frameworks:
+
+* libc++.tbd
+* libglfw3.a
+  * Should be at `../glfw-3.2.1/src/libglfw3.a`.
+* MoltenVK.framework
+  * Should be at `../MoltenVK/Package/Release/MoltenVK/macOS/MoltenVK.framework`.
+* Metal.framework
+* IOSurface.framework
+* QuartzCore.framework
+* IOKit.framework
+* Foundation.framework
+* Cocoa.framework
+* CoreVideo.framework
+
+Should look like:
+
+![](/images/xcode_frameworks.png)
+
+Finally, you should be all set! Now if you run the project (remembering to setting the build configuration to Debug or Release depending on the configuration you chose) you should see the following:
+
+![](/images/xcode_output.png)
+
+The number of extensions should be non-zero. The other logs are from the libraries, you might get different messages from those depending on tour configuration.
+
+You are now all set for [the real thing](!Drawing_a_triangle/Setup/Base_code).
