@@ -30,7 +30,7 @@ mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHei
 
 This calculates the number of levels in the mip chain. The `max` function selects the largest dimension. The `log2` function calculates how many times that dimension can be divided by 2. The `floor` function handles cases where the largest dimension is not a power of 2.  `1` is added so that the original image has a mip level.
 
-To use this value, we need to change the `createImage`, `createImageView`, and 'transitionImageLayout` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
+To use this value, we need to change the `createImage`, `createImageView`, and `transitionImageLayout` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
