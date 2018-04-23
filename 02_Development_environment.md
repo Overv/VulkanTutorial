@@ -606,6 +606,8 @@ Finally, you should be all set! Now if you run the project (remembering to setti
 
 ![](/images/xcode_output.png)
 
-The number of extensions should be non-zero. The other logs are from the libraries, you might get different messages from those depending on tour configuration.
+The number of extensions should be non-zero. The other logs are from the libraries, you might get different messages from those depending on your configuration.
+
+**Note:** When using this configuration remember to keep `#include <vulkan/vulkan.h>` instead of `#define GLFW_INCLUDE_VULKAN` when creating your applications, otherwise the code won't build.
 
 You are now all set for [the real thing](!Drawing_a_triangle/Setup/Base_code).
