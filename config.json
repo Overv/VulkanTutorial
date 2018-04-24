@@ -19,6 +19,7 @@
         "google_analytics": "UA-60335079-1",
         "links": {
             "GitHub Repository": "https://github.com/Overv/VulkanTutorial",
+            "Support the website": "https://www.paypal.me/AOvervoorde",
             "Vulkan Specification": "https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/pdf/vkspec.pdf",
             "Vulkan Quick Reference": "https://www.khronos.org/files/vulkan10-reference-guide.pdf",
             "LunarG Vulkan SDK": "https://lunarg.com/vulkan-sdk/",
