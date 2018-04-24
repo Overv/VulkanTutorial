@@ -183,9 +183,6 @@ private:
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-
-        glfwSetWindowUserPointer(window, this);
-        glfwSetWindowSizeCallback(window, HelloTriangleApplication::onWindowResized);
     }
 
     void initVulkan() {
@@ -280,11 +277,6 @@ private:
         glfwDestroyWindow(window);
 
         glfwTerminate();
-    }
-
-    static void onWindowResized(GLFWwindow* window, int width, int height) {
-        HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
-        app->recreateSwapChain();
     }
 
     void recreateSwapChain() {

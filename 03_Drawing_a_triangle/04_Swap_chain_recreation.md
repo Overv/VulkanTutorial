@@ -114,83 +114,17 @@ image from the old swap chain are still in-flight. You need to pass the previous
 swap chain to the `oldSwapChain` field in the `VkSwapchainCreateInfoKHR` struct
 and destroy the old swap chain as soon as you've finished using it.
 
-## Window resizing
-
-Now we just need to figure out when swap chain recreation is necessary and call
-our new `recreateSwapChain` function. One of the most common conditions is
-resizing of the window. Let's make the window resizable and catch that event.
-Change the `initWindow` function to no longer include the `GLFW_RESIZABLE` line
-or change its argument from `GLFW_FALSE` to `GLFW_TRUE`.
-
-```c++
-void initWindow() {
-    glfwInit();
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-
-    glfwSetWindowUserPointer(window, this);
-    glfwSetWindowSizeCallback(window, HelloTriangleApplication::onWindowResized);
-}
-
-...
-
-static void onWindowResized(GLFWwindow* window, int width, int height) {
-    HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
-    app->recreateSwapChain();
-}
-```
-
-The `glfwSetWindowSizeCallback` function can be used to specify a callback for
-the window resize event. Unfortunately it only accepts a function pointer as
-argument, so we can't directly use a member function. Luckily GLFW allows us to
-store an arbitrary pointer in the window object with `glfwSetWindowUserPointer`,
-so we can specify a static class member and get the original class instance back
-with `glfwGetWindowUserPointer`. We can then proceed to call
-`recreateSwapChain`, but only if the size of the window is non-zero. This case
-occurs when the window is minimized and it will cause swap chain creation to
-fail.
-
-The `chooseSwapExtent` function should also be updated to take the current width
-and height of the window into account instead of the initial `WIDTH` and
-`HEIGHT`:
-
-```c++
-int width, height;
-glfwGetWindowSize(window, &width, &height);
-
-VkExtent2D actualExtent = {width, height};
-```
-
-We have to be careful with this, because the width and height may be 0 if the
-window is minimized, for example. Therefore we should check if it makes sense
-to recreate the swap chain:
-
-```c++
-void recreateSwapChain() {
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    if (width == 0 || height == 0) return;
-
-    vkDeviceWaitIdle(device);
-
-    ...
-}
-```
-
 ## Suboptimal or out-of-date swap chain
 
-It is also possible for Vulkan to tell us that the swap chain is no longer
-compatible during presentation. The `vkAcquireNextImageKHR` and
+Now we just need to figure out when swap chain recreation is necessary and call
+our new `recreateSwapChain` function. Luckily, Vulkan will usually just tell us that the swap chain is no longer adequate during presentation. The `vkAcquireNextImageKHR` and
 `vkQueuePresentKHR` functions can return the following special values to
 indicate this.
 
 * `VK_ERROR_OUT_OF_DATE_KHR`: The swap chain has become incompatible with the
-surface and can no longer be used for rendering.
+surface and can no longer be used for rendering. Usually happens after a window resize.
 * `VK_SUBOPTIMAL_KHR`: The swap chain can still be used to successfully present
-to the surface, but the surface properties are no longer matched exactly. For
-example, the platform may be simply resizing the image to fit the window now.
+to the surface, but the surface properties are no longer matched exactly.
 
 ```c++
 VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
