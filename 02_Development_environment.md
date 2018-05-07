@@ -500,11 +500,11 @@ The SDK can be downloaded from [the LunarG website](https://vulkan.lunarg.com/) 
 
 ![](/images/vulkan_sdk_download_buttons.png)
 
-The SDK version for MacOS internally uses [MoltenVK](https://moltengl.com/). There is no native support for Vulkan on MacOS, so what MoltenVK does is actually act as a layer that translate Vulkan API calls to Apple's Metal graphics framework. With this you can take advantage of debugging and performance benefits of Apple's Metal framework.
+The SDK version for MacOS internally uses [MoltenVK](https://moltengl.com/). There is no native support for Vulkan on MacOS, so what MoltenVK does is actually act as a layer that translates Vulkan API calls to Apple's Metal graphics framework. With this you can take advantage of debugging and performance benefits of Apple's Metal framework.
 
 After downloading it, simply extract the contents to a folder of your choice (keep in mind you will need to reference it when creating your projects on Xcode). Inside the extracted folder, in the `Applications` folder you should have some executable files that will run a few demos using the SDK. Run the `cube` executable and you will see the following:
 
-[](/images/cube_demo_mac.png)
+![](/images/cube_demo_mac.png)
 
 ### GLFW
 
@@ -582,7 +582,7 @@ Keep in mind you are not required to understand all this code is doing yet, we a
 
 Xcode should already be showing some errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the *Project Navigator* panel select your project. Open the *Build Settings* tab and then:
 
-* Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew install headers, so the glm and glfw3 header files should be there) and a link to `vulkansdk/macOS/include` for the Vulkan headers.
+* Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew installs headers, so the glm and glfw3 header files should be there) and a link to `vulkansdk/macOS/include` for the Vulkan headers.
 * Find the **Library Search Paths** field and add a link to `/usr/local/lib` (again, this is where Homebrew install libraries, so the glm and glfw3 lib files should be there) and a link to `vulkansdk/macOS/lib`.
 
 It should look like so (obviously, paths will be different depending on where you placed on your files):
