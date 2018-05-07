@@ -1,6 +1,6 @@
 In this chapter we'll set up your environment for developing Vulkan applications
 and install some useful libraries. All of the tools we'll use, with the
-exception of the compiler, are compatible with both Windows and Linux, but the
+exception of the compiler, are compatible with Windows, Linux and MacOS, but the
 steps for installing them differ a bit, which is why they're described
 separately here.
 
@@ -62,7 +62,7 @@ As mentioned before, Vulkan by itself is a platform agnostic API and does not
 include tools for creating a window to display the rendered results. To benefit
 from the cross-platform advantages of Vulkan and to avoid the horrors of Win32,
 we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
-supports both Windows and Linux. There are other libraries available for this
+supports Windows, Linux and MacOS. There are other libraries available for this
 purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that
 it also abstracts away some of the other platform-specific things in Vulkan
 besides just window creation.
@@ -266,7 +266,7 @@ As mentioned before, Vulkan by itself is a platform agnostic API and does not
 include tools for creation a window to display the rendered results. To benefit
 from the cross-platform advantages of Vulkan and to avoid the horrors of X11,
 we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
-supports both Windows and Linux. There are other libraries available for this
+supports Windows, Linux and MacOS. There are other libraries available for this
 purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that
 it also abstracts away some of the other platform-specific things in Vulkan
 besides just window creation.
@@ -487,3 +487,132 @@ offline version of the entire Vulkan specification. Feel free to explore the
 other files, but we won't need them for this tutorial.
 
 You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
+
+## MacOS
+
+These instructions will assume you are using Xcode and the [Homebrew package manager](https://brew.sh/). Also, keep in mind that you will need at least MacOS version 10.11, and your device needs to support the [Metal API](https://en.wikipedia.org/wiki/Metal_(API)#Supported_GPUs).
+
+### Vulkan SDK
+
+The most important component you'll need for developing Vulkan applications is the SDK. It includes the headers, standard validation layers, debugging tools and a loader for the Vulkan functions. The loader looks up the functions in the driver at runtime, similarly to GLEW for OpenGL - if you're familiar with that.
+
+The SDK can be downloaded from [the LunarG website](https://vulkan.lunarg.com/) using the buttons at the bottom of the page. You don't have to create an account, but it will give you access to some additional documentation that may be useful to you.
+
+![](/images/vulkan_sdk_download_buttons.png)
+
+The SDK version for MacOS internally uses [MoltenVK](https://moltengl.com/). There is no native support for Vulkan on MacOS, so what MoltenVK does is actually act as a layer that translates Vulkan API calls to Apple's Metal graphics framework. With this you can take advantage of debugging and performance benefits of Apple's Metal framework.
+
+After downloading it, simply extract the contents to a folder of your choice (keep in mind you will need to reference it when creating your projects on Xcode). Inside the extracted folder, in the `Applications` folder you should have some executable files that will run a few demos using the SDK. Run the `cube` executable and you will see the following:
+
+![](/images/cube_demo_mac.png)
+
+### GLFW
+
+As mentioned before, Vulkan by itself is a platform agnostic API and does not include tools for creation a window to display the rendered results. We'll use the [GLFW library](http://www.glfw.org/) to create a window, which supports Windows, Linux and MacOS. There are other libraries available for this purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that it also abstracts away some of the other platform-specific things in Vulkan besides just window creation.
+
+To install GLFW on MacOS we will use the Homebrew package manager. Vulkan support for MacOS is still not fully available on the current (at the time of this writing) stable version 3.2.1. Therefore we will install the latest version of the `glfw3` package using:
+
+```bash
+brew install glfw3 --HEAD
+```
+
+### GLM
+
+Vulkan does not include a library for linear algebra operations, so we'll have to download one. [GLM](http://glm.g-truc.net/) is a nice library that is designed for use with graphics APIs and is also commonly used with OpenGL.
+
+It is a header-only library that can be installed from the `glm` package:
+
+```bash
+brew install glm
+```
+
+### Setting up Xcode
+
+Now that all the dependencies are installed we can set up a basic Xcode project for Vulkan. Most of the instructions here are essentially a lot of "plumbing" so we can get all the dependencies linked to the project. Also, keep in mind that during the following instructions whenever we mention the folder `vulkansdk` we are refering to the folder where you extracted the Vulkan SDK.
+
+Start Xcode and create a new Xcode project. On the window that will open select Application > Command Line Tool.
+
+![](/images/xcode_new_project.png)
+
+Select `Next`, write a name for the project and for `Language` select `C++`.
+
+![](/images/xcode_new_project_2.png)
+
+Press `Next` and the project should have been created. Now, let's change the code in the generated `main.cpp` file to the following code:
+
+```c++
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+
+#include <iostream>
+
+int main() {
+    glfwInit();
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+    std::cout << extensionCount << " extensions supported" << std::endl;
+
+    glm::mat4 matrix;
+    glm::vec4 vec;
+    auto test = matrix * vec;
+
+    while(!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+
+    glfwTerminate();
+
+    return 0;
+}
+```
+
+Keep in mind you are not required to understand all this code is doing yet, we are just setting up some API calls to make sure everything is working.
+
+Xcode should already be showing some errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the *Project Navigator* panel select your project. Open the *Build Settings* tab and then:
+
+* Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew installs headers, so the glm and glfw3 header files should be there) and a link to `vulkansdk/macOS/include` for the Vulkan headers.
+* Find the **Library Search Paths** field and add a link to `/usr/local/lib` (again, this is where Homebrew installs libraries, so the glm and glfw3 lib files should be there) and a link to `vulkansdk/macOS/lib`.
+
+It should look like so (obviously, paths will be different depending on where you placed on your files):
+
+![](/images/xcode_paths.png)
+
+Now, in the *Build Phases* tab, on **Link Binary With Libraries** we will add both the `glfw3` and the `vulkan` frameworks. To make things easier we will be adding he dynamic libraries in the project (you can check the documentation of these libraries if you want to use the static frameworks).
+
+* For glfw open the folder `/usr/local/lib` and there you will find a file name like `libglfw.3.x.dylib` ("x" is the library's version number, it might be different depending on when you downloaded the package from Homebrew). Simply drag that file to the Linked Frameworks and Libraries tab on Xcode.
+* For vulkan, go to `vulkansdk/macOS/lib`. Do the same for the file both files `libvulkan.1.dylib` and `libvulkan.1.x.xx.dylib` (where "x" will be the version number of the the SDK you downloaded).
+
+After adding those libraries, in the same tab on **Copy Files** change `Destination` to "Frameworks", clear the subpath and deselect "Copy only when installing". Click on the "+" sign and add all those three frameworks here aswell.
+
+Your Xcode configuration should look like:
+
+![](/images/xcode_frameworks.png)
+
+The last thing you need to setup are a couple of environment variables. On Xcode toolbar go to `Product` > `Scheme` > `Edit Scheme...`, and in the `Arguments` tab add the two following environment variables:
+
+* VK_ICD_FILENAMES = `vulkansdk/macOS/etc/vulkan/icd.d/MoltenVK_icd.json`
+* VK_LAYER_PATH = `vulkansdk/macOS/etc/vulkan/explicit_layer.d`
+
+It should look like so:
+
+![](/images/xcode_variables.png)
+
+Finally, you should be all set! Now if you run the project (remembering to setting the build configuration to Debug or Release depending on the configuration you chose) you should see the following:
+
+![](/images/xcode_output.png)
+
+The number of extensions should be non-zero. The other logs are from the libraries, you might get different messages from those depending on your configuration.
+
+You are now all set for [the real thing](!Drawing_a_triangle/Setup/Base_code).
