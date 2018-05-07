@@ -583,7 +583,7 @@ Keep in mind you are not required to understand all this code is doing yet, we a
 Xcode should already be showing some errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the *Project Navigator* panel select your project. Open the *Build Settings* tab and then:
 
 * Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew installs headers, so the glm and glfw3 header files should be there) and a link to `vulkansdk/macOS/include` for the Vulkan headers.
-* Find the **Library Search Paths** field and add a link to `/usr/local/lib` (again, this is where Homebrew install libraries, so the glm and glfw3 lib files should be there) and a link to `vulkansdk/macOS/lib`.
+* Find the **Library Search Paths** field and add a link to `/usr/local/lib` (again, this is where Homebrew installs libraries, so the glm and glfw3 lib files should be there) and a link to `vulkansdk/macOS/lib`.
 
 It should look like so (obviously, paths will be different depending on where you placed on your files):
 
