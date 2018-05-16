@@ -2,7 +2,7 @@ Vulkan tutorial
 ===============
 
 This repository hosts the contents of [vulkan-tutorial.com](https://vulkan-tutorial.com).
-The website itself is based on [daux.io](https://github.com/justinwalsh/daux.io),
+The website itself is based on [daux.io](https://github.com/dauxio/daux.io),
 which supports [GitHub flavored Markdown](https://help.github.com/articles/basic-writing-and-formatting-syntax/).
 A few changes were made to daux.io and its themes, which are included in
 `daux.patch` and are licensed as [MIT](https://opensource.org/licenses/MIT). The
