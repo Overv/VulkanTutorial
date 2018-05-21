@@ -792,7 +792,7 @@ private:
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
         imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-            imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image!");
@@ -994,7 +994,7 @@ private:
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
         bufferInfo.usage = usage;
-            bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to create buffer!");
