@@ -540,7 +540,7 @@ void createSyncObjects() {
 }
 ```
 
-The program should now work correctly and the memory leak should be gone! We've now implemented all the needed synchronization to ensure that there are no more than two frames of work enqueued.
+The program should now work correctly and the memory leak should be gone! We've now implemented all the needed synchronization to ensure that there are no more than two frames of work enqueued. Note that it is fine for other parts of the code, like the final cleanup, to rely on more rough synchronization like `vkDeviceWaitIdle`. You should decide on which approach to use based on performance requirements.
 
 To learn more about synchronization through examples, have a look at [this extensive overview](https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples#swapchain-image-acquire-and-present) by Khronos.
 
