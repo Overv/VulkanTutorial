@@ -28,7 +28,7 @@ void initVulkan() {
     createCommandPool();
     createVertexBuffer();
     createCommandBuffers();
-    createSemaphores();
+    createSyncObjects();
 }
 
 ...
