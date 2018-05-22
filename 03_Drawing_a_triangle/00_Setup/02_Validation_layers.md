@@ -93,7 +93,7 @@ const std::vector<const char*> validationLayers = {
 ```
 
 We'll add a new function `checkValidationLayerSupport` that checks if all of
-the requested layers are available. First list all of the available extensions
+the requested layers are available. First list all of the available layers
 using the `vkEnumerateInstanceLayerProperties` function. Its usage is identical
 to that of `vkEnumerateInstanceExtensionProperties` which was discussed in the
 instance creation chapter.
