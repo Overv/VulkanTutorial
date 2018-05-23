@@ -44,7 +44,7 @@ queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
 queueCreateInfo.queueCount = 1;
 ```
 
-The currently available drivers will only allow you to create a low number of
+The currently available drivers will only allow you to create a small number of
 queues for each family queue and you don't really need more than one. That's
 because you can create all of the command buffers on multiple threads and then
 submit them all at once on the main thread with a single low-overhead call.
