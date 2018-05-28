@@ -130,7 +130,7 @@ surface and can no longer be used for rendering. Usually happens after a window 
 to the surface, but the surface properties are no longer matched exactly.
 
 ```c++
-VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     recreateSwapChain();
@@ -157,7 +157,7 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("failed to present swap chain image!");
 }
 
-vkQueueWaitIdle(presentQueue);
+currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 ```
 
 The `vkQueuePresentKHR` function returns the same values with the same meaning.
