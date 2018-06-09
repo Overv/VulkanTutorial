@@ -13,7 +13,8 @@ be updated at draw time
 
 All of these combined fully define the functionality of the graphics pipeline,
 so we can now begin filling in the `VkGraphicsPipelineCreateInfo` structure at
-the end of the `createGraphicsPipeline` function.
+the end of the `createGraphicsPipeline` function. But before the calls to 
+`vkDestroyShaderModule` because these are still to be used during the creation.
 
 ```c++
 VkGraphicsPipelineCreateInfo pipelineInfo = {};
