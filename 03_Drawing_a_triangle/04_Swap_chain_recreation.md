@@ -110,6 +110,26 @@ Instead I've opted to clean up the existing command buffers with the
 `vkFreeCommandBuffers` function. This way we can reuse the existing pool to
 allocate the new command buffers.
 
+To handle window resizes properly, we also need to query the current size of the framebuffer to make sure that the swap chain images have the (new) right size. To do that change the `chooseSwapExtent` function to take the actual size into account:
+
+```
+VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        return capabilities.currentExtent;
+    } else {
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        VkExtent2D actualExtent = {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
+        };
+
+        ...
+    }
+}
+```
+
 That's all it takes to recreate the swap chain! However, the disadvantage of
 this approach is that we need to stop all rendering before creating the new swap
 chain. It is possible to create a new swap chain while drawing commands on an
