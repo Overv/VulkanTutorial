@@ -1367,7 +1367,7 @@ private:
             return capabilities.currentExtent;
         } else {
             int width, height;
-            glfwGetWindowSize(window, &width, &height);
+            glfwGetFramebufferSize(window, &width, &height);
 
             VkExtent2D actualExtent = {
                 static_cast<uint32_t>(width),
