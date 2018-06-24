@@ -199,10 +199,12 @@ as its name implies.
 ## Using a descriptor set
 
 We now need to update the `createCommandBuffers` function to actually bind the
-descriptor set to the descriptors in the shader with `cmdBindDescriptorSets`:
+descriptor set to the descriptors in the shader with `cmdBindDescriptorSets`,
+this needs to be done before the `vkCmdDrawIndexed` call:
 
 ```c++
 vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
 Unlike vertex and index buffers, descriptor sets are not unique to graphics
