@@ -1,8 +1,8 @@
 ## Introduction
 
 The descriptor layout from the previous chapter describes the type of
-descriptors that can be bound. In this chapter we're going to create a
-descriptor set, which will actually specify a `VkBuffer` resource to bind to the
+descriptors that can be bound. In this chapter we're going to create
+a descriptor set for each `VkBuffer` resource to bind it to the
 uniform buffer descriptor.
 
 ## Descriptor pool
@@ -50,7 +50,7 @@ We also need to specify the maximum number of descriptor sets that will be
 allocated:
 
 ```c++
-poolInfo.maxSets = 1;
+poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());;
 ```
 
 The structure has an optional flag similar to command pools that determines if
@@ -85,7 +85,7 @@ void cleanup() {
 
 ## Descriptor set
 
-We can now allocate the descriptor set itself. Add a `createDescriptorSet`
+We can now allocate the descriptor sets themselves. Add a `createDescriptorSets`
 function for that purpose:
 
 ```c++
@@ -98,7 +98,7 @@ void initVulkan() {
 
 ...
 
-void createDescriptorSet() {
+void createDescriptorSets() {
 
 }
 ```
@@ -108,44 +108,57 @@ struct. You need to specify the descriptor pool to allocate from, the number of
 descriptor sets to allocate, and the descriptor layout to base them on:
 
 ```c++
-VkDescriptorSetLayout layouts[] = {descriptorSetLayout};
+std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), descriptorSetLayout);
 VkDescriptorSetAllocateInfo allocInfo = {};
 allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 allocInfo.descriptorPool = descriptorPool;
-allocInfo.descriptorSetCount = 1;
-allocInfo.pSetLayouts = layouts;
+allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImages.size());
+allocInfo.pSetLayouts = layouts.data();
 ```
 
-Add a class member to hold the descriptor set handle and allocate it with
+In our case we will create one descriptor set for each swap chain image, all with the same layout. Unfortunately we do need all the copies of the layout because the next function expects an array matching the number of sets.
+
+Add a class member to hold the descriptor set handles and allocate them with
 `vkAllocateDescriptorSets`:
 
 ```c++
 VkDescriptorPool descriptorPool;
-VkDescriptorSet descriptorSet;
+std::vector<VkDescriptorSet> descriptorSets;
 
 ...
 
-if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet) != VK_SUCCESS) {
-    throw std::runtime_error("failed to allocate descriptor set!");
+descriptorSets.resize(swapChainImages.size());
+if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSets[0]) != VK_SUCCESS) {
+    throw std::runtime_error("failed to allocate descriptor sets!");
 }
 ```
 
 You don't need to explicitly clean up descriptor sets, because they will be
 automatically freed when the descriptor pool is destroyed. The call to
-`vkAllocateDescriptorSets` will allocate one descriptor set with one uniform
+`vkAllocateDescriptorSets` will allocate descriptor sets, each with one uniform
 buffer descriptor.
 
-The descriptor set has been allocated now, but the descriptors within still need
-to be configured. Descriptors that refer to buffers, like our uniform buffer
-descriptor, are configured with a `VkDescriptorBufferInfo` struct. This
-structure specifies the buffer and the region within it that contains the data
-for the descriptor:
+The descriptor sets have been allocated now, but the descriptors within still need
+to be configured. We'll now add a loop to populate every descriptor:
 
 ```c++
-VkDescriptorBufferInfo bufferInfo = {};
-bufferInfo.buffer = uniformBuffer;
-bufferInfo.offset = 0;
-bufferInfo.range = sizeof(UniformBufferObject);
+for (size_t i = 0; i < swapChainImages.size(); i++) {
+
+}
+```
+
+Descriptors that refer to buffers, like our uniform buffer
+descriptor, are configured with a `VkDescriptorBufferInfo` struct. This
+structure specifies the buffer and the region within it that contains the data
+for the descriptor.
+
+```c++
+for (size_t i = 0; i < swapChainImages.size(); i++) {
+    VkDescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer = uniformBuffers[i];
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UniformBufferObject);
+}
 ```
 
 If you're overwriting the whole buffer, like we are in this case, then it is is also possible to use the `VK_WHOLE_SIZE` value for the range. The configuration of descriptors is updated using the `vkUpdateDescriptorSets`
@@ -154,7 +167,7 @@ function, which takes an array of `VkWriteDescriptorSet` structs as parameter.
 ```c++
 VkWriteDescriptorSet descriptorWrite = {};
 descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrite.dstSet = descriptorSet;
+descriptorWrite.dstSet = descriptorSets[i];
 descriptorWrite.dstBinding = 0;
 descriptorWrite.dstArrayElement = 0;
 ```
@@ -196,14 +209,13 @@ arrays as parameters: an array of `VkWriteDescriptorSet` and an array of
 `VkCopyDescriptorSet`. The latter can be used to copy descriptors to each other,
 as its name implies.
 
-## Using a descriptor set
+## Using descriptor sets
 
 We now need to update the `createCommandBuffers` function to actually bind the
-descriptor set to the descriptors in the shader with `cmdBindDescriptorSets`,
-this needs to be done before the `vkCmdDrawIndexed` call:
+right descriptor set for each swap chain image to the descriptors in the shader with `cmdBindDescriptorSets`. This needs to be done before the `vkCmdDrawIndexed` call:
 
 ```c++
-vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
 vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
@@ -241,7 +253,7 @@ resizing, so we don't need to recreate the descriptor set in
 ## Multiple descriptor sets
 
 As some of the structures and function calls hinted at, it is actually possible
-to bind multiple descriptor sets. You need to specify a descriptor layout for
+to bind multiple descriptor sets simultaneously. You need to specify a descriptor layout for
 each descriptor set when creating the pipeline layout. Shaders can then
 reference specific descriptor sets like this:
 
@@ -253,6 +265,6 @@ You can use this feature to put descriptors that vary per-object and descriptors
 that are shared into separate descriptor sets. In that case you avoid rebinding
 most of the descriptors across draw calls which is potentially more efficient.
 
-[C++ code](/code/22_descriptor_set.cpp) /
+[C++ code](/code/22_descriptor_sets.cpp) /
 [Vertex shader](/code/21_shader_ubo.vert) /
 [Fragment shader](/code/21_shader_ubo.frag)
