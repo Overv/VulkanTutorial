@@ -112,7 +112,7 @@ allocate the new command buffers.
 
 To handle window resizes properly, we also need to query the current size of the framebuffer to make sure that the swap chain images have the (new) right size. To do that change the `chooseSwapExtent` function to take the actual size into account:
 
-```
+```c++
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
@@ -184,6 +184,24 @@ The `vkQueuePresentKHR` function returns the same values with the same meaning.
 In this case we will also recreate the swap chain if it is suboptimal, because
 we want the best possible result. Try to run it and resize the window to see if
 the framebuffer is indeed resized properly with the window.
+
+## Handling minimization
+
+There is another case where a swap chain may become out of data and that is a special kind of window resizing: window minimization. This case is special because it will result in a frame buffer size of `0`. In this tutorial we will handle that by pausing until the window is in the foreground again by extending the `recreateSwapChain` function:
+
+```c++
+void recreateSwapChain() {
+    int width = 0, height = 0;
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(device);
+
+    ...
+}
+```
 
 Congratulations, you've now finished your very first well-behaved Vulkan
 program! In the next chapter we're going to get rid of the hardcoded vertices in
