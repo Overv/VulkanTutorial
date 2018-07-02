@@ -154,8 +154,8 @@ private:
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
-    VkBuffer uniformBuffer;
-    VkDeviceMemory uniformBufferMemory;
+    std::vector<VkBuffer> uniformBuffers;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
 
     std::vector<VkCommandBuffer> commandBuffers;
 
@@ -187,7 +187,7 @@ private:
         createCommandPool();
         createVertexBuffer();
         createIndexBuffer();
-        createUniformBuffer();
+        createUniformBuffers();
         createCommandBuffers();
         createSyncObjects();
     }
@@ -195,8 +195,6 @@ private:
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
-
-            updateUniformBuffer();
             drawFrame();
         }
 
@@ -225,8 +223,11 @@ private:
         cleanupSwapChain();
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-        vkDestroyBuffer(device, uniformBuffer, nullptr);
-        vkFreeMemory(device, uniformBufferMemory, nullptr);
+
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
+            vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+        }
 
         vkDestroyBuffer(device, indexBuffer, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
@@ -723,9 +724,15 @@ private:
         vkFreeMemory(device, stagingBufferMemory, nullptr);
     }
 
-    void createUniformBuffer() {
+    void createUniformBuffers() {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-        createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffer, uniformBufferMemory);
+
+        uniformBuffers.resize(swapChainImages.size());
+        uniformBuffersMemory.resize(swapChainImages.size());
+
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        }
     }
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -874,7 +881,7 @@ private:
         }
     }
 
-    void updateUniformBuffer() {
+    void updateUniformBuffer(uint32_t currentImage) {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -887,9 +894,9 @@ private:
         ubo.proj[1][1] *= -1;
 
         void* data;
-        vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
+        vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
             memcpy(data, &ubo, sizeof(ubo));
-        vkUnmapMemory(device, uniformBufferMemory);
+        vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
     }
 
     void drawFrame() {
@@ -905,6 +912,8 @@ private:
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
+
+        updateUniformBuffer(imageIndex);
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
