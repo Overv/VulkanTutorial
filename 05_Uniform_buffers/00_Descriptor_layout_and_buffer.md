@@ -234,18 +234,20 @@ the uniform buffer every frame, so it doesn't really make any sense to have a
 staging buffer. It would just add extra overhead in this case and likely degrade
 performance instead of improving it.
 
-Add new class members for `uniformBuffer`, and `uniformBufferMemory`:
+We should have multiple buffers, because multiple frames may be in flight at the same time and we don't want to update the buffer in preparation of the next frame while a previous one is still reading from it! We could either have a uniform buffer per frame or per swap chain image. However, since we need to refer to the uniform buffer from the command buffer that we have per swap chain image, it makes the most sense to also have a uniform buffer per swap chain image.
+
+To that end, add new class members for `uniformBuffers`, and `uniformBuffersMemory`:
 
 ```c++
 VkBuffer indexBuffer;
 VkDeviceMemory indexBufferMemory;
 
-VkBuffer uniformBuffer;
-VkDeviceMemory uniformBufferMemory;
+std::vector<VkBuffer> uniformBuffers;
+std::vector<VkDeviceMemory> uniformBuffersMemory;
 ```
 
-Similarly, create a new function `createUniformBuffer` that is called after
-`createIndexBuffer` and allocates the buffer:
+Similarly, create a new function `createUniformBuffers` that is called after
+`createIndexBuffer` and allocates the buffers:
 
 ```c++
 void initVulkan() {
@@ -260,7 +262,13 @@ void initVulkan() {
 
 void createUniformBuffer() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffer, uniformBufferMemory);
+
+    uniformBuffers.resize(swapChainImages.size());
+    uniformBuffersMemory.resize(swapChainImages.size());
+
+    for (size_t i = 0; i < swapChainImages.size(); i++) {
+        createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+    }
 }
 ```
 
@@ -274,8 +282,11 @@ void cleanup() {
     cleanupSwapChain();
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-    vkDestroyBuffer(device, uniformBuffer, nullptr);
-    vkFreeMemory(device, uniformBufferMemory, nullptr);
+
+    for (size_t i = 0; i < swapChainImages.size(); i++) {
+        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+    }
 
     ...
 }
@@ -283,24 +294,28 @@ void cleanup() {
 
 ## Updating uniform data
 
-Create a new function `updateUniformBuffer` and add a call to it from the main
-loop:
+Create a new function `updateUniformBuffer` and add a call to it from the `drawFrame` function right after we know which swap chain image we're going to acquire:
 
 ```c++
-void mainLoop() {
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+void drawFrame() {
+    ...
 
-        updateUniformBuffer();
-        drawFrame();
-    }
+    uint32_t imageIndex;
+    VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-    vkDeviceWaitIdle(device);
+    ...
+
+    updateUniformBuffer(imageIndex);
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    ...
 }
 
 ...
 
-void updateUniformBuffer() {
+void updateUniformBuffer(uint32_t currentImage) {
 
 }
 ```
@@ -328,7 +343,7 @@ timekeeping. We'll use this to make sure that the geometry rotates 90 degrees
 per second regardless of frame rate.
 
 ```c++
-void updateUniformBuffer() {
+void updateUniformBuffer(uint32_t currentImage) {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -381,14 +396,14 @@ sign on the scaling factor of the Y axis in the projection matrix. If you don't
 do this, then the image will be rendered upside down.
 
 All of the transformations are defined now, so we can copy the data in the
-uniform buffer object to the uniform buffer. This happens in exactly the same
+uniform buffer object to the current uniform buffer. This happens in exactly the same
 way as we did for vertex buffers, except without a staging buffer:
 
 ```c++
 void* data;
-vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
+vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
     memcpy(data, &ubo, sizeof(ubo));
-vkUnmapMemory(device, uniformBufferMemory);
+vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 ```
 
 Using a UBO this way is not the most efficient way to pass frequently changing
@@ -396,7 +411,7 @@ values to the shader. A more efficient way to pass a small buffer of data to
 shaders are *push constants*. We may look at these in a future chapter.
 
 In the next chapter we'll look at descriptor sets, which will actually bind the
-`VkBuffer` to the uniform buffer descriptor so that the shader can access this
+`VkBuffer`s to the uniform buffer descriptors so that the shader can access this
 transformation data.
 
 [C++ code](/code/21_descriptor_layout.cpp) /
