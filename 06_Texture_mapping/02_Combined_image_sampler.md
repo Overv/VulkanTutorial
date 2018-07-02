@@ -39,7 +39,7 @@ the vertex shader, for example to dynamically deform a grid of vertices by a
 [heightmap](https://en.wikipedia.org/wiki/Heightmap).
 
 If you would run the application with validation layers now, then you'll see
-that it complains that the descriptor pool cannot allocate a descriptor set with
+that it complains that the descriptor pool cannot allocate descriptor sets with
 this layout, because it doesn't have any combined image sampler descriptors. Go
 to the `createDescriptorPool` function and modify it to include a
 `VkDescriptorPoolSize` for this descriptor:
@@ -55,17 +55,26 @@ VkDescriptorPoolCreateInfo poolInfo = {};
 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 poolInfo.pPoolSizes = poolSizes.data();
-poolInfo.maxSets = 1;
+poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
 ```
 
 The final step is to bind the actual image and sampler resources to the
-descriptor in the descriptor set. Go to the `createDescriptorSet` function.
+descriptors in the descriptor set. Go to the `createDescriptorSets` function.
 
 ```c++
-VkDescriptorImageInfo imageInfo = {};
-imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-imageInfo.imageView = textureImageView;
-imageInfo.sampler = textureSampler;
+for (size_t i = 0; i < swapChainImages.size(); i++) {
+    VkDescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer = uniformBuffers[i];
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UniformBufferObject);
+
+    VkDescriptorImageInfo imageInfo = {};
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = textureImageView;
+    imageInfo.sampler = textureSampler;
+
+    ...
+}
 ```
 
 The resources for a combined image sampler structure must be specified in a
@@ -77,7 +86,7 @@ where the objects from the previous chapter come together.
 std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 
 descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[0].dstSet = descriptorSet;
+descriptorWrites[0].dstSet = descriptorSets[i];
 descriptorWrites[0].dstBinding = 0;
 descriptorWrites[0].dstArrayElement = 0;
 descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -85,7 +94,7 @@ descriptorWrites[0].descriptorCount = 1;
 descriptorWrites[0].pBufferInfo = &bufferInfo;
 
 descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[1].dstSet = descriptorSet;
+descriptorWrites[1].dstSet = descriptorSets[i];
 descriptorWrites[1].dstBinding = 1;
 descriptorWrites[1].dstArrayElement = 0;
 descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -95,9 +104,9 @@ descriptorWrites[1].pImageInfo = &imageInfo;
 vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 ```
 
-The descriptor must be updated with this image info, just like the buffer. This
-time we're using the `pImageInfo` array instead of `pBufferInfo`. The descriptor
-is now ready to be used by the shaders!
+The descriptors must be updated with this image info, just like the buffer. This
+time we're using the `pImageInfo` array instead of `pBufferInfo`. The descriptors
+are now ready to be used by the shaders!
 
 ## Texture coordinates
 
