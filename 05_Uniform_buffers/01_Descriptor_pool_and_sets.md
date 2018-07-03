@@ -33,10 +33,10 @@ to contain and how many of them, using `VkDescriptorPoolSize` structures.
 ```c++
 VkDescriptorPoolSize poolSize = {};
 poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-poolSize.descriptorCount = 1;
+poolSize.descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 ```
 
-We only have a single descriptor right now with the uniform buffer type. This
+We will allocate one of these descriptors for every frame. This
 pool size structure is referenced by the main `VkDescriptorPoolCreateInfo`:
 
 ```c++
@@ -46,7 +46,8 @@ poolInfo.poolSizeCount = 1;
 poolInfo.pPoolSizes = &poolSize;
 ```
 
-We also need to specify the maximum number of descriptor sets that will be
+Aside from the maximum number of individual descriptors that are available, we
+also need to specify the maximum number of descriptor sets that may be
 allocated:
 
 ```c++
