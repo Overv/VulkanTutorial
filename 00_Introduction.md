@@ -99,6 +99,7 @@ This tutorial is intended to be a community effort. Vulkan is still a very new
 API and best practices have not really been established yet. If you have any
 type of feedback on the tutorial and site itself, then please don't hesitate to
 submit an issue or pull request to the [GitHub repository](https://github.com/Overv/VulkanTutorial).
+You can *watch* the repository to be notified of updates to the tutorial.
 
 After you've gone through the ritual of drawing your very first Vulkan powered
 triangle onscreen, we'll start expanding the program to include linear
