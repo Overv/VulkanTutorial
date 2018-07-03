@@ -697,7 +697,11 @@ vkCmdPipelineBarrier(
 As you can see in the aforementioned table, transfer writes must occur in the
 pipeline transfer stage. Since the writes don't have to wait on anything, you
 may specify an empty access mask and the earliest possible pipeline stage
-`VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` for the pre-barrier operations.
+`VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` for the pre-barrier operations. It should be
+noted that `VK_PIPELINE_STAGE_TRANSFER_BIT` is not a *real* stage within the
+graphics and compute pipelines. It is more of a pseudo-stage where transfers
+happen. See [the documentation](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkPipelineStageFlagBits.html)
+for more information and other examples of pseudo-stages.
 
 The image will be written in the same pipeline stage and subsequently read by
 the fragment shader, which is why we specify shader reading access in the
