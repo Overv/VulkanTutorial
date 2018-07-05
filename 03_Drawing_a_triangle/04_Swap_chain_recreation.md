@@ -182,8 +182,67 @@ currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 The `vkQueuePresentKHR` function returns the same values with the same meaning.
 In this case we will also recreate the swap chain if it is suboptimal, because
-we want the best possible result. Try to run it and resize the window to see if
-the framebuffer is indeed resized properly with the window.
+we want the best possible result.
+
+## Handling resizes explicitly
+
+Although many drivers and platforms trigger `VK_ERROR_OUT_OF_DATE_KHR` automatically after a window resize, it is not guaranteed to happen. That's why we'll add some extra code to also handle resizes explicitly. First add a new member variable that flags that a resize has happened:
+
+```c++
+std::vector<VkFence> inFlightFences;
+size_t currentFrame = 0;
+
+bool framebufferResized = false;
+```
+
+The `drawFrame` function should then be modified to also check for this flag:
+
+```c++
+if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+    framebufferResized = false;
+    recreateSwapChain();
+} else if (result != VK_SUCCESS) {
+    ...
+}
+```
+
+Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
+
+```c++
+void initWindow() {
+    glfwInit();
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+}
+
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+
+}
+```
+
+The reason that we're creating a `static` function as a callback is because GLFW does not know how to properly call a member function with the right `this` pointer to our `HelloTriangleApplication` instance.
+
+However, we do get a reference to the `GLFWwindow` in the callback and there is another GLFW function that allows you to store an arbitrary pointer inside of it: `glfwSetWindowUserPointer`:
+
+```c++
+window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+glfwSetWindowUserPointer(window, this);
+glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+```
+
+This value can now be retrieved from within the callback with `glfwGetWindowUserPointer` to properly set the flag:
+
+```c++
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true;
+}
+```
+
+Now try to run the program and resize the window to see if the framebuffer is indeed resized properly with the window.
 
 ## Handling minimization
 
