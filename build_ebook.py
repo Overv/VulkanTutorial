@@ -83,7 +83,7 @@ for fn in os.listdir('images'):
 # Building PDF
 print('building pdf...')
 
-subprocess.check_output(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s', '--toc', '-o', 'ebook/Vulkan Tutorial.pdf'])
+subprocess.check_output(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s', '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan Tutorial.pdf'])
 
 print('building epub...')
 
