@@ -39,7 +39,7 @@ int main() {
 
     try {
         app.run();
-    } catch (const std::runtime_error& e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
@@ -63,7 +63,7 @@ Once the window is closed and `mainLoop` returns, we'll make sure to deallocate
 the resources we've used in the `cleanup` function.
 
 If any kind of fatal error occurs during execution then we'll throw a
-`std::runtime_error` exception with a descriptive message, which will propagate
+`std::exception` exception with a descriptive message, which will propagate
 back to the `main` function and be printed to the command prompt. One example of
 an error that we will deal with soon is finding out that a certain required
 extension is not supported.
