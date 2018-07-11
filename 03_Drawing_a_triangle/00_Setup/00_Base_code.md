@@ -65,8 +65,7 @@ the resources we've used in the `cleanup` function.
 If any kind of fatal error occurs during execution then we'll throw a
 `std::runtime_error` exception with a descriptive message, which will propagate
 back to the `main` function and be printed to the command prompt. To handle 
-a variety of standard exception types as well, we catch `std::exception` by 
-refference. One example of an error that we will deal with soon is finding 
+a variety of standard exception types as well, we catch the more general `std::exception`. One example of an error that we will deal with soon is finding 
 out that a certain required extension is not supported.
 
 Roughly every chapter that follows after this one will add one new function that
