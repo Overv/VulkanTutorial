@@ -63,10 +63,11 @@ Once the window is closed and `mainLoop` returns, we'll make sure to deallocate
 the resources we've used in the `cleanup` function.
 
 If any kind of fatal error occurs during execution then we'll throw a
-`std::exception` exception with a descriptive message, which will propagate
-back to the `main` function and be printed to the command prompt. One example of
-an error that we will deal with soon is finding out that a certain required
-extension is not supported.
+`std::runtime_error` exception with a descriptive message, which will propagate
+back to the `main` function and be printed to the command prompt. To handle 
+a variety of standard exception types as well, we catch `std::exception` by 
+refference. One example of an error that we will deal with soon is finding 
+out that a certain required extension is not supported.
 
 Roughly every chapter that follows after this one will add one new function that
 will be called from `initVulkan` and one or more new Vulkan objects to the
