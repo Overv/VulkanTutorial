@@ -93,7 +93,7 @@ function for that purpose:
 void initVulkan() {
     ...
     createDescriptorPool();
-    createDescriptorSet();
+    createDescriptorSets();
     ...
 }
 
