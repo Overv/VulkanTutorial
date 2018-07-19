@@ -346,6 +346,28 @@ These settings will produce this image:
 
 This is how higher mip levels will be used when objects are further away from the camera.
 
-[C++ code](/code/28_mipmapping.cpp) /
+
+## Conclusion
+
+It has taken a lot of work to get to this point, but now you finally have a good
+base for a Vulkan program. The knowledge of the basic principles of Vulkan that
+you now possess should be sufficient to start exploring more of the features,
+like:
+
+* Push constants
+* Instanced rendering
+* Dynamic uniforms
+* Separate images and sampler descriptors
+* Pipeline cache
+* Multi-threaded command buffer generation
+* Multiple subpasses
+* Compute shaders
+
+The current program can be extended in many ways, like adding Blinn-Phong
+lighting, post-processing effects and shadow mapping. You should be able to
+learn how these effects work from tutorials for other APIs, because despite
+Vulkan's explicitness, many concepts still work the same.
+
+[C++ code](/code/29_multisampling.cpp) /
 [Vertex shader](/code/26_shader_depth.vert) /
 [Fragment shader](/code/26_shader_depth.frag)
