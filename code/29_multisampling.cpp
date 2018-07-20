@@ -237,12 +237,12 @@ private:
         createDescriptorSetLayout();
         createGraphicsPipeline();
         createCommandPool();
-        createTextureImage();
-        createTextureImageView();
-        createTextureSampler();
         createColorResources();
         createDepthResources();
         createFramebuffers();
+        createTextureImage();
+        createTextureImageView();
+        createTextureSampler();
         loadModel();
         createVertexBuffer();
         createIndexBuffer();
@@ -561,7 +561,7 @@ private:
         VkAttachmentDescription colorAttachmentResolve = {};
         colorAttachmentResolve.format = swapChainImageFormat;
         colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -571,7 +571,7 @@ private:
         VkAttachmentDescription depthAttachmentResolve = {};
         depthAttachmentResolve.format = findDepthFormat();
         depthAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-        depthAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         depthAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         depthAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         depthAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
