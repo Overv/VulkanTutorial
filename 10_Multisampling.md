@@ -235,7 +235,7 @@ void createFrameBuffers() {
 
 Now run your program and you should see the following:
 
-![](/images/mipmaps.png)
+![](/images/multisampling.png)
 
 It's not a dramatic difference, since our scene is so simple. There are subtle differences if you look closely.
 
