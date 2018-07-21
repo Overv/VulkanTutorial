@@ -72,8 +72,8 @@ For either of these options, you'll need php and a patch'ed daux.
 
 ### Clone, patch, and rebuild daux
 
-1. Clone [daux](https://github.com/justinwalsh/daux.io)
-    * `git clone https://github.com/justinwalsh/daux.io.git`
+1. Clone [daux](https://github.com/dauxio/daux.io)
+    * `git clone https://github.com/dauxio/daux.io.git`
 2. Make a new branch at the older revision that the VulkanTutorial patch is
    against:
     * `git checkout d45ccff -b vtpatch`
@@ -93,7 +93,7 @@ For either of these options, you'll need php and a patch'ed daux.
 ### Using Daux to serve rendered files on the fly
 
 Once you've completed the above, follow the instructions on the daux site
-for how to [run daux using a web server](https://github.com/justinwalsh/daux.io/blob/master/README.md#running-remotely).
+for how to [run daux using a web server](https://github.com/dauxio/daux.io/blob/master/README.md#running-remotely).
 
 As a simple option considering you have php installed, you can also use php's
 built in development web server if you just need to locally see what things
