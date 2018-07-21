@@ -15,7 +15,7 @@ VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 ...
 ```
 
-Having done that, we now need to determine what is the maximum number of samples supported by the hardware. This information can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support:
+We now need to determine what is the maximum number of samples supported by the hardware. This information can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support. If the hardware supports only one sample (unlikely on modern graphics cards) the final image will look unchanged.
 
 ```c++
 VkSampleCountFlagBits getMaxUsableSampleCount() {
@@ -34,7 +34,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount() {
 }
 ```
 
-If the hardware supports only one sample (unlikely on modern graphics cards) the final image will look the same as before. We will now use this function to set the `msaaSamples` variable during physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
+We will now use this function to set the `msaaSamples` variable during physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
 
 ```c++
 void pickPhysicalDevice() {
@@ -123,7 +123,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 }
 ```
 
-Now that we have multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and create a multisampled depth buffer:
+Now that we have multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and add creation steps for a multisampled depth buffer:
 
 ```c++
 void createDepthResources() {
@@ -135,7 +135,7 @@ void createDepthResources() {
 }
 ```
 
-We whave now creates a couple of new Vulkan resources, so let's not forget to release them when necessary:
+We have now creates a couple of new Vulkan resources, so let's not forget to release them when necessary:
 
 ```c++
 void cleanupSwapChain() {
@@ -150,7 +150,7 @@ void cleanupSwapChain() {
 
 ## Using multisampling
 
-With only a few simple steps we created additional buffers and image views necessary for multsampling and also determined how many samples we can use on the hardware we're using - it's now time to put it all together and see the results! We'll take care of the render pass first. Modify `createRenderPass` and update color and depth attachment creation info structs:
+With only a few simple steps we created additional buffers and image views necessary for multsampling and also determined how many samples we can use on our hardware - it's now time to put it all together and see the results! Let's take care of the render pass first. Modify `createRenderPass` and update color and depth attachment creation info structs:
 
 ```c++
 void createRenderPass() {
@@ -162,7 +162,7 @@ void createRenderPass() {
     ...
 ```
 
-Apart from the obvious change that tells the attachments to use more samples, you'll notice a change to the `finalLayout` parameter to the color attachment. This is because the multisampled color buffer will be only used to store color pixels now - for presentation, we can only use a single-sampled attachment. This also applies to multisampled depth, which means we need to create additional resolve attachments:
+Apart from the obvious change that tells the attachments to use more samples, you'll notice a change to the `finalLayout` parameter for the color attachment. This is because the multisampled color buffer will be only used to store color pixels - for presentation, we can only use a single-sampled attachment. This also applies to multisampled depth, which means we need to create additional resolve attachments:
 
 ```c++
     ...
@@ -237,7 +237,7 @@ Now run your program and you should see the following:
 
 ![](/images/multisampling.png)
 
-Just like with mipmapping, the difference may not be apparent straight away when looking at this simple scene. On a closer look you'll notice that the edges on the roof are not as jagged anymore and the whole image seems a bit smoother compared to the original.
+Just like with mipmapping, the difference may not be apparent straight away. On a closer look you'll notice that the edges on the roof are not as jagged anymore and the whole image seems a bit smoother compared to the original.
 
 ![](/images/multisampling_comparison.png)
 
