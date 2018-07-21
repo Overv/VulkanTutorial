@@ -1446,3 +1446,94 @@ index 457a809..20a1f39 100755
 -- 
 2.7.4
 
+From 007f00ba9fce5214028d999b29594fae45f3f425 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?St=C3=A9phane=20Goetz?= <onigoetz@onigoetz.ch>
+Date: Thu, 18 May 2017 23:43:02 +0200
+Subject: [PATCH] Fix TOC links that are escaped, also handle uniqueness, fixes
+ #461
+
+---
+ .../HTML/ContentTypes/Markdown/TOC/Processor.php   | 38 +++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 9 deletions(-)
+
+diff --git a/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php b/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php
+index bfe6a75..c7f3090 100644
+--- a/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php
++++ b/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php
+@@ -42,6 +42,7 @@ class Processor implements DocumentProcessorInterface
+ 
+         $headings = [];
+ 
++        $document->heading_ids = [];
+         $walker = $document->walker();
+         while ($event = $walker->next()) {
+             $node = $event->getNode();
+@@ -55,9 +56,8 @@ class Processor implements DocumentProcessorInterface
+                 continue;
+             }
+ 
+-            $id = $this->addId($node);
+-
+-            $headings[] = new Entry($node, $id);
++            $this->ensureHeadingHasId($document, $node);
++            $headings[] = new Entry($node);
+         }
+ 
+         if (count($headings) && (count($tocs) || $this->hasAutoTOC())) {
+@@ -74,18 +74,39 @@ class Processor implements DocumentProcessorInterface
+         }
+     }
+ 
+-    protected function addId(Heading $node)
++    protected function getUniqueId(Document $document, $proposed) {
++        if ($proposed == "page_") {
++            $proposed = "page_section_" . (count($document->heading_ids) + 1);
++        }
++
++        // Quick path, it's a unique ID
++        if (!in_array($proposed, $document->heading_ids)) {
++            $document->heading_ids[] = $proposed;
++            return $proposed;
++        }
++
++        $extension = 1; // Initialize the variable at one, so on the first iteration we have 2
++        do {
++            $extension++;
++        } while (in_array("$proposed-$extension", $document->heading_ids));
++
++        return "$proposed-$extension";
++    }
++
++    /**
++     * @param Heading $node
++     */
++    protected function ensureHeadingHasId(Document $document, Heading $node)
+     {
+-        // If the node has an ID, no need to generate it
++        // If the node has an ID, no need to generate it, just check it's unique
+         $attributes = $node->getData('attributes', []);
+         if (array_key_exists('id', $attributes) && !empty($attributes['id'])) {
+-            // TODO :: check for uniqueness
++            $node->data['attributes']['id'] = $this->getUniqueId($document, $attributes['id']);
+ 
+             return $attributes['id'];
+         }
+ 
+         // Well, seems we have to generate an ID
+-
+         $walker = $node->walker();
+         $inside = [];
+         while ($event = $walker->next()) {
+@@ -107,8 +128,7 @@ class Processor implements DocumentProcessorInterface
+ 
+         $text = 'page_' . DauxHelper::slug(trim($text));
+ 
+-        // TODO :: check for uniqueness
+-        $node->data['attributes']['id'] = $text;
++        $node->data['attributes']['id'] = $this->getUniqueId($document, $text);
+     }
+ 
+     /**
+-- 
+2.14.3
+
