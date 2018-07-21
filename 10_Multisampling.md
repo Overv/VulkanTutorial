@@ -34,7 +34,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount() {
 }
 ```
 
-We will now use this function to set the `msaaSamples` variable during physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
+If the hardware supports only one sample (unlikely on modern graphics cards) the final image will look the same as before. We will now use this function to set the `msaaSamples` variable during physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
 
 ```c++
 void pickPhysicalDevice() {
@@ -81,7 +81,7 @@ VkImageView depthMsaaImageView;
 ...
 ```
 
-Add a `createColorResources` function (note that we're using `msaaSamples` here as a function parameter to `createImage`):
+We will now create a multisampled color buffer. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this buffer will be rendered fullscreen at all times and Vulkan specifications states that an image buffer with sample count greater than 1 can only have a single mip level:
 
 ```c++
 void createColorResources() {
@@ -94,7 +94,7 @@ void createColorResources() {
 }
 ```
 
-Call the function right before `createDepthResources`:
+For consistency, call the function right before `createDepthResources`:
 
 ```c++
 void initVulkan() {
@@ -105,7 +105,7 @@ void initVulkan() {
 }
 ```
 
-Notice new transition setup, so we need to modify `transitionImageLayout`:
+You may notice that the newly created color image transitions from undefined state to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` which is a new case for us to handle. Let's update `transitionImageLayout` function to take this into account:
 
 ```c++
 void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
@@ -123,7 +123,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 }
 ```
 
-Modify `createDepthResources`:
+Now that we have multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and create a multisampled depth buffer:
 
 ```c++
 void createDepthResources() {
@@ -135,7 +135,8 @@ void createDepthResources() {
 }
 ```
 
-Don't forget to release resources:
+We whave now creates a couple of new Vulkan resources, so let's not forget to release them when necessary:
+
 ```c++
 void cleanupSwapChain() {
     vkDestroyImageView(device, colorImageView, nullptr);
@@ -149,7 +150,7 @@ void cleanupSwapChain() {
 
 ## Using multisampling
 
-Modify `createRenderPass`:
+With only a few simple steps we created additional buffers and image views necessary for multsampling and also determined how many samples we can use on the hardware we're using - it's now time to put it all together and see the results! We'll take care of the render pass first. Modify `createRenderPass` and update color and depth attachment creation info structs:
 
 ```c++
 void createRenderPass() {
@@ -161,7 +162,7 @@ void createRenderPass() {
     ...
 ```
 
-Add new attachment resolves:
+Apart from the obvious change that tells the attachments to use more samples, you'll notice a change to the `finalLayout` parameter to the color attachment. This is because the multisampled color buffer will be only used to store color pixels now - for presentation, we can only use a single-sampled attachment. This also applies to multisampled depth, which means we need to create additional resolve attachments:
 
 ```c++
     ...
@@ -207,17 +208,8 @@ Update render pass info struct with new attachments:
     ...
 ```
 
-Modify `createGraphicsPipeline`:
+With render pass in place, modify `createFrameBuffers` and add additional attachments:
 
-```c++
-void createGraphicsPipeline() {
-    ...
-    multisampling.rasterizationSamples = msaaSamples;
-    ...
-}
-```
-
-Modify `createFrameBuffers`:
 ```c++
 void createFrameBuffers() {
         ...
@@ -231,21 +223,27 @@ void createFrameBuffers() {
 }
 ```
 
-## Sampler
+Finally, tell the newly created pipeline to use more than one sample by modifying `createGraphicsPipeline`:
+
+```c++
+void createGraphicsPipeline() {
+    ...
+    multisampling.rasterizationSamples = msaaSamples;
+    ...
+}
+```
 
 Now run your program and you should see the following:
 
 ![](/images/multisampling.png)
 
-It's not a dramatic difference, since our scene is so simple. There are subtle differences if you look closely.
+Just like with mipmapping, the difference may not be apparent straight away when looking at this simple scene. On a closer look you'll notice that the edges on the roof are not as jagged anymore and the whole image seems a bit smoother compared to the original.
 
 ![](/images/multisampling_comparison.png)
 
-The most noticeable difference is the writing on the signs. With mipmaps, the writing has been smoothed. Without mipmaps, the writing has harsh edges and gaps from Moiré artifacts.
+The difference is more noticable when looking up close at one of the edges:
 
 ![](/images/multisampling_comparison2.png)
-
-This is how higher mip levels will be used when objects are further away from the camera.
 
 
 ## Conclusion
