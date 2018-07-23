@@ -1,13 +1,23 @@
 ## Introduction
-Our program can now load and render 3D models. In this chapter, we will add one more feature, mipmap generation. Mipmaps are widely used in games and rendering software, and Vulkan gives us complete control over how they are created. 
 
-Mipmaps are precalculated, downscaled versions of an image. Each new image is half the width and height of the previous one.  Mipmaps are used as a form of *Level of Detail* or *LOD.* Objects that are far away from the camera will sample their textures from the smaller mip images. Using smaller images increases the rendering speed and avoids artifacts such as [Moiré patterns](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern). An example of what mipmaps look like:
+Our program can now load multiple levels of detail for textures which fixes artifacts when rendering objects far away from the viewer. The image is now a lot smoother, however on closer inspection you will notice jagged saw-like patterns along the edges of drawn geometric shapes. This is especially visible in one of our early programs when we rendered a quad:
 
-![](/images/mipmaps_example.jpg)
+![](/images/texcoord_visualization.png)
 
-## Checking for multisampling support
+This undesired effect is called "aliasing" and it's a result of a limited numbers of pixels that are available for rendering. Since there are no displays out there with unlimited resolution, it will be always visible to some extent. There's a number of ways to fix this and in this chapter we'll focus on one of the more popular ones: [Multisample anti-aliasing](https://en.wikipedia.org/wiki/Multisample_anti-aliasing) (MSAA).
 
-First, add a class member that will store the number of samples used by the renderer. This number will be used in various places in our code:
+In ordinary rendering, the pixel color is determined based on a single sample point which in most cases is the center of target pixel on screen. If part of the drawn line passes through a certain pixel but doesn't cover the sample point, that pixel will be left blank, leading to the jagged "staircase" effect.
+
+![](/images/aliasing.png)
+
+What MSAA does is it uses multiple sample points per pixel (hence the name) to determine its final color. As one might expect, more samples lead to better results, however it is also more computationally expensive.
+
+In our implementation, we will focus on using the maximum available sample count. Depending on your application this may not always be the best approach and it might be better to use less samples for the sake of higher performance if the final result meets your quality demands.
+
+
+## Getting available sample count
+
+Let's start off by determining how many samples our hardware can use. Most modern GPUs support at least 8 samples but this number is not guaranteed to be the same everywhere. We'll keep track of it by adding a new class member:
 
 ```c++
 ...
@@ -15,7 +25,7 @@ VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 ...
 ```
 
-We now need to determine what is the maximum number of samples supported by the hardware. This information can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support. If the hardware supports only one sample (unlikely on modern graphics cards) the final image will look unchanged.
+The exact maximum sample count can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support. If the hardware supports only one sample the final image will look unchanged. Add a function that will fetch this information for us:
 
 ```c++
 VkSampleCountFlagBits getMaxUsableSampleCount() {
@@ -48,7 +58,7 @@ void pickPhysicalDevice() {
 }
 ```
 
-Next, update `createImage` functions to allow us to specify the number of samples by adding a `numSmaples` parameter - this will become important later:
+Next, update `createImage` function to allow us to specify the number of used samples by adding a `numSmaples` parameter - this will become important later:
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -57,7 +67,7 @@ void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCo
     ...
 ```
 
-For now, update all calls to these functions using `VK_SAMPLE_COUNT_1_BIT` - we will be replacing this with proper values as we progress with implementation:
+For now, update all calls to this function using `VK_SAMPLE_COUNT_1_BIT` - we will be replacing this with proper values as we progress with implementation:
 
 ```c++
 createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
@@ -67,7 +77,7 @@ createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G
 
 ## Setting up render targets
 
-Multisampling requires additional render targets. Add following class members:
+In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to the screen. These new buffers are slightly different from regular images we've been rendering to - they have to be able to store more than one sample per pixel. Once a multisampled buffer is created, it has to be attached to the default framebuffer (which stores only a single sample per pixel). This is why we have to create additional render targets and modify our current drawing process. Add following class members:
 
 ```c++
 ...
@@ -81,7 +91,7 @@ VkImageView depthMsaaImageView;
 ...
 ```
 
-We will now create a multisampled color buffer. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this buffer will be rendered fullscreen at all times and Vulkan specifications states that an image buffer with sample count greater than 1 can only have a single mip level:
+We will now create a multisampled color buffer. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel:
 
 ```c++
 void createColorResources() {
@@ -105,7 +115,7 @@ void initVulkan() {
 }
 ```
 
-You may notice that the newly created color image transitions from undefined state to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` which is a new case for us to handle. Let's update `transitionImageLayout` function to take this into account:
+You may notice that the newly created color image uses a transition path from `VK_IMAGE_LAYOUT_UNDEFINED` to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` which is a new case for us to handle. Let's update `transitionImageLayout` function to take this into account:
 
 ```c++
 void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
@@ -148,9 +158,11 @@ void cleanupSwapChain() {
     ...
 ```
 
-## Using multisampling
+With only a few simple steps we created additional buffers and image views necessary for multsampling - it's now time to put it all together and see the results!
 
-With only a few simple steps we created additional buffers and image views necessary for multsampling and also determined how many samples we can use on our hardware - it's now time to put it all together and see the results! Let's take care of the render pass first. Modify `createRenderPass` and update color and depth attachment creation info structs:
+## Adding new attachments
+
+Let's take care of the render pass first. Modify `createRenderPass` and update color and depth attachment creation info structs:
 
 ```c++
 void createRenderPass() {
@@ -188,7 +200,7 @@ Apart from the obvious change that tells the attachments to use more samples, yo
     ...
 ```
 
-Add atachment reference for color:
+We now have to add new color resolve attachment to the subpass. Create a new attachment reference and update the `pResolveAttachments` pointer:
 
 ```c++
     ...
@@ -208,7 +220,7 @@ Update render pass info struct with new attachments:
     ...
 ```
 
-With render pass in place, modify `createFrameBuffers` and add additional attachments:
+With render pass in place, modify `createFrameBuffers` and add new image views to the list:
 
 ```c++
 void createFrameBuffers() {
