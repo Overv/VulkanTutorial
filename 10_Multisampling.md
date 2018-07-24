@@ -12,6 +12,8 @@ In ordinary rendering, the pixel color is determined based on a single sample po
 
 What MSAA does is it uses multiple sample points per pixel (hence the name) to determine its final color. As one might expect, more samples lead to better results, however it is also more computationally expensive.
 
+![](/images/antialiasing.png)
+
 In our implementation, we will focus on using the maximum available sample count. Depending on your application this may not always be the best approach and it might be better to use less samples for the sake of higher performance if the final result meets your quality demands.
 
 
