@@ -14,5 +14,8 @@ validation layers are turned on, then you should ensure that your Vulkan SDK is
 correctly installed by following [these instructions](https://vulkan.lunarg.com/doc/sdk/1.0.61.0/windows/getting_started.html).
 
 * **vkCreateSwapchainKHR triggers an error in SteamOverlayVulkanLayer64.dll**:
-This appears to be a compatibility problem in the Steam client beta. Make sure
-to opt out of the Steam beta program for now.
+This appears to be a compatibility problem in the Steam client beta. There are a
+few possible workarounds:
+    * Opt out of the Steam beta program.
+    * Set the `DISABLE_VK_LAYER_VALVE_steam_overlay_1` environment variable to `1`
+    * Delete the Steam overlay Vulkan layer entry in the registry under `HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers`
