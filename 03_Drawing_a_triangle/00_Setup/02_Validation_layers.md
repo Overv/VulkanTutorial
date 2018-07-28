@@ -327,14 +327,16 @@ Since the debug callback is specific to our Vulkan instance and its layers, it
 needs to be explicitly specified as first argument. You will also see this
 pattern with other *child* objects later on. Let's see if it works... Run the
 program and close the window once you're fed up with staring at the blank
-window. You'll see that the following message is printed to the command prompt:
+window. You'll see that the following messages are printed to the command prompt:
 
 ![](/images/validation_layer_test.png)
 
 Oops, it has already spotted a bug in our program! The
 `VkDebugReportCallbackEXT` object needs to be cleaned up with a call to
 `vkDestroyDebugReportCallbackEXT`. Similarly to `vkCreateDebugReportCallbackEXT`
-the function needs to be explicitly loaded. Create another proxy function right
+the function needs to be explicitly loaded. The reason for there being multiple messages is that multiple validation layers check for the deletion of the debug report callback.
+
+Create another proxy function right
 below `CreateDebugReportCallbackEXT`:
 
 ```c++
