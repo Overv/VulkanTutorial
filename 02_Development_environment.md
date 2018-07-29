@@ -62,7 +62,8 @@ In this tutorial we'll be using the 64-bit binaries, but you can of course also
 choose to build in 32 bit mode. In that case make sure to link with the Vulkan
 SDK binaries in the `Lib32` directory instead of `Lib`. After downloading it, extract the archive
 to a convenient location. I've chosen to create a `Libraries` directory in the
-Visual Studio directory under documents.
+Visual Studio directory under documents. Don't worry about there not being a
+`libvc-2017` folder, the `libvc-2015` one is compatible.
 
 ![](/images/glfw_directory.png)
 
