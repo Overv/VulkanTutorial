@@ -19,3 +19,7 @@ few possible workarounds:
     * Opt out of the Steam beta program.
     * Set the `DISABLE_VK_LAYER_VALVE_steam_overlay_1` environment variable to `1`
     * Delete the Steam overlay Vulkan layer entry in the registry under `HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers`
+
+Example:
+
+![](/images/steam_layers_env.png)
