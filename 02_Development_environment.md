@@ -7,10 +7,7 @@ separately here.
 ## Windows
 
 If you're developing for Windows, then I will assume that you are using Visual
-Studio 2013 or 2015 to compile your code. The steps are the same for both
-versions, but the Vulkan SDK currently only includes debug symbols that are
-compatible with Visual Studio 2013. That isn't really a problem in practice, but
-it's something that you may wish to take into account.
+Studio 2017 to compile your code. You may also use Visual Studio 2013 or 2015, but the steps may be a bit different.
 
 ### Vulkan SDK
 
@@ -29,7 +26,7 @@ be useful to you.
 Proceed through the installation and pay attention to the install location of
 the SDK. The first thing we'll do is verify that your graphics card and driver
 properly support Vulkan. Go to the directory where you installed the SDK, open
-the `Bin32` directory and run the `cube.exe` demo. You should see the following:
+the `Bin` directory and run the `cube.exe` demo. You should see the following:
 
 ![](/images/cube_demo.png)
 
@@ -38,18 +35,11 @@ include the Vulkan runtime and that your graphics card is supported. See the
 [introduction chapter](!Introduction) for links to drivers from the major
 vendors.
 
-There are two other programs in this directory that will be useful for
-development. The `vkjson_info.exe` program generates a JSON file with a detailed
-description of the capabilities of your hardware when using Vulkan. If you are
-wondering what support is like for extensions and other optional features among
-the graphics cards of your end users, then you can use [this website](http://vulkan.gpuinfo.org/)
-to view the results of a wide range of GPUs.
-
-The `glslangValidator.exe` program will be used to compile shaders from the
+There is another program in this directory that will be useful for development. The `glslangValidator.exe` program will be used to compile shaders from the
 human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) to
 bytecode. We'll cover this in depth in the [shader modules](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
-chapter. The `Bin32` directory also contains the binaries of the Vulkan loader
-and the validation layers, while the `Lib32` directory contains the libraries.
+chapter. The `Bin` directory also contains the binaries of the Vulkan loader
+and the validation layers, while the `Lib` directory contains the libraries.
 
 The `Doc` directory contains useful information about the Vulkan SDK and an
 offline version of the entire Vulkan specification. Lastly, there's the
@@ -68,9 +58,9 @@ it also abstracts away some of the other platform-specific things in Vulkan
 besides just window creation.
 
 You can find the latest release of GLFW on the [official website](http://www.glfw.org/download.html).
-In this tutorial we'll be using the 32-bit binaries, but you can of course also
-choose to build in 64 bit mode. In that case make sure to link with the Vulkan
-SDK binaries in the `Bin` directory. After downloading it, extract the archive
+In this tutorial we'll be using the 64-bit binaries, but you can of course also
+choose to build in 32 bit mode. In that case make sure to link with the Vulkan
+SDK binaries in the `Lib32` directory instead of `Lib`. After downloading it, extract the archive
 to a convenient location. I've chosen to create a `Libraries` directory in the
 Visual Studio directory under documents.
 
@@ -95,16 +85,15 @@ Now that you've installed all of the dependencies we can set up a basic Visual
 Studio project for Vulkan and write a little bit of code to make sure that
 everything works.
 
-Start Visual Studio and create a new C++ Win32 project.
+Start Visual Studio and create a new `Windows Desktop Wizard` project by entering a name and pressing `OK`.
 
 ![](/images/vs_new_cpp_project.png)
 
-Click `Next`, select `Console application` as application type and make sure
-that `Empty project` is checked.
+Make sure that `Console Application (.exe)` is selected as application type so that we have a place to print debug messages to, and check `Empty Project` to prevent Visual Studio from adding boilerplate code.
 
 ![](/images/vs_application_settings.png)
 
-Press `Finish` to create the project and add a C++ source file. You should
+Press `OK` to create the project and add a C++ source file. You should
 already know how to do that, but the steps are included here for completeness.
 
 ![](/images/vs_new_item.png)
@@ -170,7 +159,7 @@ Add the header directories for Vulkan, GLFW and GLM:
 
 ![](/images/vs_include_dirs.png)
 
-Next, open the editor for library directories:
+Next, open the editor for library directories under `Linker -> General`:
 
 ![](/images/vs_link_settings.png)
 
@@ -189,6 +178,10 @@ Enter the names of the Vulkan and GLFW object files:
 
 You can now close the project properties dialog. If you did everything right
 then you should no longer see any more errors being highlighted in the code.
+
+Finally, ensure that you are actually compiling in 64 bit mode:
+
+![](/images/vs_build_mode.png)
 
 Press `F5` to compile and run the project and you should see a command prompt
 and a window pop up like this:
@@ -464,23 +457,10 @@ You can now use this directory as a template for your Vulkan projects. Make a
 copy, rename it to something like `HelloTriangle` and remove all of the code
 in `main.cpp`.
 
-Before we move on, let's explore the Vulkan SDK a bit more. There are two
-programs in it that will be very useful for development. The
-`x86_64/bin/vkjson_info` program generates a JSON file with a detailed
-description of the capabilities of your hardware when using Vulkan. If you are
-wondering what support is like for extensions and other optional features among
-the graphics cards of your end users, then you can use [this website](http://vulkan.gpuinfo.org/)
-to view the results of a wide range of GPUs. This program needs to be run with
-the same `LD_LIBRARY_PATH` variable as your own programs:
-
-```bash
-LD_LIBRARY_PATH=../lib ./vkjson_info
-```
-
-The `x86_64/bin/glslangValidator` program will be used to compile shaders from
+Before we move on, let's explore the Vulkan SDK a bit more. There is another program in it that will be very useful for development. The `x86_64/bin/glslangValidator` program will be used to compile shaders from
 the human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 to bytecode. We'll cover this in depth in the [shader modules](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
-chapter. It does not depend on the Vulkan library.
+chapter.
 
 The `Doc` directory contains useful information about the Vulkan SDK and an
 offline version of the entire Vulkan specification. Feel free to explore the
