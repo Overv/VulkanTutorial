@@ -46,7 +46,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount() {
 }
 ```
 
-We will now use this function to set the `msaaSamples` variable during physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
+We will now use this function to set the `msaaSamples` variable during the physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
 
 ```c++
 void pickPhysicalDevice() {
@@ -60,7 +60,7 @@ void pickPhysicalDevice() {
 }
 ```
 
-Next, update `createImage` function to allow us to specify the number of used samples by adding a `numSmaples` parameter - this will become important later:
+Next, update `createImage` function to allow us to specify the number of used samples by adding a `numSamples` parameter - this will become important later:
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -147,7 +147,7 @@ void createDepthResources() {
 }
 ```
 
-We have now creates a couple of new Vulkan resources, so let's not forget to release them when necessary:
+We have now created a couple of new Vulkan resources, so let's not forget to release them when necessary:
 
 ```c++
 void cleanupSwapChain() {
