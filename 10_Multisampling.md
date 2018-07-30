@@ -72,7 +72,7 @@ void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCo
 For now, update all calls to this function using `VK_SAMPLE_COUNT_1_BIT` - we will be replacing this with proper values as we progress with implementation:
 
 ```c++
-createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
 ...
 createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ```
@@ -83,13 +83,13 @@ In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to 
 
 ```c++
 ...
-VkImage colorImage;
-VkDeviceMemory colorImageMemory;
-VkImageView colorImageView;
+std::vector<VkImage> colorImages;
+std::vector<VkDeviceMemory> colorImagesMemory;
+std::vector<VkImageView> colorImagesView;
 
-VkImage depthMsaaImage;
-VkDeviceMemory depthMsaaImageMemory;
-VkImageView depthMsaaImageView;
+std::vector<VkImage> depthMsaaImages;
+std::vector<VkDeviceMemory> depthMsaaImagesMemory;
+std::vector<VkImageView> depthMsaaImagesView;
 ...
 ```
 
@@ -99,10 +99,16 @@ We will now create a multisampled color buffer. Add a `createColorResources` fun
 void createColorResources() {
     VkFormat colorFormat = swapChainImageFormat;
 
-    createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
-    colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+    colorImages.resize(swapChainImages.size());
+    colorImagesMemory.resize(swapChainImages.size());
+    colorImageViews.resize(swapChainImages.size());
 
-    transitionImageLayout(colorImage, colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
+    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImages[i], colorImagesMemory[i]);
+        colorImageViews[i] = createImageView(colorImages[i], colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+
+        transitionImageLayout(colorImages[i], colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
+    }
 }
 ```
 
@@ -140,10 +146,18 @@ Now that we have multisampled color buffer in place it's time to take care of de
 ```c++
 void createDepthResources() {
     ...
-    createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthMsaaImage, depthMsaaImageMemory);
-    depthMsaaImageView = createImageView(depthMsaaImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+    depthMsaaImages.resize(swapChainImages.size());
+    depthMsaaImagesMemory.resize(swapChainImages.size());
+    depthMsaaImagesView.resize(swapChainImages.size());
+    ...
 
-    transitionImageLayout(depthMsaaImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+        ...
+        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthMsaaImages[i], depthMsaaImagesMemory[i]);
+        depthMsaaImagesView[i] = createImageView(depthMsaaImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+
+        transitionImageLayout(depthMsaaImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+    }
 }
 ```
 
@@ -151,13 +165,17 @@ We have now created a couple of new Vulkan resources, so let's not forget to rel
 
 ```c++
 void cleanupSwapChain() {
-    vkDestroyImageView(device, colorImageView, nullptr);
-    vkDestroyImage(device, colorImage, nullptr);
-    vkFreeMemory(device, colorImageMemory, nullptr);
-    vkDestroyImageView(device, depthMsaaImageView, nullptr);
-    vkDestroyImage(device, depthMsaaImage, nullptr);
-    vkFreeMemory(device, depthMsaaImageMemory, nullptr);
+    for (size_t i = 0; i < swapChainImages.size(); i++) {
+        vkDestroyImageView(device, colorImageViews[i], nullptr);
+        vkDestroyImage(device, colorImages[i], nullptr);
+        vkFreeMemory(device, colorImagesMemory[i], nullptr);
+        vkDestroyImageView(device, depthMsaaImagesView[i], nullptr);
+        vkDestroyImage(device, depthMsaaImages[i], nullptr);
+        vkFreeMemory(device, depthMsaaImagesMemory[i], nullptr);
+        ...
+    }
     ...
+}
 ```
 
 With only a few simple steps we created additional buffers and image views necessary for multsampling - it's now time to put it all together and see the results!
@@ -234,10 +252,10 @@ With render pass in place, modify `createFrameBuffers` and add new image views t
 void createFrameBuffers() {
         ...
         std::array<VkImageView, 4> attachments = {
-            colorImageView,
-            depthMsaaImageView,
+            colorImageViews[i],
+            depthMsaaImagesView[i],
             swapChainImageViews[i],
-            depthImageView
+            depthImagesView[i]
         };
         ...
 }
