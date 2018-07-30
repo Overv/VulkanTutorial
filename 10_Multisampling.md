@@ -27,7 +27,7 @@ VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 ...
 ```
 
-The exact maximum sample count can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support. If the hardware supports only one sample the final image will look unchanged. Add a function that will fetch this information for us:
+By default we'll be using only one sample per pixel which is equivalent to no multisampling, in which case the final image will remain unchanged. The exact maximum number of samples can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support. Add a function that will fetch this information for us:
 
 ```c++
 VkSampleCountFlagBits getMaxUsableSampleCount() {
