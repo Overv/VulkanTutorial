@@ -176,7 +176,7 @@ void createRenderPass() {
     ...
 ```
 
-Apart from the obvious change that tells the attachments to use more samples, you'll notice a change to the `finalLayout` parameter for the color attachment. This is because the multisampled color buffer will be only used to store color pixels - for presentation, we can only use a single-sampled attachment. This also applies to multisampled depth, which means we need to create additional resolve attachments:
+Apart from the obvious change that tells both color and depth to use more samples, you'll notice an update to the `finalLayout` parameter for the color attachment. This is because a multisampled image is a fairly complex structure containing more information than a regular image. One of the consequences of this is that it cannot be processed by a sampler, so it cannot be drawn directly to the screen. For that reason, a multisampled image has to be translated (resolved) to a regular image before it can be used. This also applies to the depth buffer, so we need to define two additional attachments:
 
 ```c++
     ...
@@ -202,7 +202,7 @@ Apart from the obvious change that tells the attachments to use more samples, yo
     ...
 ```
 
-We now have to add new color resolve attachment to the subpass. Create a new attachment reference and update the `pResolveAttachments` pointer:
+The render pass now has to be instructed to perform color image resolution. Create a new attachment reference that will point to the color buffer which will serve as the resolve target:
 
 ```c++
     ...
@@ -210,11 +210,17 @@ We now have to add new color resolve attachment to the subpass. Create a new att
     colorAttachmentResolveRef.attachment = 2;
     colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     ...
+```
+
+Set the `pResolveAttachments` subpass struct member to point to the newly created attachment reference. This is enough to let the render pass define a multisample resolve operation which will let us render the image to screen:
+
+```
+    ...
     subpass.pResolveAttachments = &colorAttachmentResolveRef;
     ...
 ```
 
-Update render pass info struct with new attachments:
+Now update render pass info struct with new attachments:
 
 ```c++
     ...
