@@ -93,7 +93,7 @@ std::vector<VkImageView> depthMsaaImagesView;
 ...
 ```
 
-We will now create a multisampled color buffer. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel:
+We will now create a multisampled color buffer. Same as in case of non-multisampled image, we'll be dealing with dedicated resources for each swapchain image. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel:
 
 ```c++
 void createColorResources() {
