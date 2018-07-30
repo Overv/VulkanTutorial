@@ -169,9 +169,9 @@ private:
 
     VkCommandPool commandPool;
 
-    VkImage depthImage;
-    VkDeviceMemory depthImageMemory;
-    VkImageView depthImageView;
+    std::vector<VkImage> depthImages;
+    std::vector<VkDeviceMemory> depthImagesMemory;
+    std::vector<VkImageView> depthImagesView;
 
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
@@ -252,9 +252,11 @@ private:
     }
 
     void cleanupSwapChain() {
-        vkDestroyImageView(device, depthImageView, nullptr);
-        vkDestroyImage(device, depthImage, nullptr);
-        vkFreeMemory(device, depthImageMemory, nullptr);
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
+            vkDestroyImageView(device, depthImagesView[i], nullptr);
+            vkDestroyImage(device, depthImages[i], nullptr);
+            vkFreeMemory(device, depthImagesMemory[i], nullptr);
+        }
 
         for (auto framebuffer : swapChainFramebuffers) {
             vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -735,7 +737,7 @@ private:
         for (size_t i = 0; i < swapChainImageViews.size(); i++) {
             std::array<VkImageView, 2> attachments = {
                 swapChainImageViews[i],
-                depthImageView
+                depthImagesView[i]
             };
 
             VkFramebufferCreateInfo framebufferInfo = {};
@@ -768,10 +770,16 @@ private:
     void createDepthResources() {
         VkFormat depthFormat = findDepthFormat();
 
-        createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-        depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        depthImages.resize(swapChainImages.size());
+        depthImagesMemory.resize(swapChainImages.size());
+        depthImagesView.resize(swapChainImages.size());
 
-        transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+            createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
+            depthImagesView[i] = createImageView(depthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+            transitionImageLayout(depthImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        }
     }
 
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
