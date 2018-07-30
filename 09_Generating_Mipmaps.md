@@ -55,19 +55,19 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 Update all calls to these functions to use the right values:
 
 ```c++
-createImage(swapChainExtent.width, swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+createImage(swapChainExtent.width, swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
 ...
 createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ```
 ```c++
 swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 ...
-depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+depthImagesView[i] = createImageView(depthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 ...
 textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 ```
 ```c++
-transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+transitionImageLayout(depthImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 ...
 transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 ```
@@ -345,28 +345,6 @@ These settings will produce this image:
 ![](/images/highmipmaps.png)
 
 This is how higher mip levels will be used when objects are further away from the camera.
-
-
-## Conclusion
-
-It has taken a lot of work to get to this point, but now you finally have a good
-base for a Vulkan program. The knowledge of the basic principles of Vulkan that
-you now possess should be sufficient to start exploring more of the features,
-like:
-
-* Push constants
-* Instanced rendering
-* Dynamic uniforms
-* Separate images and sampler descriptors
-* Pipeline cache
-* Multi-threaded command buffer generation
-* Multiple subpasses
-* Compute shaders
-
-The current program can be extended in many ways, like adding Blinn-Phong
-lighting, post-processing effects and shadow mapping. You should be able to
-learn how these effects work from tutorials for other APIs, because despite
-Vulkan's explicitness, many concepts still work the same.
 
 [C++ code](/code/28_mipmapping.cpp) /
 [Vertex shader](/code/26_shader_depth.vert) /
