@@ -69,10 +69,6 @@ In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to 
 std::vector<VkImage> colorImages;
 std::vector<VkDeviceMemory> colorImagesMemory;
 std::vector<VkImageView> colorImagesView;
-
-std::vector<VkImage> depthMsaaImages;
-std::vector<VkDeviceMemory> depthMsaaImagesMemory;
-std::vector<VkImageView> depthMsaaImagesView;
 ...
 ```
 
@@ -141,23 +137,13 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 }
 ```
 
-Now that we have a multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and add creation steps for a multisampled depth buffer:
+Now that we have a multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and update the number of samples used by the depth buffer:
 
 ```c++
 void createDepthResources() {
-    ...
-    depthMsaaImages.resize(swapChainImages.size());
-    depthMsaaImagesMemory.resize(swapChainImages.size());
-    depthMsaaImagesView.resize(swapChainImages.size());
-    ...
-
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         ...
-        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthMsaaImages[i], depthMsaaImagesMemory[i]);
-        depthMsaaImagesView[i] = createImageView(depthMsaaImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-
-        transitionImageLayout(depthMsaaImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
-    }
+        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
+        ...
 }
 ```
 
@@ -169,16 +155,13 @@ void cleanupSwapChain() {
         vkDestroyImageView(device, colorImageViews[i], nullptr);
         vkDestroyImage(device, colorImages[i], nullptr);
         vkFreeMemory(device, colorImagesMemory[i], nullptr);
-        vkDestroyImageView(device, depthMsaaImagesView[i], nullptr);
-        vkDestroyImage(device, depthMsaaImages[i], nullptr);
-        vkFreeMemory(device, depthMsaaImagesMemory[i], nullptr);
         ...
     }
     ...
 }
 ```
 
-We made it past the initial MSAA configuration, now we need to start using these new resources in our graphics pipeline, framebuffer, render pass and and see the results!
+We made it past the initial MSAA setup, now we need to start using these new resources in our graphics pipeline, framebuffer, render pass and see the results!
 
 ## Adding new attachments
 
@@ -194,7 +177,7 @@ void createRenderPass() {
     ...
 ```
 
-You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`. That's because multisampled images cannot be presented directly. We first need to resolve them to a regular image. The same requirement applies to the depth buffer. Therefore we will have two new attachments that are so-called resolve attachments:
+You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`. That's because multisampled images cannot be presented directly. We first need to resolve them to a regular image. This requirement does not apply to the depth buffer, since it won't be presented at any point. Therefore we will have to add only one new attachment for color which is a so-called resolve attachment:
 
 ```c++
     ...
@@ -207,20 +190,10 @@ You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT
     colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentDescription depthAttachmentResolve = {};
-    depthAttachmentResolve.format = findDepthFormat();
-    depthAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    depthAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     ...
 ```
 
-The render pass now has to be instructed to resolve multisampled images into these regular attachments. Create a new attachment reference that will point to the color buffer which will serve as the resolve target:
+The render pass now has to be instructed to resolve multisampled color image into regular attachment. Create a new attachment reference that will point to the color buffer which will serve as the resolve target:
 
 ```c++
     ...
@@ -238,24 +211,23 @@ Set the `pResolveAttachments` subpass struct member to point to the newly create
     ...
 ```
 
-Now update render pass info struct with new attachments:
+Now update render pass info struct with new color attachment:
 
 ```c++
     ...
-    std::array<VkAttachmentDescription, 4> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve, depthAttachmentResolve };
+    std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve };
     ...
 ```
 
-With render pass in place, modify `createFrameBuffers` and add new image views to the list:
+With render pass in place, modify `createFrameBuffers` and add new image view to the list:
 
 ```c++
 void createFrameBuffers() {
         ...
-        std::array<VkImageView, 4> attachments = {
+        std::array<VkImageView, 3> attachments = {
             colorImageViews[i],
-            depthMsaaImagesView[i],
-            swapChainImageViews[i],
-            depthImagesView[i]
+            depthImagesView[i],
+            swapChainImageViews[i]
         };
         ...
 }

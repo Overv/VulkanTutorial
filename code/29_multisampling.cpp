@@ -174,10 +174,6 @@ private:
     std::vector<VkDeviceMemory> colorImagesMemory;
     std::vector<VkImageView> colorImageViews;
 
-    std::vector<VkImage> depthMsaaImages;
-    std::vector<VkDeviceMemory> depthMsaaImagesMemory;
-    std::vector<VkImageView> depthMsaaImagesView;
-
     std::vector<VkImage> depthImages;
     std::vector<VkDeviceMemory> depthImagesMemory;
     std::vector<VkImageView> depthImagesView;
@@ -267,9 +263,6 @@ private:
             vkDestroyImageView(device, colorImageViews[i], nullptr);
             vkDestroyImage(device, colorImages[i], nullptr);
             vkFreeMemory(device, colorImagesMemory[i], nullptr);
-            vkDestroyImageView(device, depthMsaaImagesView[i], nullptr);
-            vkDestroyImage(device, depthMsaaImages[i], nullptr);
-            vkFreeMemory(device, depthMsaaImagesMemory[i], nullptr);
             vkDestroyImageView(device, depthImagesView[i], nullptr);
             vkDestroyImage(device, depthImages[i], nullptr);
             vkFreeMemory(device, depthImagesMemory[i], nullptr);
@@ -570,16 +563,6 @@ private:
         colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-        VkAttachmentDescription depthAttachmentResolve = {};
-        depthAttachmentResolve.format = findDepthFormat();
-        depthAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-        depthAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        depthAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        depthAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        depthAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        depthAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
         VkAttachmentReference colorAttachmentRef = {};
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -607,7 +590,7 @@ private:
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-        std::array<VkAttachmentDescription, 4> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve, depthAttachmentResolve };
+        std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve };
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -779,11 +762,10 @@ private:
         swapChainFramebuffers.resize(swapChainImageViews.size());
 
         for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-            std::array<VkImageView, 4> attachments = {
+            std::array<VkImageView, 3> attachments = {
                 colorImageViews[i],
-                depthMsaaImagesView[i],
-                swapChainImageViews[i],
-                depthImagesView[i]
+                depthImagesView[i],
+                swapChainImageViews[i]
             };
 
             VkFramebufferCreateInfo framebufferInfo = {};
@@ -834,20 +816,12 @@ private:
         depthImages.resize(swapChainImages.size());
         depthImagesMemory.resize(swapChainImages.size());
         depthImagesView.resize(swapChainImages.size());
-        depthMsaaImages.resize(swapChainImages.size());
-        depthMsaaImagesMemory.resize(swapChainImages.size());
-        depthMsaaImagesView.resize(swapChainImages.size());
 
         for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-            createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
+            createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
             depthImagesView[i] = createImageView(depthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
             transitionImageLayout(depthImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
-
-            createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthMsaaImages[i], depthMsaaImagesMemory[i]);
-            depthMsaaImagesView[i] = createImageView(depthMsaaImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-
-            transitionImageLayout(depthMsaaImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
         }
     }
 
