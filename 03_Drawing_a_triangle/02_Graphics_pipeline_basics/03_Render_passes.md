@@ -42,7 +42,7 @@ void createRenderPass() {
 ```
 
 The `format` of the color attachment should match the format of the swap chain
-images, and we're not doing anything with multisampling, so we'll stick to 1
+images, and we're not doing anything with multisampling yet, so we'll stick to 1
 sample.
 
 ```c++

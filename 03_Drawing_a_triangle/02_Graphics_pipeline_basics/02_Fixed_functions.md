@@ -218,8 +218,7 @@ multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 multisampling.alphaToOneEnable = VK_FALSE; // Optional
 ```
 
-In this tutorial we'll not be using multisampling, but feel free to experiment
-with it. See the specification for the meaning of each parameter.
+We'll revisit multisampling in later chapter, for now let's keep it disabled.
 
 ## Depth and stencil testing
 
