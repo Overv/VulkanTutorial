@@ -60,7 +60,23 @@ void pickPhysicalDevice() {
 }
 ```
 
-Next, update `createImage` function to allow us to specify the number of used samples by adding a `numSamples` parameter - this will become important later:
+## Setting up render targets
+
+In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to the screen. These new buffers are slightly different from regular images we've been rendering to - they have to be able to store more than one sample per pixel. Once a multisampled buffer is created, it has to be attached to the default framebuffer (which stores only a single sample per pixel). This is why we have to create additional render targets and modify our current drawing process. Add the following class members:
+
+```c++
+...
+std::vector<VkImage> colorImages;
+std::vector<VkDeviceMemory> colorImagesMemory;
+std::vector<VkImageView> colorImagesView;
+
+std::vector<VkImage> depthMsaaImages;
+std::vector<VkDeviceMemory> depthMsaaImagesMemory;
+std::vector<VkImageView> depthMsaaImagesView;
+...
+```
+
+These new images will have to store the desired number of samples per pixel, so we need to pass this number to `VkImageCreateInfo` during image creation process. Modify the `createImage` function by adding a `numSamples` parameter:
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -77,23 +93,7 @@ createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_
 createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ```
 
-## Setting up render targets
-
-In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to the screen. These new buffers are slightly different from regular images we've been rendering to - they have to be able to store more than one sample per pixel. Once a multisampled buffer is created, it has to be attached to the default framebuffer (which stores only a single sample per pixel). This is why we have to create additional render targets and modify our current drawing process. Add following class members:
-
-```c++
-...
-std::vector<VkImage> colorImages;
-std::vector<VkDeviceMemory> colorImagesMemory;
-std::vector<VkImageView> colorImagesView;
-
-std::vector<VkImage> depthMsaaImages;
-std::vector<VkDeviceMemory> depthMsaaImagesMemory;
-std::vector<VkImageView> depthMsaaImagesView;
-...
-```
-
-We will now create a multisampled color buffer. Same as in case of non-multisampled image, we'll be dealing with dedicated resources for each swapchain image. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel:
+We will now create a multisampled color buffer. Same as in case of non-multisampled image, we'll be dealing with dedicated resources for each swapchain image. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel. Also, this color buffer doesn't need mipmaps since it's not going to be used as a texture:
 
 ```c++
 void createColorResources() {
@@ -141,7 +141,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 }
 ```
 
-Now that we have multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and add creation steps for a multisampled depth buffer:
+Now that we have a multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and add creation steps for a multisampled depth buffer:
 
 ```c++
 void createDepthResources() {
@@ -178,7 +178,7 @@ void cleanupSwapChain() {
 }
 ```
 
-With only a few simple steps we created additional buffers and image views necessary for multsampling - it's now time to put it all together and see the results!
+We made it past the initial MSAA configuration, now we need to start using these new resources in our graphics pipeline, framebuffer, render pass and and see the results!
 
 ## Adding new attachments
 
@@ -194,7 +194,7 @@ void createRenderPass() {
     ...
 ```
 
-Apart from the obvious change that tells both color and depth to use more samples, you'll notice an update to the `finalLayout` parameter for the color attachment. This is because a multisampled image is a fairly complex structure containing more information than a regular image. One of the consequences of this is that it cannot be processed by a sampler, so it cannot be drawn directly to the screen. For that reason, a multisampled image has to be translated (resolved) to a regular image before it can be used. This also applies to the depth buffer, so we need to define two additional attachments:
+You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`. That's because multisampled images cannot be presented directly. We first need to resolve them to a regular image. The same requirement applies to the depth buffer. Therefore we will have two new attachments that are so-called resolve attachments:
 
 ```c++
     ...
@@ -220,7 +220,7 @@ Apart from the obvious change that tells both color and depth to use more sample
     ...
 ```
 
-The render pass now has to be instructed to perform color image resolution. Create a new attachment reference that will point to the color buffer which will serve as the resolve target:
+The render pass now has to be instructed to resolve multisampled images into these regular attachments. Create a new attachment reference that will point to the color buffer which will serve as the resolve target:
 
 ```c++
     ...
