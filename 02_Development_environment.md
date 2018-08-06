@@ -361,7 +361,7 @@ directory in the LunarG SDK, for example:
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
 ```
 
-Next, define a `CFLAGS` variable that will specify the basic compiler flags:
+Make sure to replace `user` with your own username and `x.x.x.x` with the right version. Next, define a `CFLAGS` variable that will specify the basic compiler flags:
 
 ```make
 CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
