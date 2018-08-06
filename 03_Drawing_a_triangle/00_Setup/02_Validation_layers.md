@@ -169,7 +169,7 @@ If the check was successful then `vkCreateInstance` should not ever return a
 
 Unfortunately just enabling the layers doesn't help much, because they currently
 have no way to relay the debug messages back to our program. To receive those
-messages we have to set up a callback, which requires the `VK_EXT_debug_report`
+messages we have to set up a callback, which requires the `VK_EXT_debug_utils`
 extension.
 
 We'll first create a `getRequiredExtensions` function that will return the
@@ -185,7 +185,7 @@ std::vector<const char*> getRequiredExtensions() {
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
     if (enableValidationLayers) {
-        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     return extensions;
@@ -194,8 +194,8 @@ std::vector<const char*> getRequiredExtensions() {
 
 The extensions specified by GLFW are always required, but the debug report
 extension is conditionally added. Note that I've used the
-`VK_EXT_DEBUG_REPORT_EXTENSION_NAME` macro here which is equal to the literal
-string "VK_EXT_debug_report". Using this macro lets you avoid typos.
+`VK_EXT_DEBUG_UTILS_EXTENSION_NAME` macro here which is equal to the literal
+string "VK_EXT_debug_utils". Using this macro lets you avoid typos.
 
 We can now use this function in `createInstance`:
 
@@ -211,42 +211,51 @@ existence of this extension, because it should be implied by the availability of
 the validation layers.
 
 Now let's see what a callback function looks like. Add a new static member
-function called `debugCallback` with the `PFN_vkDebugReportCallbackEXT`
+function called `debugCallback` with the `PFN_vkDebugUtilsMessengerCallbackEXT`
 prototype. The `VKAPI_ATTR` and `VKAPI_CALL` ensure that the function has the
 right signature for Vulkan to call it.
 
 ```c++
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugReportFlagsEXT flags,
-    VkDebugReportObjectTypeEXT objType,
-    uint64_t obj,
-    size_t location,
-    int32_t code,
-    const char* layerPrefix,
-    const char* msg,
-    void* userData) {
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData) {
 
-    std::cerr << "validation layer: " << msg << std::endl;
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
     return VK_FALSE;
 }
 ```
 
-The first parameter specifies the type of message, which can be a combination of
-any of the following bit flags:
+The first parameter specifies the severity of the message, which is one of the following flags:
 
-* `VK_DEBUG_REPORT_INFORMATION_BIT_EXT`
-* `VK_DEBUG_REPORT_WARNING_BIT_EXT`
-* `VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT`
-* `VK_DEBUG_REPORT_ERROR_BIT_EXT`
-* `VK_DEBUG_REPORT_DEBUG_BIT_EXT`
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Diagnostic message
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: Informational message like the creation of a resource
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message about behavior that is not necessarily an error, but very likely a bug in your application
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: Message about behavior that is invalid and may cause crashes
 
-The `objType` parameter specifies the type of object that is the subject of the
-message. For example if `obj` is a `VkPhysicalDevice` then `objType` would be
-`VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT`. This works because internally all
-Vulkan handles are typedef'd as `uint64_t`. The `msg` parameter contains the
-pointer to the message itself. Finally, there's a `userData` parameter to pass
-your own data to the callback.
+The values of this enumeration are set up in such a way that you can use a comparison operation to check if a message is equal or worse compared to some level of severity, for example:
+
+```c++
+if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+    // Message is important enough to show
+}
+```
+
+The `messageType` parameter can have the following values:
+
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT`: Some event has happened that is unrelated to the specification or performance
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT`: Something has happened that violates the specification or indicates a possible mistake
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT`: Potential non-optimal use of Vulkan
+
+The `pCallbackData` parameter refers to a `VkDebugUtilsMessengerCallbackDataEXT` struct containing the details of the message itself, with the most important members being:
+
+* `pMessage`: The debug message as a null-terminated string
+* `pObjects`: Array of Vulkan object handles related to the message
+* `objectCount`: Number of objects in array
+
+Finally, the `pUserData` parameter contains a pointer that was specified during the setup of the callback and allows you to pass your own data to it.
 
 The callback returns a boolean that indicates if the Vulkan call that triggered
 the validation layer message should be aborted. If the callback returns true,
@@ -256,11 +265,11 @@ always return `VK_FALSE`.
 
 All that remains now is telling Vulkan about the callback function. Perhaps
 somewhat surprisingly, even the debug callback in Vulkan is managed with a
-handle that needs to be explicitly created and destroyed. Add a class member for
+handle that needs to be explicitly created and destroyed. Such a callback is called a *messenger* and you can have as many of them as you want. Add a class member for
 this handle right under `instance`:
 
 ```c++
-VkDebugReportCallbackEXT callback;
+VkDebugUtilsMessengerEXT callback;
 ```
 
 Now add a function `setupDebugCallback` to be called from `initVulkan` right
@@ -281,28 +290,32 @@ void setupDebugCallback() {
 We'll need to fill in a structure with details about the callback:
 
 ```c++
-VkDebugReportCallbackCreateInfoEXT createInfo = {};
-createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-createInfo.pfnCallback = debugCallback;
+VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
+createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+createInfo.pfnUserCallback = debugCallback;
+createInfo.pUserData = nullptr; // Optional
 ```
 
-The `flags` field allows you to filter which types of messages you would like to
-receive. The `pfnCallback` field specifies the pointer to the callback function.
-You can optionally pass a pointer to the `pUserData` field which will be passed
-along to the callback function via the `userData` parameter. You could use this
-to pass a pointer to the `HelloTriangleApplication` class, for example.
+The `messageSeverity` field allows you to specify all the types of severities you would like your callback to be called for. I've specified all types except for `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT` here to receive notifications about possible problems while leaving out verbose general debug info.
 
-This struct should be passed to the `vkCreateDebugReportCallbackEXT` function to
-create the `VkDebugReportCallbackEXT` object. Unfortunately, because this
+Similarly the `messageType` field lets you filter which types of messages your callback is notified about. I've simply enabled all types here. You can always disable some if they're not useful to you.
+
+Finally, the `pfnUserCallback` field specifies the pointer to the callback function. You can optionally pass a pointer to the `pUserData` field which will be passed along to the callback function via the `pUserData` parameter. You could use this to pass a pointer to the `HelloTriangleApplication` class, for example.
+
+Note that there are many more ways to configure validation layer messages and debug callbacks, but this is a good setup to get started with for this tutorial. See the [extension specification](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VK_EXT_debug_utils) for more info about the possibilities.
+
+This struct should be passed to the `vkCreateDebugUtilsMessengerEXT` function to
+create the `VkDebugUtilsMessengerEXT` object. Unfortunately, because this
 function is an extension function, it is not automatically loaded. We have to
 look up its address ourselves using `vkGetInstanceProcAddr`. We're going to
 create our own proxy function that handles this in the background. I've added it
 right above the `HelloTriangleApplication` class definition.
 
 ```c++
-VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
-    auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pCallback);
     } else {
@@ -316,7 +329,7 @@ couldn't be loaded. We can now call this function to create the extension
 object if it's available:
 
 ```c++
-if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
+if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
     throw std::runtime_error("failed to set up debug callback!");
 }
 ```
@@ -332,16 +345,16 @@ window. You'll see that the following messages are printed to the command prompt
 ![](/images/validation_layer_test.png)
 
 Oops, it has already spotted a bug in our program! The
-`VkDebugReportCallbackEXT` object needs to be cleaned up with a call to
-`vkDestroyDebugReportCallbackEXT`. Similarly to `vkCreateDebugReportCallbackEXT`
-the function needs to be explicitly loaded. The reason for there being multiple messages is that multiple validation layers check for the deletion of the debug report callback.
+`VkDebugUtilsMessengerEXT` object needs to be cleaned up with a call to
+`vkDestroyDebugUtilsMessengerEXT`. Similarly to `vkCreateDebugUtilsMessengerEXT`
+the function needs to be explicitly loaded. Note that it is normal for this message to be printed multiple times. This happens because multiple validation layers check for for the deletion of the debug messenger.
 
 Create another proxy function right
-below `CreateDebugReportCallbackEXT`:
+below `CreateDebugUtilsMessengerEXT`:
 
 ```c++
-void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks* pAllocator) {
-    auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT callback, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
         func(instance, callback, pAllocator);
     }
@@ -354,7 +367,7 @@ outside the class. We can then call it in the `cleanup` function:
 ```c++
 void cleanup() {
     if (enableValidationLayers) {
-        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+        DestroyDebugUtilsMessengerEXT(instance, callback, nullptr);
     }
 
     vkDestroyInstance(instance, nullptr);
@@ -372,7 +385,7 @@ breakpoint to the message callback and look at the stack trace.
 ## Configuration
 
 There are a lot more settings for the behavior of validation layers than just
-the flags specified in the `VkDebugReportCallbackCreateInfoEXT` struct. Browse
+the flags specified in the `VkDebugUtilsMessengerCreateInfoEXT` struct. Browse
 to the Vulkan SDK and go to the `Config` directory. There you will find a
 `vk_layer_settings.txt` file that explains how to configure the layers.
 
