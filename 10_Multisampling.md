@@ -161,6 +161,18 @@ void cleanupSwapChain() {
 }
 ```
 
+And update the `recreateSwapChain` so that the new color images can be recreated in the correct resolution when the window is resized:
+
+```c++
+void recreateSwapChain() {
+    ...
+    createGraphicsPipeline();
+    createColorResources();
+    createDepthResources();
+    ...
+}
+```
+
 We made it past the initial MSAA setup, now we need to start using these new resources in our graphics pipeline, framebuffer, render pass and see the results!
 
 ## Adding new attachments
