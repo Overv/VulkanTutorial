@@ -125,7 +125,7 @@ range of `0.0` to `1.0` using the `GLM_FORCE_DEPTH_ZERO_TO_ONE` definition.
 
 A depth attachment is based on an image, just like the color attachment. The
 difference is that the swap chain will not automatically create depth images for
-us. We need a depth image for every frame that can be in flight simultaneously. In practice it's easiest to juse have one per swap chain image similar to the uniform buffers. The depth images will again require the trifecta of resources: image, memory and image view.
+us. We need a depth image for every frame that can be in flight simultaneously. In practice it's easiest to just have one per swap chain image similar to the uniform buffers. The depth images will again require the trifecta of resources: image, memory and image view.
 
 ```c++
 std::vector<VkImage> depthImages;
@@ -553,7 +553,7 @@ function to recreate the depth resources in that case:
 ```c++
 void recreateSwapChain() {
     vkDeviceWaitIdle(device);
-    
+
     cleanupSwapChain();
 
     createSwapChain();
