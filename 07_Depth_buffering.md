@@ -124,13 +124,14 @@ range of `0.0` to `1.0` using the `GLM_FORCE_DEPTH_ZERO_TO_ONE` definition.
 ## Depth image and view
 
 A depth attachment is based on an image, just like the color attachment. The
-difference is that the swap chain will not automatically create depth images for
-us. We need a depth image for every frame that can be in flight simultaneously. In practice it's easiest to just have one per swap chain image similar to the uniform buffers. The depth images will again require the trifecta of resources: image, memory and image view.
+difference is that the swap chain will not automatically create depth images for us. We only need a single depth image, because only one draw operation is
+running at once. The depth image will again require the trifecta of resources:
+image, memory and image view.
 
 ```c++
-std::vector<VkImage> depthImages;
-std::vector<VkDeviceMemory> depthImagesMemory;
-std::vector<VkImageView> depthImagesView;
+VkImage depthImage;
+VkDeviceMemory depthImageMemory;
+VkImageView depthImageView;
 ```
 
 Create a new function `createDepthResources` to set up these resources:
@@ -262,27 +263,15 @@ bool hasStencilComponent(VkFormat format) {
 Call the function to find a depth format from `createDepthResources`:
 
 ```c++
-void createDepthResources() {
-    VkFormat depthFormat = findDepthFormat();
-}
+VkFormat depthFormat = findDepthFormat();
 ```
 
 We now have all the required information to invoke our `createImage` and
 `createImageView` helper functions:
 
 ```c++
-void createDepthResources() {
-    VkFormat depthFormat = findDepthFormat();
-
-    depthImages.resize(swapChainImages.size());
-    depthImagesMemory.resize(swapChainImages.size());
-    depthImagesView.resize(swapChainImages.size());
-
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
-        depthImagesView[i] = createImageView(depthImages[i], depthFormat);
-    }
-}
+createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+depthImageView = createImageView(depthImage, depthFormat);
 ```
 
 However, the `createImageView` function currently assumes that the subresource
@@ -302,7 +291,7 @@ Update all calls to this function to use the right aspect:
 ```c++
 swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 ...
-depthImagesView[i] = createImageView(depthImages[i], depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 ...
 textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 ```
@@ -315,7 +304,7 @@ render pass like the color attachment, but here I've chosen to use a pipeline
 barrier because the transition only needs to happen once:
 
 ```c++
-transitionImageLayout(depthImages[i], depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 ```
 
 The undefined layout can be used as initial layout, because there are no
@@ -431,12 +420,13 @@ attachments.
 ## Framebuffer
 
 The next step is to modify the framebuffer creation to bind the depth image to
-the depth attachment. Go to `createFramebuffers` and specify the right depth image view as second attachment:
+the depth attachment. Go to `createFramebuffers` and specify the depth image
+view as second attachment:
 
 ```c++
 std::array<VkImageView, 2> attachments = {
     swapChainImageViews[i],
-    depthImagesView[i]
+    depthImageView
 };
 
 VkFramebufferCreateInfo framebufferInfo = {};
@@ -448,6 +438,10 @@ framebufferInfo.width = swapChainExtent.width;
 framebufferInfo.height = swapChainExtent.height;
 framebufferInfo.layers = 1;
 ```
+
+The color attachment differs for every swap chain image, but the same depth
+image can be used by all of them because only a single subpass is running at the
+same time due to our semaphores.
 
 You'll also need to move the call to `createFramebuffers` to make sure that it
 is called after the depth image view has actually been created:
@@ -570,11 +564,9 @@ The cleanup operations should happen in the swap chain cleanup function:
 
 ```c++
 void cleanupSwapChain() {
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
-        vkDestroyImageView(device, depthImagesView[i], nullptr);
-        vkDestroyImage(device, depthImages[i], nullptr);
-        vkFreeMemory(device, depthImagesMemory[i], nullptr);
-    }
+    vkDestroyImageView(device, depthImageView, nullptr);
+    vkDestroyImage(device, depthImage, nullptr);
+    vkFreeMemory(device, depthImageMemory, nullptr);
 
     ...
 }
