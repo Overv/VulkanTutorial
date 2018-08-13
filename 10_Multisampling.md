@@ -50,29 +50,31 @@ We will now use this function to set the `msaaSamples` variable during the physi
 
 ```c++
 void pickPhysicalDevice() {
-            ...
-            if (isDeviceSuitable(device)) {
-                physicalDevice = device;
-                msaaSamples = getMaxUsableSampleCount();
-                break;
-            }
-            ...
+    ...
+    for (const auto& device : devices) {
+        if (isDeviceSuitable(device)) {
+            physicalDevice = device;
+            msaaSamples = getMaxUsableSampleCount();
+            break;
+        }
+    }
+    ...
 }
 ```
 
-## Setting up render targets
+## Setting up a render target
 
-In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to the screen. These new buffers are slightly different from regular images we've been rendering to - they have to be able to store more than one sample per pixel. Once a multisampled buffer is created, it has to be attached to the default framebuffer (which stores only a single sample per pixel). This is why we have to create additional render targets and modify our current drawing process. Add the following class members:
+In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to the screen. This new buffer is slightly different from regular images we've been rendering to - they have to be able to store more than one sample per pixel. Once a multisampled buffer is created, it has to be resolved to the default framebuffer (which stores only a single sample per pixel). This is why we have to create an additional render target and modify our current drawing process. We only need one render target since only one drawing operation is active at a time, just like with the depth buffer. Add the following class members:
 
 ```c++
 ...
-std::vector<VkImage> colorImages;
-std::vector<VkDeviceMemory> colorImagesMemory;
-std::vector<VkImageView> colorImagesView;
+VkImage colorImage;
+VkDeviceMemory colorImageMemory;
+VkImageView colorImageView;
 ...
 ```
 
-These new images will have to store the desired number of samples per pixel, so we need to pass this number to `VkImageCreateInfo` during image creation process. Modify the `createImage` function by adding a `numSamples` parameter:
+This new image will have to store the desired number of samples per pixel, so we need to pass this number to `VkImageCreateInfo` during the image creation process. Modify the `createImage` function by adding a `numSamples` parameter:
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -84,27 +86,21 @@ void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCo
 For now, update all calls to this function using `VK_SAMPLE_COUNT_1_BIT` - we will be replacing this with proper values as we progress with implementation:
 
 ```c++
-createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
+createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
 ...
 createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ```
 
-We will now create a multisampled color buffer. Same as in case of non-multisampled image, we'll be dealing with dedicated resources for each swapchain image. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel. Also, this color buffer doesn't need mipmaps since it's not going to be used as a texture:
+We will now create a multisampled color buffer. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel. Also, this color buffer doesn't need mipmaps since it's not going to be used as a texture:
 
 ```c++
 void createColorResources() {
     VkFormat colorFormat = swapChainImageFormat;
 
-    colorImages.resize(swapChainImages.size());
-    colorImagesMemory.resize(swapChainImages.size());
-    colorImageViews.resize(swapChainImages.size());
+    createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
+    colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImages[i], colorImagesMemory[i]);
-        colorImageViews[i] = createImageView(colorImages[i], colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
-        transitionImageLayout(colorImages[i], colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
-    }
+    transitionImageLayout(colorImage, colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
 }
 ```
 
@@ -141,9 +137,9 @@ Now that we have a multisampled color buffer in place it's time to take care of 
 
 ```c++
 void createDepthResources() {
-        ...
-        createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImagesMemory[i]);
-        ...
+    ...
+    createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+    ...
 }
 ```
 
@@ -151,17 +147,14 @@ We have now created a couple of new Vulkan resources, so let's not forget to rel
 
 ```c++
 void cleanupSwapChain() {
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
-        vkDestroyImageView(device, colorImageViews[i], nullptr);
-        vkDestroyImage(device, colorImages[i], nullptr);
-        vkFreeMemory(device, colorImagesMemory[i], nullptr);
-        ...
-    }
+    vkDestroyImageView(device, colorImageView, nullptr);
+    vkDestroyImage(device, colorImage, nullptr);
+    vkFreeMemory(device, colorImageMemory, nullptr);
     ...
 }
 ```
 
-And update the `recreateSwapChain` so that the new color images can be recreated in the correct resolution when the window is resized:
+And update the `recreateSwapChain` so that the new color image can be recreated in the correct resolution when the window is resized:
 
 ```c++
 void recreateSwapChain() {
@@ -173,7 +166,7 @@ void recreateSwapChain() {
 }
 ```
 
-We made it past the initial MSAA setup, now we need to start using these new resources in our graphics pipeline, framebuffer, render pass and see the results!
+We made it past the initial MSAA setup, now we need to start using this new resource in our graphics pipeline, framebuffer, render pass and see the results!
 
 ## Adding new attachments
 
@@ -223,7 +216,7 @@ Set the `pResolveAttachments` subpass struct member to point to the newly create
     ...
 ```
 
-Now update render pass info struct with new color attachment:
+Now update render pass info struct with the new color attachment:
 
 ```c++
     ...
@@ -231,14 +224,14 @@ Now update render pass info struct with new color attachment:
     ...
 ```
 
-With render pass in place, modify `createFrameBuffers` and add new image view to the list:
+With the render pass in place, modify `createFrameBuffers` and add the new image view to the list:
 
 ```c++
 void createFrameBuffers() {
         ...
         std::array<VkImageView, 3> attachments = {
-            colorImageViews[i],
-            depthImagesView[i],
+            colorImageView,
+            depthImageView,
             swapChainImageViews[i]
         };
         ...
