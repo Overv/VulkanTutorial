@@ -214,16 +214,13 @@ be useful to you.
 
 ![](/images/vulkan_sdk_download_buttons.png)
 
-Open a terminal in the directory where you've downloaded the `.run` script, make
-it executable and run it:
+Open a terminal in the directory where you've downloaded the `.tar.gz` archive and extract it:
 
 ```bash
-chmod +x vulkansdk-linux-x86_64-xxx.run
-./vulkansdk-linux-x86_64-xxx.run
+tar -xzf vulkansdk-linux-x86_64-xxx.tar.gz
 ```
 
-It will extract all of the files in the SDK to a `VulkanSDK` subdirectory in the
-working directory. Move the `VulkanSDK` directory to a convenient place and take
+It will extract all of the files in the SDK to a subdirectory with the SDK version as name in the working directory. Move the directory to a convenient place and take
 note of its path. Open a terminal in the root directory of the SDK, which will
 contain files like `build_examples.sh`.
 
