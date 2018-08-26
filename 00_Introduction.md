@@ -44,7 +44,7 @@ for a great introduction of computer graphics concepts.
 You can use C instead of C++ if you want, but you will have to use a different
 linear algebra library and you will be on your own in terms of code structuring.
 We will use C++ features like classes and RAII to organize logic and resource
-lifetimes.
+lifetimes. There is also an [alternative version](https://github.com/bwasty/vulkan-tutorial-rs) of this tutorial available for Rust developers.
 
 ## E-book
 

@@ -1,12 +1,12 @@
-From bbf1e7e34f2dc687cb9507ad6ad1d2597e1f9006 Mon Sep 17 00:00:00 2001
+From e0550e64598b7b22897f98cd2c56f2a8b09a1063 Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Sun, 6 May 2018 17:44:07 +0200
+Date: Sun, 26 Aug 2018 19:53:42 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
  daux/VulkanLinkProcessor.php            |  69 ++++
  templates/content.php                   |  25 +-
- templates/layout/00_layout.php          |   2 +-
+ templates/layout/00_layout.php          |  21 +-
  templates/layout/05_page.php            |  22 +-
  themes/daux/css/theme-blue.min.css      |   2 +-
  themes/daux/css/theme-green.min.css     |   2 +-
@@ -20,7 +20,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
  themes/daux/less/structure.less         |  27 +-
  themes/daux/less/theme-blue.less        |  10 +-
  themes/daux_singlepage/css/main.min.css |   2 +-
- 16 files changed, 948 insertions(+), 139 deletions(-)
+ 16 files changed, 967 insertions(+), 139 deletions(-)
  create mode 100644 daux/VulkanLinkProcessor.php
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
@@ -147,7 +147,7 @@ index 2febe38..f1083bd 100644
  </article>
  
 diff --git a/templates/layout/00_layout.php b/templates/layout/00_layout.php
-index 868dd05..774a8a5 100755
+index 868dd05..8926ed8 100755
 --- a/templates/layout/00_layout.php
 +++ b/templates/layout/00_layout.php
 @@ -8,7 +8,7 @@
@@ -159,8 +159,34 @@ index 868dd05..774a8a5 100755
      <!-- Mobile -->
      <meta name="apple-mobile-web-app-capable" content="yes" />
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@@ -31,6 +31,25 @@
+     <!--[if lt IE 9]>
+     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+     <![endif]-->
++
++    <!-- Matomo -->
++    <script type="text/javascript">
++      var _paq = _paq || [];
++      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
++      _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
++      _paq.push(["setCookieDomain", "*.vulkan-tutorial.com"]);
++      _paq.push(["setDomains", ["*.vulkan-tutorial.com"]]);
++      _paq.push(['trackPageView']);
++      _paq.push(['enableLinkTracking']);
++      (function() {
++        var u="//matomo.while.io/";
++        _paq.push(['setTrackerUrl', u+'piwik.php']);
++        _paq.push(['setSiteId', '2']);
++        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
++        g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
++      })();
++    </script>
++    <!-- End Matomo Code -->
+ </head>
+ <body class="<?= $params['html']['float'] ? 'with-float' : ''; ?>">
+     <?= $this->section('content'); ?>
 diff --git a/templates/layout/05_page.php b/templates/layout/05_page.php
-index 1bd8752..6f507a4 100755
+index 1bd8752..9715453 100755
 --- a/templates/layout/05_page.php
 +++ b/templates/layout/05_page.php
 @@ -4,11 +4,6 @@
@@ -202,7 +228,7 @@ index 1bd8752..6f507a4 100755
                          foreach ($params['html']['links'] as $name => $url) {
                              echo '<a href="' . $url . '" target="_blank">' . $name . '</a><br>';
 +
-+                            if ($name == "Support the website") {
++                            if ($name == "Support the website" || $name == "Vulkan Hardware Database") {
 +                                echo '<br>';
 +                            }
                          } ?>
@@ -1445,95 +1471,4 @@ index 457a809..20a1f39 100755
 \ No newline at end of file
 -- 
 2.7.4
-
-From 007f00ba9fce5214028d999b29594fae45f3f425 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?St=C3=A9phane=20Goetz?= <onigoetz@onigoetz.ch>
-Date: Thu, 18 May 2017 23:43:02 +0200
-Subject: [PATCH] Fix TOC links that are escaped, also handle uniqueness, fixes
- #461
-
----
- .../HTML/ContentTypes/Markdown/TOC/Processor.php   | 38 +++++++++++++++++-----
- 1 file changed, 29 insertions(+), 9 deletions(-)
-
-diff --git a/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php b/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php
-index bfe6a75..c7f3090 100644
---- a/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php
-+++ b/libs/Format/HTML/ContentTypes/Markdown/TOC/Processor.php
-@@ -42,6 +42,7 @@ class Processor implements DocumentProcessorInterface
- 
-         $headings = [];
- 
-+        $document->heading_ids = [];
-         $walker = $document->walker();
-         while ($event = $walker->next()) {
-             $node = $event->getNode();
-@@ -55,9 +56,8 @@ class Processor implements DocumentProcessorInterface
-                 continue;
-             }
- 
--            $id = $this->addId($node);
--
--            $headings[] = new Entry($node, $id);
-+            $this->ensureHeadingHasId($document, $node);
-+            $headings[] = new Entry($node);
-         }
- 
-         if (count($headings) && (count($tocs) || $this->hasAutoTOC())) {
-@@ -74,18 +74,39 @@ class Processor implements DocumentProcessorInterface
-         }
-     }
- 
--    protected function addId(Heading $node)
-+    protected function getUniqueId(Document $document, $proposed) {
-+        if ($proposed == "page_") {
-+            $proposed = "page_section_" . (count($document->heading_ids) + 1);
-+        }
-+
-+        // Quick path, it's a unique ID
-+        if (!in_array($proposed, $document->heading_ids)) {
-+            $document->heading_ids[] = $proposed;
-+            return $proposed;
-+        }
-+
-+        $extension = 1; // Initialize the variable at one, so on the first iteration we have 2
-+        do {
-+            $extension++;
-+        } while (in_array("$proposed-$extension", $document->heading_ids));
-+
-+        return "$proposed-$extension";
-+    }
-+
-+    /**
-+     * @param Heading $node
-+     */
-+    protected function ensureHeadingHasId(Document $document, Heading $node)
-     {
--        // If the node has an ID, no need to generate it
-+        // If the node has an ID, no need to generate it, just check it's unique
-         $attributes = $node->getData('attributes', []);
-         if (array_key_exists('id', $attributes) && !empty($attributes['id'])) {
--            // TODO :: check for uniqueness
-+            $node->data['attributes']['id'] = $this->getUniqueId($document, $attributes['id']);
- 
-             return $attributes['id'];
-         }
- 
-         // Well, seems we have to generate an ID
--
-         $walker = $node->walker();
-         $inside = [];
-         while ($event = $walker->next()) {
-@@ -107,8 +128,7 @@ class Processor implements DocumentProcessorInterface
- 
-         $text = 'page_' . DauxHelper::slug(trim($text));
- 
--        // TODO :: check for uniqueness
--        $node->data['attributes']['id'] = $text;
-+        $node->data['attributes']['id'] = $this->getUniqueId($document, $text);
-     }
- 
-     /**
--- 
-2.14.3
 
