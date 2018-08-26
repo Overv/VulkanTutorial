@@ -45,7 +45,7 @@ the best of both worlds!
 
 Vulkan does not come with any validation layers built-in, but the LunarG Vulkan
 SDK provides a nice set of layers that check for common errors. They're also
-completely [open source](https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/tree/master/layers),
+completely [open source](https://github.com/KhronosGroup/Vulkan-ValidationLayers),
 so you can check which kind of mistakes they check for and contribute. Using the
 validation layers is the best way to avoid your application breaking on
 different drivers by accidentally relying on undefined behavior.
