@@ -556,7 +556,7 @@ void cleanup() {
 }
 ```
 
-Now run the application to ensure that the swap chain is created successfully! If at this point you get an access violation error in `vkCreateSwapchainKHR`, then see the [FAQ entry](!FAQ) about the Steam overlay layer.
+Now run the application to ensure that the swap chain is created successfully! If at this point you get an access violation error in `vkCreateSwapchainKHR` or see a message like `Failed to find 'vkGetInstanceProcAddress' in layer SteamOverlayVulkanLayer.dll`, then see the [FAQ entry](!FAQ) about the Steam overlay layer.
 
 Try removing the `createInfo.imageExtent = extent;` line with validation layers
 enabled. You'll see that one of the validation layers immediately catches the
