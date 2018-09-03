@@ -1,0 +1,33 @@
+{
+    "title": "Vulkan Tutorial",
+    "tagline": "A tutorial that teaches you everything it takes to render 3D graphics with the Vulkan API. It covers everything from Windows/Linux setup to rendering and debugging.",
+    "author": "Alexander Overvoorde",
+    "live": {
+        "inherit_index": true,
+        "clean_urls": true
+    },
+    "html": {
+        "theme": "daux-blue",
+        "auto_landing": false,
+        "breadcrumbs": true,
+        "breadcrumb_separator": "Chevrons",
+        "date_modified": false,
+        "toggle_code": false,
+        "float": false,
+        "auto_toc": true,
+
+        "links": {
+            "GitHub Repository": "https://github.com/Overv/VulkanTutorial",
+            "Support the website": "https://www.paypal.me/AOvervoorde",
+            "Vulkan Specification": "https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/pdf/vkspec.pdf",
+            "Vulkan Quick Reference": "https://www.khronos.org/files/vulkan10-reference-guide.pdf",
+            "LunarG Vulkan SDK": "https://lunarg.com/vulkan-sdk/",
+            "Vulkan Hardware Database": "http://vulkan.gpuinfo.org/",
+            "Tutorial for Rust": "https://github.com/bwasty/vulkan-tutorial-rs"
+        }
+    },
+    "ignore": {
+        "files": ["README.md"]
+    },
+    "processor": "VulkanLinkProcessor"
+}
