@@ -1,8 +1,7 @@
-## General structure
+## Structure générale
 
-In the previous chapter you've created a Vulkan project with all of the proper
-configuration and tested it with the sample code. In this chapter we're starting
-from scratch with the following code:
+Dans le chapitre précédent nous avons créé un projet Vulkan avec une configuration solide et nous l'avons testé. Nous
+recommençons ici à partir du code suivant :
 
 ```c++
 #include <vulkan/vulkan.h>
@@ -40,7 +39,7 @@ int main() {
     try {
         app.run();
     } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;`
         return EXIT_FAILURE;
     }
 
@@ -48,71 +47,58 @@ int main() {
 }
 ```
 
-We first include the Vulkan header from the LunarG SDK, which provides the
-functions, structures and enumerations. The `stdexcept` and `iostream` headers
-are included for reporting and propagating errors. The `functional` headers will
-be used for a lambda functions in the resource management section. The `cstdlib`
-header provides the `EXIT_SUCCESS` and `EXIT_FAILURE` macros.
+Nous incluons ici d'abord le header Vulkan du SDK, qui fournit les fonctions, les structures et les énumérations.
+`stdexcept` et `iostream` nous permettront de reporter et de traiter les erreurs. Le header `functional` nous servira
+pour l'écriture d'une lambda dans la section sur la gestion des ressources. `cstdlib` nous fournit `EXIT_FAILURE` et
+`EXIT_SUCCESS` (optionels).
 
-The program itself is wrapped into a class where we'll store the Vulkan objects
-as private class members and add functions to initiate each of them, which will
-be called from the `initVulkan` function. Once everything has been prepared, we
-enter the main loop to start rendering frames. We'll fill in the `mainLoop`
-function to include a loop that iterates until the window is closed in a moment.
-Once the window is closed and `mainLoop` returns, we'll make sure to deallocate
-the resources we've used in the `cleanup` function.
+Le programme est écrit à l'intérieur d'une classe, dans laquelle nous stockerons les objets Vulkan. Nous avons également
+ une fonction pour la création de chacun de ces objets. Une fois toute l'initialisation réalisée, nous entrons dans la
+boucle principale, qui attendra que nous fermions la fenêtre pour quitter le programme, après avoir libéré toutes les
+ressources que nous avons allouées grâce à la fonction cleanup.
 
-If any kind of fatal error occurs during execution then we'll throw a
-`std::runtime_error` exception with a descriptive message, which will propagate
-back to the `main` function and be printed to the command prompt. To handle 
-a variety of standard exception types as well, we catch the more general `std::exception`. One example of an error that we will deal with soon is finding 
-out that a certain required extension is not supported.
+Si nous rencontrons une quelconque erreur lors de l'exécution nous soulèverons une `std::runtime_error` comportant un
+message descriptif, qui sera affiché sur le terminal depuis la fonction `main`. Afin de s'assurer que nous récupérons
+bien toutes les erreurs, nous utilisons `std::exception` dans le `catch`. Nous verrons bientôt que la requête de
+certaines extensions peut mener à soulever des exceptions.
 
-Roughly every chapter that follows after this one will add one new function that
-will be called from `initVulkan` and one or more new Vulkan objects to the
-private class members that need to be freed at the end in `cleanup`.
+À peu près tous les chapitres à partir de celui-ci introduirons une nouvelle fonction appelée dans `initVulkan` et un
+nouvel objet Vulkan qui sera justement créé par cette fonction. Nous le détruirons également dans `cleanup`.
 
-## Resource management
+## Gestion des ressources
 
-Just like each chunk of memory allocated with `malloc` requires a call to
-`free`, every Vulkan object that we create needs to be explicitly destroyed when
-we no longer need it. In modern C++ code it is possible to do automatic resource
-management through the utilities in the `<memory>` header, but I've chosen to be
-explicit about allocation and deallocation of Vulkan objects in this tutorial.
-After all, Vulkan's niche is to be explicit about every operation to avoid
-mistakes, so it's good to be explicit about the lifetime of objects to learn how
-the API works.
+Comme pour une quelconque ressource explicitement allouée par `new` doit être explicitement libérée par `delete`, nous
+devrons explicitement détruire toutes les ressources Vulkan que nous allouerons. Il est possible d'exploiter des
+fonctioinnalités du C++ pour s'aquitter automatiquement de cela. Ces possibilités sont localisées dans `<memory>` si
+vous désirez les utiliser. Cependant nous resterons explicites pour toutes les opérations dans ce tutoriel, car la
+puissance de Vulkan réside spécifiquement dans la clareté de ce que le programmeur veut. De plus cela nous permettra de
+bien comprendre les durées de vie des objets.
 
-After following this tutorial, you could implement automatic resource management
-by overloading `std::shared_ptr` for example. Using [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
-to your advantage is the recommended approach for larger Vulkan programs, but
-for learning purposes it's always good to know what's going on behind the
-scenes.
+Après avoir suivi ce tutoriel vous pourrez parfaitement implémenter une gestion automatique des ressources en
+spécialisant `std::shared_ptr` par exemple. L'utilisations du [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
+à votre avantage est toujours recommandé avec le C++ pour de gros programmes Vulkan, mais il est quand même bon de
+connaître les détails de l'implémentation.
 
-Vulkan objects are either created directly with functions like `vkCreateXXX`, or
-allocated through another object with functions like `vkAllocateXXX`. After
-making sure that an object is no longer used anywhere, you need to destroy it
-with the counterparts `vkDestroyXXX` and `vkFreeXXX`. The parameters for these
-functions generally vary for different types of objects, but there is one
-parameter that they all share: `pAllocator`. This is an optional parameter that
-allows you to specify callbacks for a custom memory allocator. We will ignore
-this parameter in the tutorial and always pass `nullptr` as argument.
+Les objets Vulkan peuvent être crées de deux manières. Soit ils sont directement crées avec une fonction du type
+`vkCreateXXX`, soit il sont récupérés à partir d'un autre objet avec une fonction du type `vkAllocateXXX`. Après vous
+être assuré qu'il n'est plus utilisé où que ce soit, vous devrezle détruire en utilisant les fonctions du type
+`vkDestroyXXX` ou `vkFreeXXX`, respectivement. Les paramètres de ces fonctions varient sauf pour l'un d'entre eux :
+`pAllocator`. Ce paramètre optionnel vous permet de spécifier un callback sur un allocateur de mémoire. Nous
+n'utiliserons jamais ce paramètre et l'indiquerons donc toujours nullptr.
 
-## Integrating GLFW
+## Intégrer GLFW
 
-Vulkan works perfectly fine without a creating a window if you want to use it
-off-screen rendering, but it's a lot more exciting to actually show something!
-First replace the `#include <vulkan/vulkan.h>` line with
+Vulkan marche très bien sans fenêtre si vous voulez l'utiliser pour du rendu sans écran, mais c'est tout de même plus
+exitant d'afficher quelque chose! Remplacez d'abord la ligne `#include <vulkan/vulkan.h>` par :
 
 ```c++
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 ```
 
-That way GLFW will include its own definitions and automatically load the Vulkan
-header with it. Add a `initWindow` function and add a call to it from the `run`
-function before the other calls. We'll use that function to initialize GLFW and
-create a window.
+GLFW va ainsi automatiquement inclureses propres définitions des fonctions Vulkan et vous fournir le header Vulkan.
+Ajoutez une fonction `initWindow` et appelez-la depuis `run` avant les autres appels. Nous utiliserons cette fonction
+pour initialiser GLFW et créer une fenêtre.
 
 ```c++
 void run() {
@@ -128,49 +114,45 @@ private:
     }
 ```
 
-The very first call in `initWindow` should be `glfwInit()`, which initializes
-the GLFW library. Because GLFW was originally designed to create an OpenGL
-context, we need to tell it to not create an OpenGL context with a subsequent
-call:
+Le premier appel dans `initWindow` doit être `glfwInit()`, ce qui initialize la librairie. Dans la mesure où GLFW a été
+créer pour fonctionner avec OpenGL, nousdevons lui demander de ne pas créer de contexte OpenGL avec l'appel suivant :
 
 ```c++
 glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 ```
 
-Because handling resized windows takes special care that we'll look into later,
-disable it for now with another window hint call:
+Dans la mesure où redimensionner une fenêtre n'est pas chose aisée avec Vulkan, nous verrons cela plus tard et
+l'interdisons pour l'instant
 
 ```c++
 glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 ```
 
-All that's left now is creating the actual window. Add a `GLFWwindow* window;`
-private class member to store a reference to it and initialize the window with:
+Il ne nous reste plus qu'à créer la fenêtre. Ajoutez un membre privé `GLFWWindow *m_window` pour en stocker une
+référence, et initialisez la ainsi :
 
 ```c++
 window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
 ```
 
-The first three parameters specify the width, height and title of the window.
-The fourth parameter allows you to optionally specify a monitor to open the
-window on and the last parameter is only relevant to OpenGL.
+Les trois premiers paramètres indique respectivement la largeur, la hauteur et le titre de la fenêtre. Le quatrième vous
+ permet optionnellement de spécifier un moniteur sur lequel ouvrir la fenêtre, et le cinquième est spécifique à OpenGL.
 
-It's a good idea to use constants instead of hardcoded width and height numbers
-because we'll be referring to these values a couple of times in the future. I've
-added the following lines above the `HelloTriangleApplication` class definition:
+Nous devrions plutôt utiliser des constantes pour la hauteur et la largeur dans la mesure où nous aurons besoin de ces
+valeurs dans le futur. J'ai donc ajouté ceci au-dessus de la définition de la classe `HelloTriangleApplication` :
 
 ```c++
 const int WIDTH = 800;
 const int HEIGHT = 600;
 ```
 
-and replaced the window creation call with
+et remplacé la création de la fenêtre par :
 
 ```c++
 window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 ```
 
-You should now have a `initWindow` function that looks like this:
+Vous avez maintenant une fonction `initWindow` semblable à ceci :
 
 ```c++
 void initWindow() {
@@ -183,8 +165,8 @@ void initWindow() {
 }
 ```
 
-To keep the application running until either an error occurs or the window is
-closed, we need to add an event loop to the `mainLoop` function as follows:
+Pour s'assurer que l'application tourne jusqu'à ce que soit une erreur soit un click sur la croix ne l'interrompe, nous
+devons écrire une petite boucle de gestion d'évènements :
 
 ```c++
 void mainLoop() {
@@ -194,12 +176,11 @@ void mainLoop() {
 }
 ```
 
-This code should be fairly self-explanatory. It loops and checks for events like
-pressing the X button until the window has been closed by the user. This is also
-the loop where we'll later call a function to render a single frame.
+Ce code est relativement simple. GLFW récupère tous les évènements disponible, puis vérifie qu'aucun d'entre eux ne
+correspond à une demande de fermeture de fenêtre. Nous appellerons aussi ici une fonction pour afficher notre triangle.
 
-Once the window is closed, we need to clean up resources by destroying it and
-terminating GLFW itself. This will be our first `cleanup` code:
+Une fois la requête pour la fermeture de la fenêtre récupérée, nous devons détruire toutes les ressources allouées et
+quitter GLFW. Voici notre première version de la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -209,8 +190,7 @@ void cleanup() {
 }
 ```
 
-When you run the program now you should see a window titled `Vulkan` show up
-until the application is terminated by closing the window. Now that we have the
-skeleton for the Vulkan application, let's [create the first Vulkan object](!Drawing_a_triangle/Setup/Instance)!
+Si vous lancez l'application, vous devriez voir une fenêtre appelée "Vulkan" se fermant en cliquant sur la croix.
+Maintenant que nous avons une base pour notre application Vulkan, [créons notre premier objet Vulkan!](!Drawing_a_triangle/Setup/Instance)!
 
-[C++ code](/code/00_base_code.cpp)
+[Code C++](/code/00_base_code.cpp)
