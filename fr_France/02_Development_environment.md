@@ -1,109 +1,95 @@
-In this chapter we'll set up your environment for developing Vulkan applications
-and install some useful libraries. All of the tools we'll use, with the
-exception of the compiler, are compatible with Windows, Linux and MacOS, but the
-steps for installing them differ a bit, which is why they're described
-separately here.
+Dans ce chapitre nous allons paramétrer votre environnement de développement pour Vulkan et installer des librairies
+utiles. Tous les outils que nous allons utiliser, excepté le compilateur, seront compatibles Windows, Linux et MacOS.
+Cependant les étapes pour les installer diffèrent un peu, d'où les sections suivantes.
 
 ## Windows
 
-If you're developing for Windows, then I will assume that you are using Visual
-Studio 2017 to compile your code. You may also use Visual Studio 2013 or 2015, but the steps may be a bit different.
+Si vous développez pour Windows, je partirai du principe que vous utilisez Visual Studio 2017 pour ce projet. Vous
+pouvez aussi utiliser VS 2013 ou 2015, mais les étapes sont un peu différentes.
 
-### Vulkan SDK
+### SDK Vulkan
 
-The most important component you'll need for developing Vulkan applications is
-the SDK. It includes the headers, standard validation layers, debugging tools
-and a loader for the Vulkan functions. The loader looks up the functions in the
-driver at runtime, similarly to GLEW for OpenGL - if you're familiar with that.
+Le composant central au développement d'applications Vulkan est le SDK. Il inclue les headers, les validation layers
+standards, des outils de débogage et un loader pour les fonctions Vulkan. Ce loader récupère les fonctions dans le
+driver à l'exécution, comme GLEW pour OpenGL - si vous connaissez.
 
-The SDK can be downloaded from [the LunarG website](https://vulkan.lunarg.com/)
-using the buttons at the bottom of the page. You don't have to create an
-account, but it will give you access to some additional documentation that may
-be useful to you.
+Le SDK peut être téléchargé sur [le site LunarG](https://vulkan.lunarg.com/) en utilisant les boutons en bas de page.
+Vous n'avez pas besoin de compte, mais celui-ci vous donne accès à une documentation supplémentaire qui pourra vous être
+utile.
 
 ![](/images/vulkan_sdk_download_buttons.png)
 
-Proceed through the installation and pay attention to the install location of
-the SDK. The first thing we'll do is verify that your graphics card and driver
-properly support Vulkan. Go to the directory where you installed the SDK, open
-the `Bin` directory and run the `cube.exe` demo. You should see the following:
+Réalisez l'installation et notez l'emplacement du SDK. La première chose que nous allons faire est vérifier que votre
+carte graphique support Vulkan. Allez dans le dossier d'installation du SDK, ouvrez le dossier "Bin" et lancez
+"cube.exe". Vous devriez voire la fenêtre suivante :
 
 ![](/images/cube_demo.png)
 
-If you receive an error message then ensure that your drivers are up-to-date,
-include the Vulkan runtime and that your graphics card is supported. See the
-[introduction chapter](!Introduction) for links to drivers from the major
-vendors.
+Si vous recevez un message d'erreur assurez-vous que votre driver est à jour, inclus Vulkan et que votre carte graphique
+est supportée. Référez-vous au [chapitre introductif](!Introduction) pour les liens aux vendeurs principaux.
 
-There is another program in this directory that will be useful for development. The `glslangValidator.exe` program will be used to compile shaders from the
-human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) to
-bytecode. We'll cover this in depth in the [shader modules](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
-chapter. The `Bin` directory also contains the binaries of the Vulkan loader
-and the validation layers, while the `Lib` directory contains the libraries.
+Il y a un autre programme dans ce dossier qui vous sera utile : "glslangValidator.exe". Il nous sera utile lors de
+compilation des shaders. Il transforme un code lisible par l'homme écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en byte code.
+Nous couvrirons cela dans le chapitre [modules shader](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules).
+Le dossier "Bin" contient aussi les fichiers binaires du loader Vulkan et des validation layers. Le dossier "Lib" en
+contient les librairies.
 
-The `Doc` directory contains useful information about the Vulkan SDK and an
-offline version of the entire Vulkan specification. Lastly, there's the
-`Include` directory that contains the Vulkan headers. Feel free to explore the
-other files, but we won't need them for this tutorial.
+Le dossier "Doc" contient des informations pouvant vous être utiles sur le SDK et une version offline de la
+spécification de Vulkan. Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
+fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
 
 ### GLFW
 
-As mentioned before, Vulkan by itself is a platform agnostic API and does not
-include tools for creating a window to display the rendered results. To benefit
-from the cross-platform advantages of Vulkan and to avoid the horrors of Win32,
-we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
-supports Windows, Linux and MacOS. There are other libraries available for this
-purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that
-it also abstracts away some of the other platform-specific things in Vulkan
-besides just window creation.
+Comme dit précédemment, Vulkan ignore la plateforme sur laquelle il opère, et n'inclut pas d'outil de création
+de fenêtre pour y afficher les résultats de notre travail. Pour bien exploiter les possibilités cross-platform de Vulkan
+et éviter les horreurs de Win32, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer une fenêtre qui
+supportera Windows, Linux et MacOS. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW a
+l'avantage d'abstraire d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
-You can find the latest release of GLFW on the [official website](http://www.glfw.org/download.html).
-In this tutorial we'll be using the 64-bit binaries, but you can of course also
-choose to build in 32 bit mode. In that case make sure to link with the Vulkan
-SDK binaries in the `Lib32` directory instead of `Lib`. After downloading it, extract the archive
-to a convenient location. I've chosen to create a `Libraries` directory in the
-Visual Studio directory under documents. Don't worry about there not being a
-`libvc-2017` folder, the `libvc-2015` one is compatible.
+Vous pouvez trouver la dernière version de GLFW sur leur site officiel. Nous utiliserons la version 64 bits, mais vous
+pouvez également utiliser la version 32 bits. Dans ce cas assurez-vous de bien lier le dossier "Lib32" dans le SDK et
+non "Lib". Après avoir téléchargé GLFW, extrayez l'archive à l'emlacement qui vous convient. J'ai choisi de créer un
+dossier "Librairies" dans le dossier de Visual Studio. Il est normal qu'il n'y ait pas de dossier "libvc-2017", le
+dossier "libvc-2015" est toujours compatible.
 
 ![](/images/glfw_directory.png)
 
 ### GLM
 
-Unlike DirectX 12, Vulkan does not include a library for linear algebra
-operations, so we'll have to download one. [GLM](http://glm.g-truc.net/) is a
-nice library that is designed for use with graphics APIs and is also commonly
-used with OpenGL.
+Contrairement à DirectX 12, Vulkan n'intègre pas de librairie pour l'algèbre linéaire. Nous devons donc en télécharger
+une. [GLM](http://glm.g-truc.net/) est une bonne librairie conçue pour être utilisée avec les APIs graphiques, et est
+souvent utilisée avec OpenGL.
 
-GLM is a header-only library, so just download the [latest version](https://github.com/g-truc/glm/releases)
-and store it in a convenient location. You should have a directory structure
-similar to the following now:
+GLM est une librairie écrite exclusivement dans les headers, il suffit donc de télécharger la
+[dernière version](https://github.com/g-truc/glm/releases), la stocker où vous le souhaitez et l'inclure là où vous en
+aurez besoin. Vous devrez vous trouver avec quelque chose de semblable :
 
 ![](/images/library_directory.png)
 
-### Setting up Visual Studio
+### Préparer Visual Studio
 
-Now that you've installed all of the dependencies we can set up a basic Visual
-Studio project for Vulkan and write a little bit of code to make sure that
-everything works.
+Maintenant que vous avez installé toutes les dépendances, nous pouvons paramétrer un projet Visual Studio pour Vulkan,
+et écrire un peu de code pour vérifier que tout fonctionne.
 
-Start Visual Studio and create a new `Windows Desktop Wizard` project by entering a name and pressing `OK`.
+Lancez Visual Studio et créez un nouveau projet "Windows Desktop Wizard", entrez un nom et appuyez sur OK.
 
 ![](/images/vs_new_cpp_project.png)
 
-Make sure that `Console Application (.exe)` is selected as application type so that we have a place to print debug messages to, and check `Empty Project` to prevent Visual Studio from adding boilerplate code.
+Assurez-vous que "Console Application (.exe)" est séléctionné pour le type d'application afin que nous ayons un endroit
+où afficher nos messages d'erreur, et cochez "Empty Project" afin que Visual Studio ne génère pas un code de base.
 
 ![](/images/vs_application_settings.png)
 
-Press `OK` to create the project and add a C++ source file. You should
-already know how to do that, but the steps are included here for completeness.
+Appuyez sur OK pour créer le projet et ajoutez un fichier source C++. Vous devriez déjà savoir faire ça, mais les étapes
+sont tout de même incluses ici.
 
 ![](/images/vs_new_item.png)
 
 ![](/images/vs_new_source_file.png)
 
-Now add the following code to the file. Don't worry about trying to
-understand it right now; we're just making sure that you can compile and run
-Vulkan applications. We'll start from scratch in the next chapter.
+Ajoutez maintenant le code suivant à votre fichier. Ne cherchez pas à en comprendre les tenants et aboutissants, il sert
+juste à s'assurer que tout compile correctement et qu'une application Vulkan fonctionne. Nous recommencerons tout depuis
+le début dès le chapitre suivant.
 
 ```c++
 #define GLFW_INCLUDE_VULKAN
@@ -143,140 +129,123 @@ int main() {
 }
 ```
 
-Let's now configure the project to get rid of the errors. Open the project
-properties dialog and ensure that `All Configurations` is selected, because most
-of the settings apply to both `Debug` and `Release` mode.
+Configurons maintenant le projet afin de se débarasser des erreurs. Ouvrez le dialogue des propriétés du projet et
+assurez-vous que "All Configurations" est sélectionné, car la plupart des paramètres ne s'applique soit qu'à "Debug"
+soit à "Release".
 
 ![](/images/vs_open_project_properties.png)
 
 ![](/images/vs_all_configs.png)
 
-Go to `C++ -> General -> Additional Include Directories` and press `<Edit...>`
-in the dropdown box.
+Allez à "C++" -> "General" -> "Additional Include Directories" et appuyer sur "<Edit...>" dans la boite déroulante.
 
 ![](/images/vs_cpp_general.png)
 
-Add the header directories for Vulkan, GLFW and GLM:
+Ajoutez les dossiers pour les headers Vulkan, GLFW et GLM :
 
 ![](/images/vs_include_dirs.png)
 
-Next, open the editor for library directories under `Linker -> General`:
+Ensuite, ouvrez l'éditeur pour les dossiers des librairies sous "Linker" -> "General" :
 
 ![](/images/vs_link_settings.png)
 
-And add the locations of the object files for Vulkan and GLFW:
+Et ajoutez les emplacements des fichiers objets pour Vulkan et GLFW :
 
 ![](/images/vs_link_dirs.png)
 
-Go to `Linker -> Input` and press `<Edit...>` in the `Additional Dependencies`
-dropdown box.
+Allez à "Linker" -> "Input" et appuyez sur "<Edit...>" dans le menu déroulant "Additional Dependencies" :
 
 ![](/images/vs_link_input.png)
 
-Enter the names of the Vulkan and GLFW object files:
+Entrez les noms des fichiers objets GLFW et Vulkan :
 
 ![](/images/vs_dependencies.png)
 
-You can now close the project properties dialog. If you did everything right
-then you should no longer see any more errors being highlighted in the code.
+Vous pouvez enfin fermer le dialogue de propriétés. Si vous avez tout fait correctement vous ne devriez plus voir
+d'erreur dans votre code.
 
-Finally, ensure that you are actually compiling in 64 bit mode:
+Assurez-vous finalement que vous compilez effectivement en 64 bits :
 
 ![](/images/vs_build_mode.png)
 
-Press `F5` to compile and run the project and you should see a command prompt
-and a window pop up like this:
+Appuyez sur F5 pour compiler et lancer le projet. Vous devriez voir une fenêtre s'afficher comme cela :
 
 ![](/images/vs_test_window.png)
 
-The number of extensions should be non-zero. Congratulations, you're all set for
-[playing with Vulkan](!Drawing_a_triangle/Setup/Base_code)!
+Le nombre d'extensions ne devrait pas être nul. Bravo, vous êtes fin prêts à
+[jouer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
 
 ## Linux
 
-These instructions will be aimed at Ubuntu users, but you may be able to follow
-along by compiling the LunarG SDK yourself and changing the `apt` commands to
-the package manager commands that are appropriate for you. You should already
-have a version of GCC installed that supports modern C++ (4.8 or later). You
-also need both CMake and make.
+Ces instructions sont concues pour les utilisateurs d'Ubuntu, mais vous devriez pouvoir suivre ces instructions depuis
+une autre distribution si vous recompilez vous-même le SDK et adaptez les commandes "apt" à votre propre gestionnaire de
+package. Installez si ne n'est pas déjà fait gcc 4.8 ou plus récent. Vous aurez égamelent besoin de make et de CMake.
 
-### Vulkan SDK
+### Le SDK Vulkan
 
-The most important component you'll need for developing Vulkan applications is
-the SDK. It includes the headers, standard validation layers, debugging tools
-and a loader for the Vulkan functions. The loader looks up the functions in the
-driver at runtime, similarly to GLEW for OpenGL - if you're familiar with that.
+Le composant central au développement d'application Vulkan est le SDK. Il inclut les headers, les validation layers
+standards, des outils de débogage et un loader pour les fonctions Vulkan. Ce loader récupère les fonctions dans le
+driver à l'exécution, comme GLEW pour OpenGL - si vous connaissez.
 
-The SDK can be downloaded from [the LunarG website](https://vulkan.lunarg.com/)
-using the buttons at the bottom of the page. You don't have to create an
-account, but it will give you access to some additional documentation that may
-be useful to you.
+Le SDK peut être téléchargé sur [le site LunarG](https://vulkan.lunarg.com/) en utilisant les boutons en bas de page.
+Vous n'avez pas besoin de compte, mais celui-ci vous donne accès à une documentation supplémentaire qui pourra vous être
+utile.
 
 ![](/images/vulkan_sdk_download_buttons.png)
 
-Open a terminal in the directory where you've downloaded the `.tar.gz` archive and extract it:
+Ouvrez un terminal dans le dossier où vous avez téléchargé l'archive en ".tar.gz" et extrayez-là :
 
 ```bash
 tar -xzf vulkansdk-linux-x86_64-xxx.tar.gz
 ```
 
-It will extract all of the files in the SDK to a subdirectory with the SDK version as name in the working directory. Move the directory to a convenient place and take
-note of its path. Open a terminal in the root directory of the SDK, which will
-contain files like `build_examples.sh`.
+Cela extraira tous les fichiers dans un sous-dossier dont le nom est celui de la version du SDK. Placez le dossier où
+vous le désirez. Ouvrez-y un terminal. Vous devriez être là où sont présents les fichier comme "build_examples.sh".
 
-The samples in the SDK and one of the libraries that you will later use for your
-program depend on the XCB library. This is a C library that is used to interface
-with the X Window System. It can be installed in Ubuntu from the `libxcb1-dev`
-package. You also need the generic X development files that come with the
-`xorg-dev` package.
+Les exemples dans le SDK et l'une des libraries dont nous aurons besoin dépendent de la librairie XCB. C'est une
+librairie écrite en C utilisée pour communiquer avec le gestionnaire de fenêtres X. Elle s'installe à l'aide du package
+"libxcb1-dev" sous Ubuntu. Vous aurez également besoin de fichiers de développement X présents dans le package
+"xorg-dev".
 
 ```bash
 sudo apt install libxcb1-dev xorg-dev
 ```
 
-You can now build the Vulkan examples in the SDK by running:
+Compilez les exemples Vulkan ainsi :
 
 ```bash
 ./build_examples.sh
 ```
 
-If compilation was successful, then you should now have a
-`./examples/build/cube` executable. Run it from the `examples/build` directory
-with `./cube` and ensure that you see the following pop up in a window:
+Si la compilation a été un succès, vous avez normalement un exécutable "./examples/build/cube". Lancez-le depuis le
+dossier "examples/build" avec la commande "./cube" et assurez-vous que vous obtenez la fenêtre suivante :
 
 ![](/images/cube_demo_nowindow.png)
 
-If you receive an error message then ensure that your drivers are up-to-date,
-include the Vulkan runtime and that your graphics card is supported. See the
-[introduction chapter](!Introduction) for links to drivers from the major
-vendors.
+Si vous recevez un message d'erreur, assurez-vous que vos drivers sont à jour, inclue Vulkan et que votre carte
+graphique est supportée. Référez-vous au [chapitre introductif](!Introduction) pour les liens aux vendeurs principaux.
 
 ### GLFW
 
-As mentioned before, Vulkan by itself is a platform agnostic API and does not
-include tools for creation a window to display the rendered results. To benefit
-from the cross-platform advantages of Vulkan and to avoid the horrors of X11,
-we'll use the [GLFW library](http://www.glfw.org/) to create a window, which
-supports Windows, Linux and MacOS. There are other libraries available for this
-purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that
-it also abstracts away some of the other platform-specific things in Vulkan
-besides just window creation.
+Comme dit précédemment, Vulkan ignore la plateforme sur laquelle il opère, et n'inclut pas d'outil de création
+de fenêtre pour y afficher les résultats de notre travail. Pour bien exploiter les possibilités cross-platform de
+Vulkan, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer une fenêtre qui supportera Windows, Linux
+et MacOS. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à l'avantage d'abstraire
+d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
-We'll be installing GLFW from source instead of using a package, because the
-Vulkan support requires a recent version. You can find the sources on the [official website](http://www.glfw.org/).
-Extract the source code to a convenient directory and open a terminal in the
-directory with files like `CMakeLists.txt`.
+Nous allons installer GLFW à partir des sources, car Vulkan nécessite une version récente. Vous pouvez trouvez ces
+sources sur le [site officiel](http://www.glfw.org/). Extrayez les sources où vous voulez et ouvrez un terminal dans le
+dossier extrait, où se trouve le fichier "CmakeLists.txt".
 
-Run the following commands to generate a makefile and compile GLFW:
+Exécutez les commandes suivantes afin de générer un makefile et de compiler GLFW :
 
 ```bash
 cmake .
 make
 ```
 
-You may see a warning stating `Could NOT find Vulkan`, but you can safely ignore
-this message. If compilation was successful, then you can install GLFW into the
-system libraries by running:
+Si vous rencontrez le message "Could NOT find Vulkan", ignorez-le. Si la compilation a fonctionné, vous pouvez installer
+GLFW sur votre système en exécutant :
 
 ```bash
 sudo make install
@@ -284,28 +253,24 @@ sudo make install
 
 ### GLM
 
-Unlike DirectX 12, Vulkan does not include a library for linear algebra
-operations, so we'll have to download one. [GLM](http://glm.g-truc.net/) is a
-nice library that is designed for use with graphics APIs and is also commonly
-used with OpenGL.
+Contrairement à DirectX 12, Vulkan n'intègre pas de librairie pour l'algèbre linéaire. Nous devons donc en télécharger
+une. [GLM](http://glm.g-truc.net/) est une bonne librairie conçue pour être utilisée avec les APIs graphiques, et est
+souvent utilisée avec OpenGL.
 
-It is a header-only library that can be installed from the `libglm-dev` package:
+Cette librairie contenue intégralement dans les headers peut être installée depuis le package "libglm-dev" :
 
 ```bash
 sudo apt install libglm-dev
 ```
 
-### Setting up a makefile project
+### Préparation d'un fichier makefile
 
-Now that you have installed all of the dependencies, we can set up a basic
-makefile project for Vulkan and write a little bit of code to make sure that
-everything works.
+Maintenant que vous avez installé toutes les dépendances, nous pouvons préparer un makefile basique pour Vulkan et
+écrire un code très simple pour s'assurer que tout fonctionne correctement.
 
-Create a new directory at a convenient location with a name like `VulkanTest`.
-Create a source file called `main.cpp` and insert the following code. Don't
-worry about trying to understand it right now; we're just making sure that you
-can compile and run Vulkan applications. We'll start from scratch in the next
-chapter.
+Ajoutez maintenant le code suivant à votre fichier. Ne cherchez pas à en comprendre les tenants et aboutissants, il sert
+juste à s'assurer que tout compile correctement et qu'une application Vulkan fonctionne. Nous recommencerons tout depuis
+le début dès le chapitre suivant.
 
 ```c++
 #define GLFW_INCLUDE_VULKAN
@@ -345,54 +310,50 @@ int main() {
 }
 ```
 
-Next, we'll write a makefile to compile and run this basic Vulkan code. Create a
-new empty file called `Makefile`. I will assume that you already have some basic
-experience with makefiles, like how variables and rules work. If not, you can
-get up to speed very quickly with [this tutorial](http://mrbook.org/blog/tutorials/make/).
+Nous allons maintenant créer un makefile pour compiler et lancer ce code. Créez un fichier "makefile". Je pars du
+principe que vous connaissez déjà les bases de makefile, dont les variables et les règles. Sinon vous pouvez trouver des
+introductions claires sur internet, par exemple [ici](http://mrbook.org/blog/tutorials/make/).
 
-We'll first define a couple of variables to simplify the remainder of the file.
-Define a `VULKAN_SDK_PATH` variable that refers to the location of the `x86_64`
-directory in the LunarG SDK, for example:
+Nous allons d'abord définir quelques variables pour simplifier le reste du fichier. Définissez `VULKAN_SDK_PATH` se
+référant à l'emplacement du dossier "x86_64" dans le SDK, par exemple :
 
 ```make
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
 ```
 
-Make sure to replace `user` with your own username and `x.x.x.x` with the right version. Next, define a `CFLAGS` variable that will specify the basic compiler flags:
+Remplacez bien "user" par votre nom d'utilisateur et "x.x.x.x" par la bonne version. Définissez ensuite `CFLAGS`, qui
+spécifiera les arguments pour la compilation :
 
 ```make
 CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
 ```
 
-We're going to use modern C++ (`-std=c++11` or `std=c++14`), and we need to be
-able to locate `vulkan.h` in the LunarG SDK.
+Nous utiliserons du C++ moderne (au moins `-std=c++11`). Nous devons également localiser "vulkan.h" dans le SDK de
+LunarG.
 
-Similarly, define the linker flags in a `LDFLAGS` variable:
+Définissez de manière analogue `LDFLAGS` :
 
 ```make
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 ```
 
-The first flag specifies that we want to be able to find libraries like
-`libvulkan.so` in the LunarG SDK's `x86_64/lib` directory. The second component
-invokes `pkg-config` to automatically retrieve all of the linker flags necessary
-to build an application with GLFW. Finally, `-lvulkan` links with the Vulkan
-function loader that comes with the LunarG SDK.
+Le premier paramètre permet de localiser les librairies comme "libvulkan.so" dans le dossier "x86_64/lib" du SDK. La
+seconde partie utilise `pkg-config` pour trouver les pramètres nécessaires aux linker pour compiler avec GLFW. Enfin,
+`-lvulkan` correspond au loader dynamique des fonctions Vulkan présent dans le SDK.
 
-Specifying the rule to compile `VulkanTest` is straightforward now. Make sure to
-use tabs for indentation instead of spaces.
+Spécifier les commandes pour la compilation de "VulkanTest" est désormais un jeu d'enfant. Assurez-vous que vous
+utilisez des tabulations et non des espaces pour l'indentation.
 
 ```make
 VulkanTest: main.cpp
     g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
 ```
 
-Verify that this rule works by saving the makefile and running `make` in the
-directory with `main.cpp` and `Makefile`. This should result in a `VulkanTest`
-executable.
+Vérifiez que le fichier fonctionne en le sauveguardant et en exécutant make depuis un terminal ouvert dans dans le
+dossier le contenant. Vous devriez avoir un exécutable appelé "VulkanTest".
 
-We'll now define two more rules, `test` and `clean`, where the former will
-run the executable and the latter will remove a built executable:
+Nous allons ensuite définir deux règles, `test` et `clean`. Le premier exécutera le programme et le second supprimera
+l'exécutable :
 
 ```make
 .PHONY: test clean
@@ -404,34 +365,31 @@ clean:
     rm -f VulkanTest
 ```
 
-You will find that `make clean` works perfectly fine, but `make test` will most
-likely fail with the following error message:
+Vous devriez constater que `make clean` fonctionne mais que `make test` s'interrompera avec le message suivant :
 
 ```text
 ./VulkanTest: error while loading shared libraries: libvulkan.so.1: cannot open shared object file: No such file or directory
 ```
 
-That's because `libvulkan.so` is not installed as system library. To alleviate
-this problem, explicitly specify the library loading path using the
-`LD_LIBRARY_PATH` environment variable:
+En effet "libvulkan.so" n'est pas installé comme une librairie système. Pour que le linker la trouve, nous devons lui
+spécifier explicitement la localisation de la librairie avec une variable :
 
 ```make
 test: VulkanTest
     LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib ./VulkanTest
 ```
 
-The program should now run successfully, and display the number of Vulkan
-extensions. The application should exit with the success return code (`0`) when
-you close the empty window. However, there is one more variable that you need to
-set. We will start using validation layers in Vulkan and you need to tell the
-Vulkan library where to load these from using the `VK_LAYER_PATH` variable:
+Le programme devrait se lancer correctement maintenant, et afficher le nombre d'extensions disponibles. L'application
+devrait quitter avec le code 0 lorsque vous fermez la fenêtre. Il y a pourtant encore une variable que nous devons
+créer. Nous allons utiliser les validation layers et devons donc lui indiquer leur localisation avec la variable
+`VK_LAYER_PATH` :
 
 ```make
 test: VulkanTest
     LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/explicit_layer.d ./VulkanTest
 ```
 
-You should now have a complete makefile that resembles the following:
+Vous devriez désormais avoir un makefile complet tel que celui-ci :
 
 ```make
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
@@ -451,44 +409,60 @@ clean:
     rm -f VulkanTest
 ```
 
-You can now use this directory as a template for your Vulkan projects. Make a
-copy, rename it to something like `HelloTriangle` and remove all of the code
-in `main.cpp`.
+Vous pouvez désormais utiliser ce dossier comme exemple pour vos projets Vulkan futurs. Faites en une copie, changer le
+nom du projet et tout est prêt!
 
-Before we move on, let's explore the Vulkan SDK a bit more. There is another program in it that will be very useful for development. The `x86_64/bin/glslangValidator` program will be used to compile shaders from
-the human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
-to bytecode. We'll cover this in depth in the [shader modules](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
-chapter.
+Avant d'avancer, explorons le SDK un peu plus. Il y a un autre programme dans ce dossier qui vous sera utile :
+"glslangValidator.exe". Il nous sera utile lors de compilation des shaders. Il transforme un code lisible par l'homme
+écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en byte code. Nous couvrirons cela dans le
+chapitre [modeules shader](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules).
 
-The `Doc` directory contains useful information about the Vulkan SDK and an
-offline version of the entire Vulkan specification. Feel free to explore the
-other files, but we won't need them for this tutorial.
 
-You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
+Le dossier "Doc" contient des informations pouvant vous être utiles sur le SDK et une version offline de la
+spécification de Vulkan. Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
+fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
+
+Bravo, vous êtes fin prêts à [jouer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
 
 ## MacOS
 
-These instructions will assume you are using Xcode and the [Homebrew package manager](https://brew.sh/). Also, keep in mind that you will need at least MacOS version 10.11, and your device needs to support the [Metal API](https://en.wikipedia.org/wiki/Metal_(API)#Supported_GPUs).
+Ces instructions partent du principe que vous utilisez Xcode et le [gestionnaire de packages Homebrew](https://brew.sh/)
+. Vous aurez besoin de MacOS 10.11 minimum, et votre ordinateur doit supporter
+l'[API Metal](https://en.wikipedia.org/wiki/Metal_(API)#Supported_GPUs).
 
-### Vulkan SDK
+### Le SDK Vulkan
 
-The most important component you'll need for developing Vulkan applications is the SDK. It includes the headers, standard validation layers, debugging tools and a loader for the Vulkan functions. The loader looks up the functions in the driver at runtime, similarly to GLEW for OpenGL - if you're familiar with that.
+Le SDK est le composant le plus important pour programmer une application avec Vulkan. Il inclue headers, validations
+layers, outils de débogage et un loader dynamique pour les fonctions Vulkan. Le loader cherche les fonctions dans le
+driver pendant l'exécution, comme GLEW pour OpenGL - si vous connaissez.
 
-The SDK can be downloaded from [the LunarG website](https://vulkan.lunarg.com/) using the buttons at the bottom of the page. You don't have to create an account, but it will give you access to some additional documentation that may be useful to you.
+Le SDK se télécharge sur le [site de LunarG](https://vulkan.lunarg.com/) en utilisant les boutons en bas de page. Vous
+n'avez pasbesoin de dréer de compte, mais il permet d'accéder à une documentation supplémentaire qui pourra vous être
+utile.
 
 ![](/images/vulkan_sdk_download_buttons.png)
 
-The SDK version for MacOS internally uses [MoltenVK](https://moltengl.com/). There is no native support for Vulkan on MacOS, so what MoltenVK does is actually act as a layer that translates Vulkan API calls to Apple's Metal graphics framework. With this you can take advantage of debugging and performance benefits of Apple's Metal framework.
+La version MacOS du SDK utilise [MoltenVK](https://moltengl.com/). Il n'y a pas de support natif pour Vulkan sur MacOS,
+donc nous avons besoin de MoltenVK pour transcrire les appels à l'API Vulkan en appels à la framework Metal d'Apple.
+Vous pouvez ainsi exploiter pleinement les possibilités de cet API autonatiquement.
 
-After downloading it, simply extract the contents to a folder of your choice (keep in mind you will need to reference it when creating your projects on Xcode). Inside the extracted folder, in the `Applications` folder you should have some executable files that will run a few demos using the SDK. Run the `cube` executable and you will see the following:
+
+Une fois téléchargé, extrayez le contenu où vous le souhaitez. Dans le dossier extrait, il devrait y avoir un
+sous-dossier "Applications" comportant des exécutables lançant des démos du SDK. Lancez "cube" pour vérifier que vous
+obtenez ceci :
 
 ![](/images/cube_demo_mac.png)
 
 ### GLFW
 
-As mentioned before, Vulkan by itself is a platform agnostic API and does not include tools for creation a window to display the rendered results. We'll use the [GLFW library](http://www.glfw.org/) to create a window, which supports Windows, Linux and MacOS. There are other libraries available for this purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that it also abstracts away some of the other platform-specific things in Vulkan besides just window creation.
+Comme dit précédemment, Vulkan est ignorant de la plateforme sur laquelle il opère, et n'inclut pas d'outil de création
+de fenêtre pour y afficher les résultats de notre travail. Pour bien exploiter les possibilités cross-platform de
+Vulkan, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer une fenêtre qui supportera Windows, Linux
+et MacOS. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à l'avantage d'abstraire
+d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
-To install GLFW on MacOS we will use the Homebrew package manager. Vulkan support for MacOS is still not fully available on the current (at the time of this writing) stable version 3.2.1. Therefore we will install the latest version of the `glfw3` package using:
+Nous utiliserons le gestionnaire de package Homebrew pour installer GLFW. Le support Vulkan sur MacOS n'étant pas
+parfaitement disponible (à l'écriture du moins) sur la version 3.2.1, nous installerons le package "glfw3" ainsi :
 
 ```bash
 brew install glfw3 --HEAD
@@ -496,27 +470,32 @@ brew install glfw3 --HEAD
 
 ### GLM
 
-Vulkan does not include a library for linear algebra operations, so we'll have to download one. [GLM](http://glm.g-truc.net/) is a nice library that is designed for use with graphics APIs and is also commonly used with OpenGL.
+Vulkan n'inclut aucune libraire pour l'algèbre linéaire, nous devons donc en télécharger une.
+[GLM](http://glm.g-truc.net/) est une bonne librairie souvent utilisée avec les APIs graphiques et particulièrement
+OpenGL.
 
-It is a header-only library that can be installed from the `glm` package:
+Cette librairie est intégralement codée dans les headers et se télécharge avec le package "glm" :
 
 ```bash
 brew install glm
 ```
 
-### Setting up Xcode
+### Préparation de Xcode
 
-Now that all the dependencies are installed we can set up a basic Xcode project for Vulkan. Most of the instructions here are essentially a lot of "plumbing" so we can get all the dependencies linked to the project. Also, keep in mind that during the following instructions whenever we mention the folder `vulkansdk` we are refering to the folder where you extracted the Vulkan SDK.
+Maintenant que nous avons toutes les dépendances nous pouvons créer un projet basique pour Vulkan dans Xcode. La plupart
+des opérations seront de la "tuyauterie" pour lier les dépendances au projet. Notez que vous devrez remplacer toutes les
+mentions "vulkansdk" par le dossier où vous avez extrait le SDK Vulkan.
 
-Start Xcode and create a new Xcode project. On the window that will open select Application > Command Line Tool.
+Lancez Xcode et créez un nouveau projet. Sur la fenêtre qui s'ouvre sélectionnez Application > Command Line Tool.
 
 ![](/images/xcode_new_project.png)
 
-Select `Next`, write a name for the project and for `Language` select `C++`.
+Sélectionnez "Next", inscrivez un nom de projet et choisissez "C++" pour "Language".
 
 ![](/images/xcode_new_project_2.png)
 
-Press `Next` and the project should have been created. Now, let's change the code in the generated `main.cpp` file to the following code:
+Appuyez sur "Next" et le projet devrait être créé. Copiez le code suivant à la place du code généré dans le fichier
+"main.cpp" :
 
 ```c++
 #define GLFW_INCLUDE_VULKAN
@@ -555,42 +534,56 @@ int main() {
     return 0;
 }
 ```
+>
+Gardez à l'esprit que vous n'avez pas à comprendre tout ce que le code fait, dans la mesure où il se content de réaliser
+quelques appels à l'API pour s'assurer que tout fonctionne.
 
-Keep in mind you are not required to understand all this code is doing yet, we are just setting up some API calls to make sure everything is working.
+Xcode devrait déjà vous afficher des erreurs comme le fait que des librairies soient introuvables. Nous allons
+maintenant faire en sorteque ces erreurs disparaissent. Séletionnez votre projet sur le menu *Project Navigator*. Ouvrez
+ *Build Settings* puis :
 
-Xcode should already be showing some errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the *Project Navigator* panel select your project. Open the *Build Settings* tab and then:
+* Trouvez le champ **Header Search Paths** et ajoutez "/usr/local/include" (c'est ici que Homebrew installe les headers)
+ et "vulkansdk/macOS/include" pour le SDK.
+* Trouvez le champ **Library Search Paths** et ajoutez "/usr/local/lib" (même raison pour les librairies) et
+"vulkansdk/macOS/lib".
 
-* Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew installs headers, so the glm and glfw3 header files should be there) and a link to `vulkansdk/macOS/include` for the Vulkan headers.
-* Find the **Library Search Paths** field and add a link to `/usr/local/lib` (again, this is where Homebrew installs libraries, so the glm and glfw3 lib files should be there) and a link to `vulkansdk/macOS/lib`.
-
-It should look like so (obviously, paths will be different depending on where you placed on your files):
+Vous avez normalement (avec des différences évidantes selon l'endroit où vous avez placé votre SDK) :
 
 ![](/images/xcode_paths.png)
 
-Now, in the *Build Phases* tab, on **Link Binary With Libraries** we will add both the `glfw3` and the `vulkan` frameworks. To make things easier we will be adding he dynamic libraries in the project (you can check the documentation of these libraries if you want to use the static frameworks).
+Maintenant, dans le menu *Build Phases*, ajoutez les frameworks "glfw3" et "vulkan" dans **Link Binary With Librairies**
+. Pour nous simplifier les choses, nous allons ajouter les librairies dynamiques directement dans le projet
+(référez-vous à la documentation de ces librairies si vous voulez les lier de manière statique).
 
-* For glfw open the folder `/usr/local/lib` and there you will find a file name like `libglfw.3.x.dylib` ("x" is the library's version number, it might be different depending on when you downloaded the package from Homebrew). Simply drag that file to the Linked Frameworks and Libraries tab on Xcode.
-* For vulkan, go to `vulkansdk/macOS/lib`. Do the same for the file both files `libvulkan.1.dylib` and `libvulkan.1.x.xx.dylib` (where "x" will be the version number of the the SDK you downloaded).
+* Pour glfw ouvrez le dossier "/usr/local/lib" où vous trouverez un fichier avec un nom comme "libglfw.3.x.dylib" où x
+est le numéro de la version. Glissez ce fichier jusqu'à la barre des "Linked Frameworks and librairies" dans Xcode.
+* Pour Vulkan, rendez-vous à "vulkansdk/macOS/lib" et répétez l'opération pour "libvulkan.1.dylib" et "libvulkan.1.x.xx
+.dylib" avec les x correspondant à la version du SDK que vous avez téléchargé.
 
-After adding those libraries, in the same tab on **Copy Files** change `Destination` to "Frameworks", clear the subpath and deselect "Copy only when installing". Click on the "+" sign and add all those three frameworks here aswell.
+Maintenant que vous avez ajouté ces librairies, remplissez le champ `Destination` avec "Frameworks" dans **Copy Files**,
+ supprimez le sous-chemin et décochez "Copy only when installing". Cliquez sur le "+" et ajoutez-y les trois mêmes
+ frameworks.
 
-Your Xcode configuration should look like:
+Votre configuration Xcode devrait ressembler à cela :
 
 ![](/images/xcode_frameworks.png)
 
-The last thing you need to setup are a couple of environment variables. On Xcode toolbar go to `Product` > `Scheme` > `Edit Scheme...`, and in the `Arguments` tab add the two following environment variables:
+Il ne reste plus qu'à définir quelques variables d'environnement. Sur la barre d'outils de Xcode allez à `Product` >
+`Scheme` > `Edit Scheme...`, et dans la liste `Arguments` ajoutez les deux variables suivantes :
 
 * VK_ICD_FILENAMES = `vulkansdk/macOS/etc/vulkan/icd.d/MoltenVK_icd.json`
 * VK_LAYER_PATH = `vulkansdk/macOS/etc/vulkan/explicit_layer.d`
 
-It should look like so:
+Vous avez normalement ceci :
 
 ![](/images/xcode_variables.png)
 
-Finally, you should be all set! Now if you run the project (remembering to setting the build configuration to Debug or Release depending on the configuration you chose) you should see the following:
+Vous êtes maintenant prêts! Si vous lancez le projet (en pensant à bien choisir entre Debug et Release) vous devrez
+avoir ceci :
 
 ![](/images/xcode_output.png)
 
-The number of extensions should be non-zero. The other logs are from the libraries, you might get different messages from those depending on your configuration.
+Le nombre d'extensions ne doit pas être nul. Les autres données proviennet de librairies, et dépéndent de votre
+onfiguration.
 
-You are now all set for [the real thing](!Drawing_a_triangle/Setup/Base_code).
+Vous êtes maintenant prêts pour [la partie intéressante!](!Drawing_a_triangle/Setup/Base_code).
