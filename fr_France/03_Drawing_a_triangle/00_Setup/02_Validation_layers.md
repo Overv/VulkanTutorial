@@ -1,27 +1,22 @@
-## What are validation layers?
+## Que sont les validation layers?
 
-The Vulkan API is designed around the idea of minimal driver overhead and one of
-the manifestations of that goal is that there is very limited error checking in
-the API by default. Even mistakes as simple as setting enumerations to incorrect
-values or passing null pointers to required parameters are generally not
-explicitly handled and will simply result in crashes or undefined behavior.
-Because Vulkan requires you to be very explicit about everything you're doing,
-it's easy to make many small mistakes like using a new GPU feature and
-forgetting to request it at logical device creation time.
+L'API Vulkan est concu pour limiter au maximum le travail du driver. Par conséquent il n'y a aucun traitement d'erreur
+par défaut. Une erreur aussi simple que se tromper dans la valeur d'une énumération ou passer un pointeur nul comme
+argument non optionnel résultent en un crash. Dans la mesure où Vulkan nous demande d'être complètement explicite, il
+est facile d'utiliser une fonctionnalité optionnelle et d'oublier de paramétrer l'utilisation de l'extension à laquelle
+elle appartient, par exemple.
 
-However, that doesn't mean that these checks can't be added to the API. Vulkan
-introduces an elegant system for this known as *validation layers*. Validation
-layers are optional components that hook into Vulkan function calls to apply
-additional operations. Common operations in validation layers are:
+Cependant de telles vérifications peuvent être ajoutées à l'API. Vulkan possède un système élégant appelé validation
+layers. Ce sont des composants optionnels s'insérant dans les appels des fonctions Vulkan pour y insérer des opérations.
+Voici un exemple d'opérations qu'elles réalisent :
 
-* Checking the values of parameters against the specification to detect misuse
-* Tracking creation and destruction of objects to find resource leaks
-* Checking thread safety by tracking the threads that calls originate from
-* Logging every call and its parameters to the standard output
-* Tracing Vulkan calls for profiling and replaying
+* Comparer les valeurs des paramètres à celles de la spécification pour détecter une mauvaise utilisation
+* Suivre la création et la destruction des objets pour repérer les pertes de mémoire
+* Vérifier la sécurité des threads en suivant l'origine des appels
+* Afficher toutes les informations sur les appels à l'aide de la sortie standard
+* Suivre les appels Vulkan pour permettre l'analyse dynamique
 
-Here's an example of what the implementation of a function in a diagnostics
-validation layer could look like:
+Voici ce à quoi une fonction de diagnostic pourrait ressembler :
 
 ```c++
 VkResult vkCreateInstance(
@@ -30,7 +25,7 @@ VkResult vkCreateInstance(
     VkInstance* instance) {
 
     if (pCreateInfo == nullptr || instance == nullptr) {
-        log("Null pointer passed to required parameter!");
+        log("Pointeur nul passé à un paramètre obligatoire!");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -38,44 +33,35 @@ VkResult vkCreateInstance(
 }
 ```
 
-These validation layers can be freely stacked to include all the debugging
-functionality that you're interested in. You can simply enable validation layers
-for debug builds and completely disable them for release builds, which gives you
-the best of both worlds!
+Les validation layers peuvent être combinées à loisir pour fournir toutes les fonctionnalités de débuggage nécessaires.
+Vous pouvez même activer les validations layers lors du développement et les désactiver lors du déploiement sans
+aucun problème!
 
-Vulkan does not come with any validation layers built-in, but the LunarG Vulkan
-SDK provides a nice set of layers that check for common errors. They're also
-completely [open source](https://github.com/KhronosGroup/Vulkan-ValidationLayers),
-so you can check which kind of mistakes they check for and contribute. Using the
-validation layers is the best way to avoid your application breaking on
-different drivers by accidentally relying on undefined behavior.
+Vulkan ne possède aucune validation layer, mais nous en avons dans le SDK de LunarG. Elles sont complètement [open
+source](https://github.com/KhronosGroup/Vulkan-ValidationLayers), vous pouvez donc voir quelles erreurs elles suivent et
+contribuer à leur développement. Les utiliser est la meilleure manière d'éviter que votre application fonctionne grâce
+à un comportement spécifique à un driver.
 
-Validation layers can only be used if they have been installed onto the system.
-For example, the LunarG validation layers are only available on PCs with the
-Vulkan SDK installed.
+Les validations layers ne sont utilisables que si elles sont installées sur la machine. Il faut le SDK installé et
+paramétré pour qu'elles fonctionnent.
 
-There were formerly two different types of validation layers in Vulkan: instance
-and device specific. The idea was that instance layers would only check
-calls related to global Vulkan objects like instances, and device specific layers
-would only check calls related to a specific GPU. Device specific layers have now been
-deprecated, which means that instance validation layers apply to all Vulkan
-calls. The specification document still recommends that you enable validation
-layers at device level as well for compatibility, which is required by some
-implementations. We'll simply specify the same layers as the instance at logical
-device level, which we'll see [later on](!Drawing_a_triangle/Setup/Logical_device_and_queues).
+Il a existé deux formes de validation layers : les layers spécifiques de l'instance et celles spécifiques du
+physical device. Elles ne vérifiaient ainsi respectivement que les appels aux fonctions d'ordre global et les appels aux
+fonctions spécifiques au GPU. Les layers spécifiques du GPU sont désormais dépréciées. Les autres portent désormais sur
+tous les appels. Cependant la spécification recommande encore que nous activions les validations layers au niveau du 
+logical device, car cela est requis par certaines implémentations. Nous nous contenterons de spécifier les mêmes 
+layers pour le logical device que pour le physical device, que nous verrons
+[plus tard](!Drawing_a_triangle/Setup/Logical_device_and_queues).
 
-## Using validation layers
+## Utiliser les validation layers
 
-In this section we'll see how to enable the standard diagnostics layers provided
-by the Vulkan SDK. Just like extensions, validation layers need to be enabled by
-specifying their name. Instead of having to explicitly specify all of the useful
-layers, the SDK allows you to request the `VK_LAYER_LUNARG_standard_validation`
-layer that implicitly enables a whole range of useful diagnostics layers.
+Nous allons maintenant activer les validations layers fournies par le SDK de LunarG. Comme les extensions, nous devons
+indiquer leurs nom. Au lieu de devoir spécifier les noms de chacune d'entre elles, nous pouvons les activer à l'aide
+d'un nom générique : "VK_LAYER_LUNARG_standard_validation".
 
-Let's first add two configuration variables to the program to specify the layers
-to enable and whether to enable them or not. I've chosen to base that value on
-whether the program is being compiled in debug mode or not. The `NDEBUG` macro
-is part of the C++ standard and means "not debug".
+Mais ajoutons d'abord deux variables spécifiant les layers à activer et si le programme doit en effet les activer. J'ai
+choisi d'effectuer ce choix selon si le programme est compilé en mode debug ou non. La macro `NDEBUG` fait partie
+du standard et correspond au deuxième cas.
 
 ```c++
 const int WIDTH = 800;
@@ -86,17 +72,15 @@ const std::vector<const char*> validationLayers = {
 };
 
 #ifdef NDEBUG
-    const bool enableValidationLayers = false;
+    constexpr bool enableValidationLayers = false;
 #else
-    const bool enableValidationLayers = true;
+    constexpr bool enableValidationLayers = true;
 #endif
 ```
 
-We'll add a new function `checkValidationLayerSupport` that checks if all of
-the requested layers are available. First list all of the available layers
-using the `vkEnumerateInstanceLayerProperties` function. Its usage is identical
-to that of `vkEnumerateInstanceExtensionProperties` which was discussed in the
-instance creation chapter.
+Ajoutons une nouvelle fonction `chackValidationLayerSupport`, qui devra vérifier si les layers que nous voulons utiliser
+ sont disponibles. Listez d'abord les validation layers disponibles à l'aide de la fonction
+ `vkEnumerateInstanceLayerProperties`. Elle s'utilise de la même façon que `vkEnumerateInstanceExtensionProperties`.
 
 ```c++
 bool checkValidationLayerSupport() {
@@ -110,8 +94,8 @@ bool checkValidationLayerSupport() {
 }
 ```
 
-Next, check if all of the layers in `validationLayers` exist in the
-`availableLayers` list. You may need to include `<cstring>` for `strcmp`.
+Verifiez que toutes les layers de `validationLayers` sont présentes dans la liste des layers disponibles. Vous aurez
+besoin de `<cstring>` pour la fonction `strcmp`.
 
 ```c++
 for (const char* layerName : validationLayers) {
@@ -132,26 +116,25 @@ for (const char* layerName : validationLayers) {
 return true;
 ```
 
-We can now use this function in `createInstance`:
+Nous pouvons maintenant utiliser cette fonction dans `createInstance` :
 
 ```c++
 void createInstance() {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
-        throw std::runtime_error("validation layers requested, but not available!");
+        throw std::runtime_error("les validations layers sont activées mais ne sont pas disponibles!");
     }
 
     ...
 }
 ```
 
-Now run the program in debug mode and ensure that the error does not occur. If
-it does, then make sure you have properly installed the Vulkan SDK. If none or
-very few layers are being reported, then you may be dealing with
-[this issue](https://vulkan.lunarg.com/app/issues/578e8c8d5698c020d71580fc)
-(requires a LunarG account to view). See that page for help with fixing it.
+Lancez maintenant le programme en mode debug et assurez-vous qu'il fonctionne. Si vous obtenez une erreur, vérifiez
+votre installation du SDK. Si aucune layer n'est disponible, ou seulement très peu, vous vous trouvez peut-être dans le
+cas dû à [ce bug](https://vulkan.lunarg.com/app/issues/578e8c8d5698c020d71580fc) (vous aurez besoin d'un compte pour
+voir cette page).
 
-Finally, modify the `VkInstanceCreateInfo` struct instantiation to include the
-validation layer names if they are enabled:
+Modifions enfin la structure `VkCreateInstanceInfo` pour inclure les noms des validation layers à utiliser lorsqu'elles
+sont activées :
 
 ```c++
 if (enableValidationLayers) {
@@ -162,19 +145,18 @@ if (enableValidationLayers) {
 }
 ```
 
-If the check was successful then `vkCreateInstance` should not ever return a
-`VK_ERROR_LAYER_NOT_PRESENT` error, but you should run the program to make sure.
+Si l'appel à la fonction `checkValidationLayerSupport` est un succès, `vkCreateInstance` ne devrait jamais retourner
+`VK_ERROR_LAYER_NOT_PRESENT`, mais exécutez tout de même le programme pour être sûr que d'autres erreurs n'apparaissent 
+pas.
 
-## Message callback
+## Fonction de rappel des erreurs
 
-Unfortunately just enabling the layers doesn't help much, because they currently
-have no way to relay the debug messages back to our program. To receive those
-messages we have to set up a callback, which requires the `VK_EXT_debug_utils`
-extension.
+Malheureusement, activer les validation layers ne nous aide pas beaucoup car elles n'ont pour l'instant aucun moyen de
+nous envoyer les messages. Pour les recevoir nous aurons besoin d'une fonction de rappel qui nécessite l'extension
+`VK_EXT_debug_utils`.
 
-We'll first create a `getRequiredExtensions` function that will return the
-required list of extensions based on whether validation layers are enabled or
-not:
+Créons d'abord une fonction `getRequiredExtensions`. Elle nous fournira les extensions nécessaires selon que nous
+activons les validation layers ou non :
 
 ```c++
 std::vector<const char*> getRequiredExtensions() {
@@ -192,12 +174,11 @@ std::vector<const char*> getRequiredExtensions() {
 }
 ```
 
-The extensions specified by GLFW are always required, but the debug report
-extension is conditionally added. Note that I've used the
-`VK_EXT_DEBUG_UTILS_EXTENSION_NAME` macro here which is equal to the literal
-string "VK_EXT_debug_utils". Using this macro lets you avoid typos.
+Les extensions spécifiées par GLFW seront toujours nécessaires, mais celle pour le débugage n'est ajoutée que
+conditionnellement. Remarquez l'utilisation de la macro `VK_EXT_DEBUG_UTILS_EXTENSION_NAME` au lieu du nom de
+l'extension pour éviter les erreurs de frappe.
 
-We can now use this function in `createInstance`:
+Nous pouvons maintenant utiliser cette fonction dans `createInstance` :
 
 ```c++
 auto extensions = getRequiredExtensions();
@@ -205,15 +186,13 @@ createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 createInfo.ppEnabledExtensionNames = extensions.data();
 ```
 
-Run the program to make sure you don't receive a
-`VK_ERROR_EXTENSION_NOT_PRESENT` error. We don't really need to check for the
-existence of this extension, because it should be implied by the availability of
-the validation layers.
+Exécutez le programme et assurez-vous que vous ne recevez pas l'erreur `VK_ERROR_EXTENSION_NOT_PRESENT`. Nous ne devrions
+ pas avoir besoin de vérifier sa présence dans la mesure où elle devrait être disponible avec les validation layers,
+mais sait-on jamais.
 
-Now let's see what a callback function looks like. Add a new static member
-function called `debugCallback` with the `PFN_vkDebugUtilsMessengerCallbackEXT`
-prototype. The `VKAPI_ATTR` and `VKAPI_CALL` ensure that the function has the
-right signature for Vulkan to call it.
+Intéressons-nous maintenant à la fonction de rappel. Ajoutez la fonction statique `debugCallback` à votre classe avec le
+ prototype `PFN_vkDebugUtilsMessengerCallbackEXT`. `VKAPI_ATTR` et `VKAPI_CALL` assurent une comptaibilité avec tous les
+ compilateurs.
 
 ```c++
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -228,52 +207,56 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 }
 ```
 
-The first parameter specifies the severity of the message, which is one of the following flags:
+Le premier paramètre indique la sévérité du message, et peut prendre les valeurs suivantes :
 
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Diagnostic message
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: Informational message like the creation of a resource
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message about behavior that is not necessarily an error, but very likely a bug in your application
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: Message about behavior that is invalid and may cause crashes
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Message de diagnostic
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: Message d'information (allocation d'une ressource...)
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message relevant un comportment qui n'est pas un bug mais plutôt
+une imperfection involontaire
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: Message relevant un comportant invalide pouvant mener à un crash
 
-The values of this enumeration are set up in such a way that you can use a comparison operation to check if a message is equal or worse compared to some level of severity, for example:
+Les valeurs de cette énumération on été conçues de telle sorte qu'il est possible de les comparer pour vérifier la
+sévérité d'un message, par exemple :
 
 ```c++
 if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    // Message is important enough to show
+    // Le message est suffisemment important pour être affiché
 }
 ```
 
-The `messageType` parameter can have the following values:
+Le paramètre `messageType` peut prendre les valeurs suivantes :
 
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT`: Some event has happened that is unrelated to the specification or performance
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT`: Something has happened that violates the specification or indicates a possible mistake
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT`: Potential non-optimal use of Vulkan
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT` : Un évenement quelconque est survenu, sans lien avec les
+performances ou la spécification
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT` : Une violation de la spécification ou une potentielle erreur est
+survenue
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT` : Utilisation potentiellement mal optiomisée de Vulkan
 
-The `pCallbackData` parameter refers to a `VkDebugUtilsMessengerCallbackDataEXT` struct containing the details of the message itself, with the most important members being:
+Le paramètre `pCallbackData` est une structure du type `VkDebugUtilsMessengerCallbackDataEXT` contenant les détails du
+message. Ses membres les plus importants sont :
 
-* `pMessage`: The debug message as a null-terminated string
-* `pObjects`: Array of Vulkan object handles related to the message
-* `objectCount`: Number of objects in array
+* `pMessage`: Le message sous la forme d'une chaîne de type C terminée par le caractère nul
+* `pObjects`: Un tableau d'objets Vulkan liés au message
+* `objectCount`: Le nombre d'objets dans le tableau précédent
 
-Finally, the `pUserData` parameter contains a pointer that was specified during the setup of the callback and allows you to pass your own data to it.
+Finallement, le paramètre `pUserData` est un pointeur sur une donnée quelconque que vous pouvez spécifier à la création
+de la fonction de rappel.
 
-The callback returns a boolean that indicates if the Vulkan call that triggered
-the validation layer message should be aborted. If the callback returns true,
-then the call is aborted with the `VK_ERROR_VALIDATION_FAILED_EXT` error. This
-is normally only used to test the validation layers themselves, so you should
-always return `VK_FALSE`.
+La fonction de rappel que nous programmons retourne un booléen déterminant si la fonction à l'origine de son appel doit
+être interrompue. Si elle retourne `VK_TRUE`, l'exécution de la fonction est interrompue et cette dernière retourne
+`VK_ERROR_VALIDATION_FAILED_EXT`. Cette fonctionnalité n'est globalement utilisée que pour tester les validation layers
+elles-mêmes, nous retournerons donc invariablement `VK_FALSE`.
 
-All that remains now is telling Vulkan about the callback function. Perhaps
-somewhat surprisingly, even the debug callback in Vulkan is managed with a
-handle that needs to be explicitly created and destroyed. Such a callback is called a *messenger* and you can have as many of them as you want. Add a class member for
-this handle right under `instance`:
+Il ne nous reste plus qu'à fournir notre fonction à Vulkan. D'une manière suprenante, même le messager de débugage se
+gère à travers une référence, du type `VkDebugUtilsMessengerEXT`, que nous devrons explicitement créer et détruire. Une
+telle fonction de rappel est appelée *messager*, et vous pouvez en posséder autant que vous le désirez. Ajoutez un
+membre donnée pour le messager sous l'instance :
 
 ```c++
 VkDebugUtilsMessengerEXT callback;
 ```
 
-Now add a function `setupDebugCallback` to be called from `initVulkan` right
-after `createInstance`:
+Ajoutez ensuite une fonction `setupDebugCallback` et appelez la dans `initVulkan` après `createInstance` :
 
 ```c++
 void initVulkan() {
@@ -287,7 +270,7 @@ void setupDebugCallback() {
 }
 ```
 
-We'll need to fill in a structure with details about the callback:
+Nous devons maintenant remplir une structure avec des informations sur le messager :
 
 ```c++
 VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
@@ -295,23 +278,32 @@ createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 createInfo.pfnUserCallback = debugCallback;
-createInfo.pUserData = nullptr; // Optional
+createInfo.pUserData = nullptr; // Optionnel
 ```
 
-The `messageSeverity` field allows you to specify all the types of severities you would like your callback to be called for. I've specified all types except for `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT` here to receive notifications about possible problems while leaving out verbose general debug info.
+Le champ `messageSeverity` vous permet de filtrer les niveaux de sévérité pour lesquels la fonction de rappel sera
+appelée. J'ai laissé tous les types sauf `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`, ce qui permet de recevoir
+toutes les informations à propos de possibles bugs tout en éliminant la verbose.
 
-Similarly the `messageType` field lets you filter which types of messages your callback is notified about. I've simply enabled all types here. You can always disable some if they're not useful to you.
+De manière similaire, le champ `messageType` vous permet de filtrer les types de message pour lesquels la fonction de
+rappel sera appelée. J'y ai mis tous les types possibles. Vous pouvez très bien en désactiver si ils ne vous servent à
+rien.
 
-Finally, the `pfnUserCallback` field specifies the pointer to the callback function. You can optionally pass a pointer to the `pUserData` field which will be passed along to the callback function via the `pUserData` parameter. You could use this to pass a pointer to the `HelloTriangleApplication` class, for example.
+Le champ `pfnUserCallback` indique le pointeur sur la fonction de rappel.
 
-Note that there are many more ways to configure validation layer messages and debug callbacks, but this is a good setup to get started with for this tutorial. See the [extension specification](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VK_EXT_debug_utils) for more info about the possibilities.
+Vous pouvez optionnellement ajouter un pointeur sur une donnée de votre choix grâce au champ `pUserData`. Le pointeur
+fait partie des paramètres de la fonction de rappel.
 
-This struct should be passed to the `vkCreateDebugUtilsMessengerEXT` function to
-create the `VkDebugUtilsMessengerEXT` object. Unfortunately, because this
-function is an extension function, it is not automatically loaded. We have to
-look up its address ourselves using `vkGetInstanceProcAddr`. We're going to
-create our own proxy function that handles this in the background. I've added it
-right above the `HelloTriangleApplication` class definition.
+Notez qu'il existe de nombreuses autres manières de configurer des messagers auprès des validation layers, mais nous
+avons ici une bonne base pour ce tutoriel. Référez-vous à la 
+[spécification de l'extension](www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VK_EXT_debug_utils)
+pour plus d'informations sur ces possibilités.
+
+Cette structure doit maintenant être passée à la fonction `vkCreateDebugUtilsMessengerEXT` afin de créer l'objet
+`VkDebugUtilsMessengerEXT`. Malheureusement cette fonction fait partie d'une extension non incluse par GLFW. Nous devons
+ donc gérer la procédure de son chargement nous-mêmes. Nous utiliserons la fonction `vkGetInstancePorcAddr` pous en
+récupérer un pointeur. Nous allons créer notre propre fonction - servant de proxy - pour abstraire cela. Je l'ai ajoutée
+ au-dessus de la définition de la classe `HelloTriangleApplication`.
 
 ```c++
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback) {
@@ -324,33 +316,30 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 }
 ```
 
-The `vkGetInstanceProcAddr` function will return `nullptr` if the function
-couldn't be loaded. We can now call this function to create the extension
-object if it's available:
+La fonction `vkGetInstanceProcAddr` retourne `nullptr` si la fonction n'a pas pu être chargée. Nous pouvons maintenant
+utiliser cette fonction pour créer le messager s'il est disponible :
 
 ```c++
 if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
-    throw std::runtime_error("failed to set up debug callback!");
+    throw std::runtime_error("le messager n'a pas pu être créé!");
 }
 ```
 
-The second to last parameter is again the optional allocator callback that we
-set to `nullptr`, other than that the parameters are fairly straightforward.
-Since the debug callback is specific to our Vulkan instance and its layers, it
-needs to be explicitly specified as first argument. You will also see this
-pattern with other *child* objects later on. Let's see if it works... Run the
-program and close the window once you're fed up with staring at the blank
-window. You'll see that the following messages are printed to the command prompt:
+Le troisième paramètre est encore le même allocateur optionnel que nous laissons `nullptr`. Les autres paramètres sont
+assez logiques. La fonction de rappel est spécifique de l'instance et des validation layers, nous devons donc passer
+l'instance en premier argument. Lancez le programme et vérifiez qu'il fonction... Vous devrez avoir le résultat 
+suivant...
+:
 
 ![](/images/validation_layer_test.png)
 
-Oops, it has already spotted a bug in our program! The
-`VkDebugUtilsMessengerEXT` object needs to be cleaned up with a call to
-`vkDestroyDebugUtilsMessengerEXT`. Similarly to `vkCreateDebugUtilsMessengerEXT`
-the function needs to be explicitly loaded. Note that it is normal for this message to be printed multiple times. This happens because multiple validation layers check for for the deletion of the debug messenger.
+...indiquant déjà un bug dans notre application! En effet l'objet `VkDebugUtilsMessengerEXT` doit être libéré 
+explicitement à l'aide de la fonction `vkDestroyDebugUtilsMessagerEXT`. De même qu'avec 
+`vkCreateDebugUtilsMessangerEXT` nous devons charger dynamiquement cette fonction. Notez qu'il est normal que le 
+message s'affiche plusieurs fois; il y a plusieurs validation layers, et dans certains cas leurs domaines de travail 
+se recoupent.
 
-Create another proxy function right
-below `CreateDebugUtilsMessengerEXT`:
+Créez une autre fonction proxy en-dessous de `CreateDebugUtilsMessengerEXT` :
 
 ```c++
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT callback, const VkAllocationCallbacks* pAllocator) {
@@ -361,8 +350,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 }
 ```
 
-Make sure that this function is either a static class function or a function
-outside the class. We can then call it in the `cleanup` function:
+Nous pouvons maintenant l'appeler dans notre fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -378,25 +366,22 @@ void cleanup() {
 }
 ```
 
-When you run the program again you'll see that the error message has
-disappeared. If you want to see which call triggered a message, you can add a
-breakpoint to the message callback and look at the stack trace.
+Si vous exécutez le programme maintenant, vous devriez constater que le message n'apparait plus. Si vous voulez voir
+quel appel a lancé un appel, vous pouvez insérer un point d'arrêt dans la fonction de rappel.
 
 ## Configuration
 
-There are a lot more settings for the behavior of validation layers than just
-the flags specified in the `VkDebugUtilsMessengerCreateInfoEXT` struct. Browse
-to the Vulkan SDK and go to the `Config` directory. There you will find a
-`vk_layer_settings.txt` file that explains how to configure the layers.
+Les validation layers peuvent être paramétrées de nombreuses autres manières que juste avec les informations que nous
+avons fournies dans la structure `VkDebugUtilsMessangerCreateInfoEXT`. Ouvrez le SDK Vulkan et rendez-vous dans le
+dossier `Config`. Vous y trouverez le fichier `vk_layer_settings.txt` qui vous expliquera comment configurer les
+validation layers.
 
-To configure the layer settings for your own application, copy the file to the
-`Debug` and `Release` directories of your project and follow the instructions to
-set the desired behavior. However, for the remainder of this tutorial I'll
-assume that you're using the default settings.
+Pour configurer les layers pour votre propre application, copiez le fichier dans les dossiers `Debug` et/ou `Release`,
+puis suivez les instructions pour obtenir le comportement que vous souhaitez. Cependant, pour le reste du tutoriel, je
+partirai du principe que vous les avez laissées avec leur comportement par défaut.
 
-Throughout this tutorial I'll be making a couple of intentional mistakes to show
-you how helpful the validation layers are with catching them and to teach you
-how important it is to know exactly what you're doing with Vulkan. Now it's time
-to look at [Vulkan devices in the system](!Drawing_a_triangle/Setup/Physical_devices_and_queue_families).
+Tout au long du tutoriel je laisserai de petites erreurs intentionnelles pour vous montrer à quel point les validation
+layers sont pratiques, et à quel point vous devez comprendre tout ce que vous faites avec Vulkan. Il est maintenant
+temps de s'intéresser aux [devices Vulkan dans le système](!Drawing_a_triangle/Setup/Physical_devices_and_queue_families).
 
-[C++ code](/code/02_validation_layers.cpp)
+[Code C++](/code/02_validation_layers.cpp)
