@@ -1,12 +1,11 @@
-## Selecting a physical device
+## Sélection d'un physical device
 
-After initializing the Vulkan library through a VkInstance we need to look for
-and select a graphics card in the system that supports the features we need. In
-fact we can select any number of graphics cards and use them simultaneously, but
-in this tutorial we'll stick to the first graphics card that suits our needs.
+La librairie étant initialisée à travers `VkInstance`, nous pouvons dès à présent chercher et sélectionner une carte
+graphique (physical device) dans le système qui supporte les fonctionnalitées dont nous aurons besoin. Nous pouvons en
+fait en sélectionner autant que nous voulons et travailler avec chacune d'entre elles, mais nous n'en utiliserons qu'une
+dans ce tutoriel pour des raisons de simplicité.
 
-We'll add a function `pickPhysicalDevice` and add a call to it in the
-`initVulkan` function.
+Ajoutez la fonction `pickPhysicalDevice` et appelez la depuis `initVulkan` :
 
 ```c++
 void initVulkan() {
@@ -20,42 +19,40 @@ void pickPhysicalDevice() {
 }
 ```
 
-The graphics card that we'll end up selecting will be stored in a
-VkPhysicalDevice handle that is added as a new class member. This object will be
-implicitly destroyed when the VkInstance is destroyed, so we won't need to do
-anything new in the `cleanup` function.
+Nous stockerons le physical device que nous aurons sélectionnée dans un nouveau membre donnée de la classe, et celui-ci
+sera du type `VkPhysicalDevice`. Cet objet sera implicitement détruit avec l'instance, nous n'avons donc rien à 
+ajouter à la fonction `cleanup`.
 
 ```c++
 VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 ```
 
-Listing the graphics cards is very similar to listing extensions and starts with
-querying just the number.
+Lister les physical devices est un procédé très similaire à lister les extensions. Comme d'habitude, on commence par en
+ lister le nombre.
 
 ```c++
 uint32_t deviceCount = 0;
 vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 ```
 
-If there are 0 devices with Vulkan support then there is no point going further.
+Si il n'y aucun physical device supportant Vulkan, rien ne sert de continuer l'exécution.
 
 ```c++
 if (deviceCount == 0) {
-    throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    throw std::runtime_error("aucune carte graphique ne supporte Vulkan!");
 }
 ```
 
-Otherwise we can now allocate an array to hold all of the VkPhysicalDevice
-handles.
+Nous pouvons ensuite allouer un tableau contenant toutes les références aux `VkPhysicalDevice`.
 
 ```c++
 std::vector<VkPhysicalDevice> devices(deviceCount);
 vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 ```
 
-Now we need to evaluate each of them and check if they are suitable for the
-operations we want to perform, because not all graphics cards are created equal.
-For that we'll introduce a new function:
+Nous devons maintenant évaluer chacun d'entre eux et vérifier qu'ils conviennent pour ce que nous voudrons en faire, car
+ toutes les cartes graphiques ne sont pas nées libres et égales. Voici une nouvelle fonction qui fera le travail de
+sélection :
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -63,8 +60,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-And we'll check if any of the physical devices meet the requirements that we'll
-add to that function.
+Nous allons dans cette fonction vérifier que le physical device respecte nos conditions.
 
 ```c++
 for (const auto& device : devices) {
@@ -75,40 +71,36 @@ for (const auto& device : devices) {
 }
 
 if (physicalDevice == VK_NULL_HANDLE) {
-    throw std::runtime_error("failed to find a suitable GPU!");
+    throw std::runtime_error("aucun GPU ne peut exécuter ce programme!");
 }
 ```
 
-The next section will introduce the first requirements that we'll check for in
-the `isDeviceSuitable` function. As we'll start using more Vulkan features in
-the later chapters we will also extend this function to include more checks.
+La section suivante introduira les premières contraintes que devront remplir les physical devices. Au fur et à mesure
+que nous utiliserons de nouvelles fonctionnalités, nous les ajouterons dans cette fonction.
 
-## Base device suitability checks
+## Vérification des fonctionnalités de base
 
-To evaluate the suitability of a device we can start by querying for some
-details. Basic device properties like the name, type and supported Vulkan
-version can be queried using vkGetPhysicalDeviceProperties.
+Pour évaluer la compatibilité d'un physical device nous devons d'abord nous informer sur ses capacités. Des propriétés
+basiques comme le nom, le type et les versions de Vulkan supportées peuvent être obtenues en appelant
+`vkGetPhysicalDeviceProperties`.
 
 ```c++
 VkPhysicalDeviceProperties deviceProperties;
 vkGetPhysicalDeviceProperties(device, &deviceProperties);
 ```
 
-The support for optional features like texture compression, 64 bit floats and
-multi viewport rendering (useful for VR) can be queried using
-vkGetPhysicalDeviceFeatures:
+Le support des fonctionnalités optionnelles telles que les textures compressées, les floats de 64 bits et le rendu multi
+affichage (pour la VR) s'obtiennent avec `vkGetPhysicalDeviceFeatures` :
 
 ```c++
 VkPhysicalDeviceFeatures deviceFeatures;
 vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 ```
 
-There are more details that can be queried from devices that we'll discuss later
-concerning device memory and queue families (see the next section).
+De nombreux autres détails intéressants peuvent être requis, mais nous en remparlerons dans les prochains chapitres.
 
-As an example, let's say we consider our application only usable for dedicated
-graphics cards that support geometry shaders. Then the `isDeviceSuitable`
-function would look like this:
+Voyons un premier exemple. Considérons que notre application a besoin d'une carte graphique dédiée supportant les
+geometry shaders. Notre fonction `isDeviceSuitable` ressemblerait alors à cela :
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -122,11 +114,9 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-Instead of just checking if a device is suitable or not and going with the first
-one, you could also give each device a score and pick the highest one. That way
-you could favor a dedicated graphics card by giving it a higher score, but fall
-back to an integrated GPU if that's the only available one. You could implement
-something like that as follows:
+Au lieu de choisir le premier physical device nous convenant, nous pourrions attribuer un score à chacun d'entre eux et
+utiliser celui dont le score est le plus élevé. Vous pourriez ainsi préférer une carte graphique dédiée, mais utiliser
+un GPU intégré au CPU si le système n'en détecte aucune. Vous pourriez implémenter ce concept comme cela :
 
 ```c++
 #include <map>
@@ -136,7 +126,7 @@ something like that as follows:
 void pickPhysicalDevice() {
     ...
 
-    // Use an ordered map to automatically sort candidates by increasing score
+    // L'utilisation d'une unordered_map permet de les trier automatiquement de manière ascendante
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (const auto& device : devices) {
@@ -144,11 +134,11 @@ void pickPhysicalDevice() {
         candidates.insert(std::make_pair(score, device));
     }
 
-    // Check if the best candidate is suitable at all
+    // Vérifier si la meilleure possède les fonctionnalités dont nous ne pouvons nous passer
     if (candidates.rbegin()->first > 0) {
         physicalDevice = candidates.rbegin()->second;
     } else {
-        throw std::runtime_error("failed to find a suitable GPU!");
+        throw std::runtime_error("aucun GPU ne peut exécuter ce programme!");
     }
 }
 
@@ -157,15 +147,15 @@ int rateDeviceSuitability(VkPhysicalDevice device) {
 
     int score = 0;
 
-    // Discrete GPUs have a significant performance advantage
+    // Les carte graphiques dédiées ont un énorme avantage en terme de performances
     if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
         score += 1000;
     }
 
-    // Maximum possible size of textures affects graphics quality
+    // La taille maximale des textures affecte leur qualité
     score += deviceProperties.limits.maxImageDimension2D;
 
-    // Application can't function without geometry shaders
+    // L'application (fictive) ne peut fonctionner sans les geometry shaders
     if (!deviceFeatures.geometryShader) {
         return 0;
     }
@@ -174,12 +164,10 @@ int rateDeviceSuitability(VkPhysicalDevice device) {
 }
 ```
 
-You don't need to implement all that for this tutorial, but it's to give you an
-idea of how you could design your device selection process. Of course you can
-also just display the names of the choices and allow the user to select.
+Vous n'avez pas besoin d'implémenter tout ça pour ce tutoriel, mais faites-le si vous voulez. Vous pourriez également
+vous contenter d'afficher les noms des cartes graphiques et laisser l'utilisateur choisir.
 
-Because we're just starting out, Vulkan support is the only thing we need and
-therefore we'll settle for just any GPU:
+Nous ne faisons que commencer donc nous prendrons la première carte supportant Vulkan :
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -187,26 +175,23 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-In the next section we'll discuss the first real required feature to check for.
+Nous discuterons de la première fonctionnalité qui nous sera nécessaire dans la section suivante.
 
-## Queue families
+## Familles de queues (queue families)
 
-It has been briefly touched upon before that almost every operation in Vulkan,
-anything from drawing to uploading textures, requires commands to be submitted
-to a queue. There are different types of queues that originate from different
-*queue families* and each family of queues allows only a subset of commands. For
-example, there could be a queue family that only allows processing of compute
-commands or one that only allows memory transfer related commands.
+Il a été évoqué que chaque opération avec Vulkan, de l'affichage jusqu'au chargement d'une texture, s'effectue en
+ajoutant une commande à une file d'attente (queue). Il existe différentes queues appartenant à différents types de
+*queue families*. De plus chaque queue family ne permet que certaines commandes. Il se peut par exemple qu'une queue ne
+traite que les commandes de calcul et qu'une autre ne supporte que les commandes d'allocation de mémoire.
 
-We need to check which queue families are supported by the device and which one
-of these supports the commands that we want to use. For that purpose we'll add a
-new function `findQueueFamilies` that looks for all the queue families we need.
-Right now we'll only look for a queue that supports graphics commands, but we
-may extend this function to look for more at a later point in time.
+Nous devons analyser quelles queue families existent sur le système et lesquelles correspondent aux commandes que nous
+souhaitons utiliser. Nous allons donc créer la fonction `findQueueFamilies` dans laquelle nous chercherons les
+commandes nous intéressant. Nous allons commencer par ne chercher qu'une queue supportant les commandes graphiques, mais
+nous étendrons cela plus tard dans le tutoriel.
 
-This function will return the indices of the queue families that satisfy certain
-desired properties. The best way to do that is using a structure, where an
-index of `-1` will denote "not found":
+Cette fonction retournera les indices des queue families satisfaisant les propriétés que nous désirons. La meilleure
+manière de faire cela est d'utiliser une structure dans laquelle l'indice `-1` dénotera que la queue family n'a pas
+été trouvée :
 
 ```c++
 struct QueueFamilyIndices {
@@ -218,7 +203,7 @@ struct QueueFamilyIndices {
 };
 ```
 
-We can now begin implementing `findQueueFamilies`:
+Nous pouvons dès maintenant implémenter `findQueueFamilies` :
 
 ```c++
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
@@ -230,8 +215,8 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 }
 ```
 
-The process of retrieving the list of queue families is exactly what you expect
-and uses `vkGetPhysicalDeviceQueueFamilyProperties`:
+Récupérer la liste des queue families disponibles se fait de la même manière que d'habitude, avec la fonction
+`vkGetPhysicalDeviceQueueFamilyProperties` :
 
 ```c++
 uint32_t queueFamilyCount = 0;
@@ -241,10 +226,9 @@ std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 ```
 
-The VkQueueFamilyProperties struct contains some details about the queue family,
-including the type of operations that are supported and the number of queues
-that can be created based on that family. We need to find at least one queue
-family that supports `VK_QUEUE_GRAPHICS_BIT`.
+La structure VkQueueFamilyProperties contient des informations sur la queue family, et en particulier le type 
+d'opérations qu'elle suporte et le nombre de queues que l'on peut instancier à partir de cette famille. Nous devons 
+trouver au moins une queue supportant `VK_QUEUE_GRAPHICS_BIT` :
 
 ```c++
 int i = 0;
@@ -261,9 +245,8 @@ for (const auto& queueFamily : queueFamilies) {
 }
 ```
 
-Now that we have this fancy queue family lookup function, we can use it as a
-check in the `isDeviceSuitable` function to ensure that the device can process
-the commands we want to use:
+Nous pouvons maintenant utiliser cette fonction dans `isDeviceSuitable` pour s'assurer que le physical device peut 
+recevoir les commandes que nous voulons lui envoyer :
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -273,8 +256,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-Great, that's all we need for now to find the right physical device! The next
-step is to [create a logical device](!Drawing_a_triangle/Setup/Logical_device_and_queues)
-to interface with it.
+Bien, c'est tout ce dont nous aurons besoin pour choisir le bon physical device! La prochaine étape est de [créer un 
+logical device](!Drawing_a_triangle/Setup/Logical_device_and_queues) pour servir d'interface.
 
-[C++ code](/code/03_physical_device_selection.cpp)
+[Code C++](/code/03_physical_device_selection.cpp)
