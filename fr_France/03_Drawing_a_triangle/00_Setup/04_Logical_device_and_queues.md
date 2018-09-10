@@ -1,19 +1,17 @@
 ## Introduction
 
-After selecting a physical device to use we need to set up a *logical device* to
-interface with it. The logical device creation process is similar to the
-instance creation process and describes the features we want to use. We also
-need to specify which queues to create now that we've queried which queue
-families are available. You can even create multiple logical devices from the
-same physical device if you have varying requirements.
+La sélection d'un physical device faite, nous devons générer un *logical device* pour servir d'interface. Le 
+processus de sa création est similaire à celui de l'instance : nous devons décrire ce dont nous aurons besoin. Nous 
+devons également spécifier les queues dont nous aurons besoin. Vous pouvez également créer plusieurs logical devices à
+partir d'un physical device si vous en avez besoin.
 
-Start by adding a new class member to store the logical device handle in.
+Commencez par ajouter un nouveau membre donnée pour stocker la référence au logical device.
 
 ```c++
 VkDevice device;
 ```
 
-Next, add a `createLogicalDevice` function that is called from `initVulkan`.
+Ajoutez ensuite une fonction `createLogicalDevice` et appelez-la depuis `initVulkan`.
 
 ```c++
 void initVulkan() {
@@ -28,12 +26,12 @@ void createLogicalDevice() {
 }
 ```
 
-## Specifying the queues to be created
+## Spécifier les queues à créer
 
-The creation of a logical device involves specifying a bunch of details in
-structs again, of which the first one will be `VkDeviceQueueCreateInfo`. This
-structure describes the number of queues we want for a single queue family.
-Right now we're only interested in a queue with graphics capabilities.
+La création d'un logical device requiert encore que nous remplissions des informations dans des structures. La 
+première de ces structures s'appelle `VkDeviceQueueCreateInfo`. Elle indique le nombre de queues que nous désirons pour 
+chaque queue family. Pour le moment nous n'avons besoin que d'une queue originaire d'une seule queue family : celle 
+des graphismes.
 
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -44,44 +42,40 @@ queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
 queueCreateInfo.queueCount = 1;
 ```
 
-The currently available drivers will only allow you to create a small number of
-queues for each queue family and you don't really need more than one. That's
-because you can create all of the command buffers on multiple threads and then
-submit them all at once on the main thread with a single low-overhead call.
+Actuellement les drivers ne vous permettent que de créer un petit nombre de queues pour chacune des familles, et vous
+n'avez en effet pas besoin de plus. Vous pouvez très bien créer les commandes (command buffers) depuis plusieurs 
+threads et les soumettre à la queue d'un coup sur le thread principal, et ce sans perte de performance.
 
-Vulkan lets you assign priorities to queues to influence the scheduling of
-command buffer execution using floating point numbers between `0.0` and `1.0`.
-This is required even if there is only a single queue:
+Vulkan permet d'assigner des niveaux de priorité aux queues à l'aide de nombres flottants entre `0.0` et `1.0`. Vous 
+pouvez ainsi influencer l'exécution des command buffers. Cela est nécessaire même lorsque une seule queue est présente :
 
 ```c++
 float queuePriority = 1.0f;
 queueCreateInfo.pQueuePriorities = &queuePriority;
 ```
 
-## Specifying used device features
+## Spécifier les fonctionnalités utilisées
 
-The next information to specify is the set of device features that we'll be
-using. These are the features that we queried support for with
-`vkGetPhysicalDeviceFeatures` in the previous chapter, like geometry shaders.
-Right now we don't need anything special, so we can simply define it and leave
-everything to `VK_FALSE`. We'll come back to this structure once we're about to
-start doing more interesting things with Vulkan.
+Les prochaines informations à fournir sont les fonctionnalités du physical device que nous souhaitons utiliser. Ce 
+sont celles dont nous avons vérifié la présence avec `vkGetPhysicalDeviceFeatures` dans le chapitre précédent. Nous 
+n'avons besoin de rien de spécial pour l'instant, nous pouvons donc nous contenter de créer la structure et de tout 
+laisser à `VK_FALSE`, valeur par défaut. Nous reviendrons sur cette structure quand nous ferons des choses plus 
+intéressantes avec Vulkan.
 
 ```c++
 VkPhysicalDeviceFeatures deviceFeatures = {};
 ```
 
-## Creating the logical device
+## Créer le logical device
 
-With the previous two structures in place, we can start filling in the main
-`VkDeviceCreateInfo` structure.
+Avec ces deux structure prêtes, nous pouvons enfin remplir la structure principale appelée `VkDeviceCreateInfo`.
 
 ```c++
 VkDeviceCreateInfo createInfo = {};
 createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 ```
 
-First add pointers to the queue creation info and device features structs:
+Référencez d'abord les structures sur la création des queues et sur les fonctionnalités utilisées :
 
 ```c++
 createInfo.pQueueCreateInfos = &queueCreateInfo;
@@ -90,19 +84,16 @@ createInfo.queueCreateInfoCount = 1;
 createInfo.pEnabledFeatures = &deviceFeatures;
 ```
 
-The remainder of the information bears a resemblance to the
-`VkInstanceCreateInfo` struct and requires you to specify extensions and
-validation layers. The difference is that these are device specific this time.
+Le reste ressemble à la structure `VkInstanceCreateInfo`. Nous devons spécifier les extensions spécifiques de la 
+carte graphique et les validation layers.
 
-An example of a device specific extension is `VK_KHR_swapchain`, which allows
-you to present rendered images from that device to windows. It is possible that
-there are Vulkan devices in the system that lack this ability, for example
-because they only support compute operations. We will come back to this
-extension in the swap chain chapter.
+Un exemple d'extension spécifique au GPU est `VK_KHR_swapchain`. Celle-ci vous permet de présenter à l'écran les images 
+sur lesquels votre programme a effectué un rendu. Il est en effet possible que certains GPU ne possède pas cette 
+capacité, par exemple parce qu'ils ne supportent que des opérations de calcul. Nous reviendrons sur cette extension
+dans le chapitre dédié à la swap chain.
 
-As mentioned in the validation layers chapter, we will enable the same
-validation layers for devices as we did for the instance. We won't need any
-device specific extensions for now.
+Comme dit dans le chapitre sur les calidation layers, nous activerons les mêmes que celles que nous avons spécifiées 
+lors de la création de l'instance. Nous n'avons pour l'instant besoin d'aucune validation layer spécifique.
 
 ```c++
 createInfo.enabledExtensionCount = 0;
@@ -115,22 +106,19 @@ if (enableValidationLayers) {
 }
 ```
 
-That's it, we're now ready to instantiate the logical device with a call to the
-appropriately named `vkCreateDevice` function.
+C'est bon, nous pouvons maintenant instancier le logical device en appelant la fonction `vkCreateDevice`.
 
 ```c++
 if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create logical device!");
+    throw std::runtime_error("échec lors de la création d'un logical device!");
 }
 ```
 
-The parameters are the physical device to interface with, the queue and usage
-info we just specified, the optional allocation callbacks pointer and a pointer
-to a variable to store the logical device handle in. Similarly to the instance
-creation function, this call can return errors based on enabling non-existent
-extensions or specifying the desired usage of unsupported features.
+Les paramètres sont d'abord par le physical device dont on souhaite extraire une interface, puis la structure contenant
+les informations, ensuite un pointeur optionnel pour l'allocation et enfin un pointeur sur la référence au logical 
+device créé. Nous vérifions encore si la création a été un succès ou non, comme avec la création de l'instance.
 
-The device should be destroyed in `cleanup` with the `vkDestroyDevice` function:
+Le logical device doit être explicitement détruit dans la fonction `cleanup` avant le physical device :
 
 ```c++
 void cleanup() {
@@ -139,33 +127,29 @@ void cleanup() {
 }
 ```
 
-Logical devices don't interact directly with instances, which is why it's not
-included as a parameter.
+Les logical devices n'interagissent pas directement avec l'instance mais seulement avec le physical device, c'est 
+pourquoi il n'y a pas de paramètre pour l'instance.
 
-## Retrieving queue handles
+## Récupérer des références aux queues
 
-The queues are automatically created along with the logical device, but we don't
-have a handle to interface with them yet. First add a class member to store a
-handle to the graphics queue:
+Les queue families sont automatiquement crées avec le logical device. Cependant nous n'avons aucune interface avec 
+elles. Ajoutez un membre donnée pour stocker une référence à la queue family graphique :
 
 ```c++
 VkQueue graphicsQueue;
 ```
 
-Device queues are implicitly cleaned up when the device is destroyed, so we
-don't need to do anything in `cleanup`.
+Les queues sont implicitement détruite avec le logical device, nous n'avons donc pas à nous en charger dans `cleanup`.
 
-We can use the `vkGetDeviceQueue` function to retrieve queue handles for each
-queue family. The parameters are the logical device, queue family, queue index
-and a pointer to the variable to store the queue handle in. Because we're only
-creating a single queue from this family, we'll simply use index `0`.
+Nous pourrons ensuite récupérer des références à des queues avec la fonction `vkGetDeviceQueue`. Les parametres en 
+sont le logical device, la queue family, l'indice de la queue à récupérer et un pointeur où stocker la référence à la
+queue. Nous ne créons qu'une seule queue, nous écrirons donc `0` pour l'indice de la queue.
 
 ```c++
 vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
 ```
 
-With the logical device and queue handles we can now actually start using the
-graphics card to do things! In the next few chapters we'll set up the resources
-to present results to the window system.
+Avec le logical device et les queues nous pouvons maintenant faire travailler la carte graphique! Dans le prochain 
+chapitre nous parametrerons les ressources nécessaires à la présentation des résultats à l'écran.
 
-[C++ code](/code/04_logical_device.cpp)
+[Code C++](/code/04_logical_device.cpp)
