@@ -1,51 +1,42 @@
-Since Vulkan is a platform agnostic API, it can not interface directly with the
-window system on its own. To establish the connection between Vulkan and the
-window system to present results to the screen, we need to use the WSI (Window
-System Integration) extensions. In this chapter we'll discuss the first one,
-which is `VK_KHR_surface`. It exposes a `VkSurfaceKHR` object that represents an
-abstract type of surface to present rendered images to. The surface in our
-program will be backed by the window that we've already opened with GLFW.
+Vulkan ignore la plateforme sur laquelle il opère et ne peut donc pas directement établir d'interface avec le 
+gestionnaire de fenêtres. Pour créer une interface permettant de présenter les rendus à l'écran, nous devons utilser 
+l'extension WSI (Window System Integration ou Système d'Intégration de Fenêtres). Nous verrons dans ce chapitre
+l'extension `VK_KHR_surface`, l'une des extensions du WSI. Nous pourrons ainsi obtenir l'objet `VkSurfaceKHR`, qui 
+représente un type abstrait de surface sur lequel nous pourrons effectuer des rendus. Cette surface sera en lien avec
+la fenêtre que nous avons créée grâce à GLFW.
 
-The `VK_KHR_surface` extension is an instance level extension and we've actually
-already enabled it, because it's included in the list returned by
-`glfwGetRequiredInstanceExtensions`. The list also includes some other WSI
-extensions that we'll use in the next couple of chapters.
+L'extension `VK_KHR_surface`, qui se charge au niveau de l'instance, a déjà été ajoutée, car elle fait partie des 
+extensions retournées par la fonction `glfwGetRequiredInstanceExtensions`. Les autres fonctions WSI que nous verrons 
+dans les prochains chapitres feront aussi partie des extensions retournées par cette fonction.
 
-The window surface needs to be created right after the instance creation,
-because it can actually influence the physical device selection. The reason we
-postponed this is because window surfaces are part of the larger topic of
-render targets and presentation for which the explanation would have cluttered
-the basic setup. It should also be noted that window surfaces are an entirely
-optional component in Vulkan, if you just need off-screen rendering. Vulkan
-allows you to do that without hacks like creating an invisible window
-(necessary for OpenGL).
+La surface de fenêtre doit être créée juste après l'instance car elle peut influencer le choix du physical device. 
+Nous ne nous intéressons à ce sujet que maintenant car il fait partie du grand ensemble que nous abordons et qu'en 
+parler plus tôt aurait été confus. Il est important de noter que cette surface est complètement optionnelle, et vous 
+pouvez l'ignorer si vous voulez effectuer du rendu off-screen ou du calcul. Vulkan vous permet cela sans avoir besoin
+de recourir à des astuces comme créer une fenêtre invisible, alors que d'autres APIs le demandaient (OpenGL).
 
-## Window surface creation
+## Création de la surface de fenêtre
 
-Start by adding a `surface` class member right below the debug callback.
+Commencez par ajouter un membre donnée `surface` sous le messager.
 
 ```c++
 VkSurfaceKHR surface;
 ```
 
-Although the `VkSurfaceKHR` object and its usage is platform agnostic, its
-creation isn't because it depends on window system details. For example, it
-needs the `HWND` and `HMODULE` handles on Windows. Therefore there is a
-platform-specific addition to the extension, which on Windows is called
-`VK_KHR_win32_surface` and is also automatically included in the list from
-`glfwGetRequiredInstanceExtensions`.
+Bien que l'utilisation d'un objet `VkSurfaceKHR` soit indépendant de la plateforme, sa création ne l'est pas. 
+Celle-ci requiert par exemple des références à `HWND` et à `HMODULE` sous Windows. C'est pourquoi il existe des 
+extensions spécifiques de la plateforme, dont par exemple `VK_KHR_win32_surface` sous Windows, mais celles-ci sont 
+aussi intégrées à la fonction `glfwGetRequiredInstanceExtensions`.
 
-I will demonstrate how this platform specific extension can be used to create a
-surface on Windows, but we won't actually use it in this tutorial. It doesn't
-make any sense to use a library like GLFW and then proceed to use
-platform-specific code anyway. GLFW actually has `glfwCreateWindowSurface` that
-handles the platform differences for us. Still, it's good to see what it does
-behind the scenes before we start relying on it.
+Nous allons voir l'exemple de la création de la surface sous Windows, même si nous n'utiliserons pas cette méthode. 
+Il est en effet contre-productif d'utiliser une librairie comme GLFW et un API comme Vulkan et écrire du code 
+spécifique de la plateforme. La fonction de GLFW `glfwCreateWindowSurface` permet de gérer les différences de 
+plateforme. Cet exemple ne servira ainsi qu'à présenter le travail de bas niveau, dont la connaissance est toujours 
+utile à une bonne utilisation de Vulkan.
 
-Because a window surface is a Vulkan object, it comes with a
-`VkWin32SurfaceCreateInfoKHR` struct that needs to be filled in. It has two
-important parameters: `hwnd` and `hinstance`. These are the handles to the
-window and the process.
+Une surface de fenêtre est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici 
+`VkWin32SurfaceCreateInfoKHR`. Elle possède deux paramètres importants :`hwnd` et `hinstance`. Ce sont les références
+à la fenêtre et au processus courant.
 
 ```c++
 VkWin32SurfaceCreateInfoKHR createInfo = {};
@@ -54,31 +45,27 @@ createInfo.hwnd = glfwGetWin32Window(window);
 createInfo.hinstance = GetModuleHandle(nullptr);
 ```
 
-The `glfwGetWin32Window` function is used to get the raw `HWND` from the GLFW
-window object. The `GetModuleHandle` call returns the `HINSTANCE` handle of the
-current process.
+Nous pouvons extraire `HWND` de la fenêtre à l'aide de la fonction `glfwGetWin32Window`. La fonction 
+`GetModuleHandle` fournit une référence au `HINSTANCE` du thread courant.
 
-After that the surface can be created with `vkCreateWin32SurfaceKHR`, which
-needs to be explicitly loaded again. Other than that the call is trivial and
-includes a parameter for the instance, surface creation details, custom
-allocators and the variable for the surface handle to be stored in.
+La surface paut ensuite être crée avec `vkCreatWin32SurfaceKHR`, fonction que nous devons encore charger nous mêmes. 
+L'appel inclut simplement l'instance, la structure contenant les informations, l'allocateur optionnel et un pointeur 
+sur la variable qui contiendra la référence.
 
 ```c++
 auto CreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR) vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
 
 if (!CreateWin32SurfaceKHR || CreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create window surface!");
+    throw std::runtime_error("échec lors de la création d'une surface de fenêtre!");
 }
 ```
 
-The process is similar for other platforms like Linux, where
-`vkCreateXcbSurfaceKHR` takes an XCB connection and window as creation details
-with X11.
+Ce processus est similaire pour Linux, où la fonction `vkCreateXcbSurfaceKHR` requiert une connection à XCB et la 
+fenêtre comme paramètres pour X11.
 
-The `glfwCreateWindowSurface` function performs exactly this operation with a
-different implementation for each platform. We'll now integrate it into our
-program. Add a function `createSurface` to be called from `initVulkan` right
-after instance creation and `setupDebugCallback`.
+La fonction `glfwCreateWindowSurface` implémente donc tout cela pour nous et utilise le code correspondant à la bonne
+plateforme. Nous devons maintenant l'intégrer à notre programme. Ajoutez la fonction `createSurface` et appelez-la 
+dans `initVulkan` après la création de l'instance et du messager :
 
 ```c++
 void initVulkan() {
@@ -94,21 +81,20 @@ void createSurface() {
 }
 ```
 
-The GLFW call takes simple parameters instead of a struct which makes the
-implementation of the function very straightforward:
+L'appel à la fonction fournie par GLFW ne prend que quelques paramètres au lieu d'une structure, ce qui rend le tout 
+très simple :
 
 ```c++
 void createSurface() {
     if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create window surface!");
+        throw std::runtime_error("échec lors de la création de la surface de fenêtre!");
     }
 }
 ```
 
-The parameters are the `VkInstance`, GLFW window pointer, custom allocators and
-pointer to `VkSurfaceKHR` variable. It simply passes through the `VkResult` from
-the relevant platform call. GLFW doesn't offer a special function for destroying
-a surface, but that can easily be done through the original API:
+Les paramètres sont l'instance, le pointeur sur la fenêtre, l'allocateur optionnel et un pointeur sur une variable de
+type `VkSurfaceKHR`. GLFW ne fournit aucune fonction pour détruire cette surface mais nous pouvons le faire 
+nous-mêmes avec une simple fonction Vulkan :
 
 ```c++
 void cleanup() {
@@ -119,21 +105,18 @@ void cleanup() {
     }
 ```
 
-Make sure that the surface is destroyed before the instance.
+Détruisez bien la surface avant l'instance.
 
-## Querying for presentation support
+## Demander le support pour la présentation
 
-Although the Vulkan implementation may support window system integration, that
-does not mean that every device in the system supports it. Therefore we need to
-extend `isDeviceSuitable` to ensure that a device can present images to the
-surface we created. Since the presentation is a queue-specific feature, the
-problem is actually about finding a queue family that supports presenting to the
-surface we created.
+Bien que l'implémentation de Vulkan supporte WSI, il est possible que d'autres éléments du système ne le supporte 
+pas. Nous devons donc allonger `isDeviceSuitable` pour s'assurer que le logical device puisse présenter les 
+rendus à la surface que nous avons créée. La présentation est spécifique des queues families, ce qui signifie que 
+nous devons en fait trouver une queue family supportant cette présentation.
 
-It's actually possible that the queue families supporting drawing commands and
-the ones supporting presentation do not overlap. Therefore we have to take into
-account that there could be a distinct presentation queue by modifying the
-`QueueFamilyIndices` structure:
+Il est possible que les queue families supportant les commandes d'affichage et celles supportant les commandes de 
+présentation ne soient pas les mêmes, nous devons donc considérer que ces deux queues sont différentes. Nous devons 
+ainsi modifier la structure `QueueFamilyIndices` :
 
 ```c++
 struct QueueFamilyIndices {
@@ -146,19 +129,17 @@ struct QueueFamilyIndices {
 };
 ```
 
-Next, we'll modify the `findQueueFamilies` function to look for a queue family
-that has the capability of presenting to our window surface. The function to
-check for that is `vkGetPhysicalDeviceSurfaceSupportKHR`, which takes the
-physical device, queue family index and surface as parameters. Add a call to it
-in the same loop as the `VK_QUEUE_GRAPHICS_BIT`:
+Nous devons ensuite modifier la fonction `findQueueFamilies` pour qu'elle cherche une queue family pouvant supporter 
+les commandes de présentation. La fonction qui nous sera utile pour cela est `vkGetPhysicalDeviceSurfaceSupportKHR`. 
+Elle possède quatre paramètres, le physical device, un indice de queue family, la surface et un booléen. Appelez-la 
+depuis la même boucle que pour `VK_QUEUE_GRAPHICS_BIT` :
 
 ```c++
 VkBool32 presentSupport = false;
 vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
 ```
 
-Then simply check the value of the boolean and store the presentation family
-queue index:
+Vérifiez simplement la valeur du booléen et stockez la queue dans la structure :
 
 ```c++
 if (queueFamily.queueCount > 0 && presentSupport) {
@@ -166,25 +147,21 @@ if (queueFamily.queueCount > 0 && presentSupport) {
 }
 ```
 
-Note that it's very likely that these end up being the same queue family after
-all, but throughout the program we will treat them as if they were separate
-queues for a uniform approach. Nevertheless, you could add logic to explicitly
-prefer a physical device that supports drawing and presentation in the same
-queue for improved performance.
+Il est très probable que ces deux queue families soient en fait les mêmes, mais nous les traiterons comme si elles 
+étatient différentes pour une meilleure compatibilité. Vous pouvez cependant ajouter un alorithme préférant des 
+queues combinées pour améliorer légèrement les performances.
 
-## Creating the presentation queue
+## Création de la queue de présentation
 
-The one thing that remains is modifying the logical device creation procedure to
-create the presentation queue and retrieve the `VkQueue` handle. Add a member
-variable for the handle:
+Il nous reste à modifier la création du logical device pour extraire de celui-ci la référence à une queue 
+de présentation `VkQueue`. Ajoutez un membre donnée pour cette référence :
 
 ```c++
 VkQueue presentQueue;
 ```
 
-Next, we need to have multiple `VkDeviceQueueCreateInfo` structs to create a
-queue from both families. An elegant way to do that is to create a set of all
-unique queue families that are necessary for the required queues:
+Nous avons besoin de plusieurs structures `VkDeviceQueueCreateInfo`, une pour chaque queue family. Une manière de 
+gérer ces structures est d'utiliser un set contenant tous les indices des queues et un vector pour les structures :
 
 ```c++
 #include <set>
@@ -207,22 +184,22 @@ for (int queueFamily : uniqueQueueFamilies) {
 }
 ```
 
-And modify `VkDeviceCreateInfo` to point to the vector:
+Puis modifiez `VkDeviceCreateInfo` pour qu'il pointe sur le contenu du vector :
 
 ```c++
 createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 createInfo.pQueueCreateInfos = queueCreateInfos.data();
 ```
 
-If the queue families are the same, then we only need to pass its index once.
-Finally, add a call to retrieve the queue handle:
+Si les queues sont les mêmes, nous n'avons besoin de les indiquer qu'une seule fois, ce que le set permet. Ajoutez 
+enfin un appel récupérant les queue families :
 
 ```c++
 vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
 ```
 
-In case the queue families are the same, the two handles will most likely have
-the same value now. In the next chapter we're going to look at swap chains and
-how they give us the ability to present images to the surface.
-
-[C++ code](/code/05_window_surface.cpp)
+Si les queues sont les mêmes, les variables contenant les références devraient contenir les mêmes valeurs. Dans le 
+prochain chapitre nous nous interesserons aux swap chain, et verrons comment elles permettent de présenter les rendus
+ à l'écran.
+ 
+[Code C++](/code/05_window_surface.cpp)
