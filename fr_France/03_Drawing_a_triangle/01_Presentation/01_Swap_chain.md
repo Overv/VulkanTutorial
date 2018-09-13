@@ -1,30 +1,25 @@
-Vulkan does not have the concept of a "default framebuffer", hence it requires an infrastructure that will own the buffers we will render to before we visualize them on the screen. This infrastructure is
-known as the *swap chain* and must be created explicitly in Vulkan. The swap
-chain is essentially a queue of images that are waiting to be presented to the
-screen. Our application will acquire such an image to draw to it, and then
-return it to the queue. How exactly the queue works and the conditions for
-presenting an image from the queue depend on how the swap chain is set up, but
-the general purpose of the swap chain is to synchronize the presentation of
-images with the refresh rate of the screen.
+Vulkan ne possède pas de concept comme le framebuffer par défaut, et nous devons donc créer une infrastructure qui 
+contiendra les buffers sur lesquels nous effecturons les rendus avant de la présentation à l'écran. Cette 
+infrastructure s'appelle _swap chain_ sur Vulkan et doit être crée explicitement. La swap chain est essentiellement 
+une file d'attente d'images attendant d'être affichées. Notre application devra récupérer une des images de la file, 
+dessiner dessus puis la retourner à la file d'attente. Le fonctionnement de la file d'attente et les conditions de la
+présentation dépendent du parametrage de la swap chain. Cependant, le but constant de la swap chain est de 
+synchroniser la présentation avec le raffraichissement de l'écran.
 
-## Checking for swap chain support
+## Vérification du support de la swap chain
 
-Not all graphics cards are capable of presenting images directly to a screen for
-various reasons, for example because they are designed for servers and don't
-have any display outputs. Secondly, since image presentation is heavily tied
-into the window system and the surfaces associated with windows, it is not
-actually part of the Vulkan core. You have to enable the `VK_KHR_swapchain`
-device extension after querying for its support.
+Toutes les cartes graphiques ne sont pas capables de présenter directement les images à l'écran, et ce pour 
+différentes raisons, par exemple car elles sont destinées à être utilisées dans un serveur et n'ont donc aucune 
+sortie vidéo. De plus, dans la mesure où la présentation est très dépendante du gestionnaire de fenêtres et de la 
+surface, la swap chain ne fait pas partie de Vulkan core. Il faudra donc utiliser des extensions, dont 
+`VK_KHR_swapchain`.
 
-For that purpose we'll first extend the `isDeviceSuitable` function to check if
-this extension is supported. We've previously seen how to list the extensions
-that are supported by a `VkPhysicalDevice`, so doing that should be fairly
-straightforward. Note that the Vulkan header file provides a nice macro
-`VK_KHR_SWAPCHAIN_EXTENSION_NAME` that is defined as `VK_KHR_swapchain`. The
-advantage of using this macro is that the compiler will catch misspellings.
+Pour cela nous allons modifier `isDeviceSuitable` pour qu'elle vérifie si cette extension sont suportées. Nous avons 
+déja vu comment lister les extensions supportées par un `VkPhysicalDevice` donc cette modification devrait être assez
+simple. Notez que le header Vulkan intègre la macro `VK_KHR_SWAPCHAIN_EXTENSION_NAME` permettant d'éviter une faute 
+de frappe.
 
-First declare a list of required device extensions, similar to the list of
-validation layers to enable.
+Déclarez d'abord une liste d'extensions nécessaires au physical device similaire à la liste des validation layers :
 
 ```c++
 const std::vector<const char*> deviceExtensions = {
@@ -32,8 +27,8 @@ const std::vector<const char*> deviceExtensions = {
 };
 ```
 
-Next, create a new function `checkDeviceExtensionSupport` that is called from
-`isDeviceSuitable` as an additional check:
+Créez ensuite une nouvelle fonction appelée `checkDeviceExtensionSupport` et appelez-la depuis `isDeviceSuitable` 
+comme vérification supplémentaire :
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -49,8 +44,7 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
 }
 ```
 
-Modify the body of the function to enumerate the extensions and check if all of
-the required extensions are amongst them.
+Énumérez les extensions et vérifiez si toutes les extensions requises en font partie.
 
 ```c++
 bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
@@ -70,41 +64,35 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
 }
 ```
 
-I've chosen to use a set of strings here to represent the unconfirmed required
-extensions. That way we can easily tick them off while enumerating the sequence
-of available extensions. Of course you can also use a nested loop like in
-`checkValidationLayerSupport`. The performance difference is irrelevant. Now run
-the code and verify that your graphics card is indeed capable of creating a
-swap chain. It should be noted that the availability of a presentation queue,
-as we checked in the previous chapter, implies that the swap chain extension
-must be supported. However, it's still good to be explicit about things, and
-the extension does have to be explicitly enabled.
+J'ai décidé d'utiliser une collection de strings pour représenter les extensions requises en attente de confirmation.
+Nous pouvons ainsi facilement les éliminer en énumérant la séquence. Vous pouvez également utiliser une boucle dans 
+la boucle comme dans `checkValidationLayerSupport`, car la différence de performance n'a aucun sens dans cette phase de 
+chargement. Lancez le code et vérifiez que votre carte graphique est capable de gérer une swap chain. Normalement
+la disponibilité de la queue de présentation implique que l'extension de la swap chain est supportée. Mais soyons 
+tout de mêmes explicites pour cela aussi.
 
-Enabling the extension just requires a small change to the logical device
-creation structure:
+L'activation de l'extension ne requiert qu'un léger changement à la structure de création du logical device :
 
 ```c++
 createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 ```
 
-## Querying details of swap chain support
+## Récupérer des détails à propos du support de la swap chain
 
-Just checking if a swap chain is available is not sufficient, because it may not
-actually be compatible with our window surface. Creating a swap chain also
-involves a lot more settings than instance and device creation, so we need to
-query for some more details before we're able to proceed.
+Vérifier que la swap chain est disponible n'est pas suffisant. Nous devons vérifier qu'elle est compatible avec notre
+surface de fenêtre. La création de la swap chain nécessite un nombre important de paramètres, et nous devons récupérer 
+encore d'autres détails pour pouvoir continuer.
 
-There are basically three kinds of properties we need to check:
+Il y a trois types de propriétés que nous devrons vérifier :
 
-* Basic surface capabilities (min/max number of images in swap chain, min/max
-width and height of images)
-* Surface formats (pixel format, color space)
-* Available presentation modes
+* Possibilités basiques de la surface (nombre min/max d'images dans la swap chain, hauteur/largeur min/max des images)
+* Format de la surface (format des pixels, palette de couleur)
+* Mode de présentation disonibles
 
-Similar to `findQueueFamilies`, we'll use a struct to pass these details around
-once they've been queried. The three aforementioned types of properties come in
-the form of the following structs and lists of structs:
+Nous utiliserons comme avec `findQueueFamilies` une structure pour contenir ces détails une fois qu'ils auront été 
+chargés. Les trois catégories mentionnées plus haut se présentent sous la forme des structure ou listes de structures
+suivantes :
 
 ```c++
 struct SwapChainSupportDetails {
@@ -114,8 +102,7 @@ struct SwapChainSupportDetails {
 };
 ```
 
-We'll now create a new function `querySwapChainSupport` that will populate this
-struct.
+Créons maintenant une nouvelle fonction `querySwapChainSupport` qui remplira cette structure :
 
 ```c++
 SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
@@ -125,24 +112,21 @@ SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
 }
 ```
 
-This section covers how to query the structs that include this information. The
-meaning of these structs and exactly which data they contain is discussed in the
-next section.
+Cette section couvre la récupération des structures. Ce qu'elles signifient sera expliqué dans la section suivante.
 
-Let's start with the basic surface capabilities. These properties are simple to
-query and are returned into a single `VkSurfaceCapabilitiesKHR` struct.
+Commençons par les capacités basiques de la texture. Il suffit de demander ces informations et elles nous serons 
+fournies sous la forme d'une structure du type `VkSurfaceCapabilitiesKHR`.
 
 ```c++
 vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 ```
 
-This function takes the specified `VkPhysicalDevice` and `VkSurfaceKHR` window
-surface into account when determining the supported capabilities. All of the
-support querying functions have these two as first parameters because they are
-the core components of the swap chain.
+Cette fonction demande le physical device et la surface de fenêtre comme paramètres, car elle en extrait ces capacités. 
+Toutes les fonctions récupérant des capacités de la swap chain demanderont ces paramètres, car elles en sont les 
+composants centraux.
 
-The next step is about querying the supported surface formats. Because this is a
-list of structs, it follows the familiar ritual of 2 function calls:
+La prochaine étape est de récupérer les formats de texture supportés. Comme c'est une liste de structure, cette 
+aquisition suit le rituel en deux étapes :
 
 ```c++
 uint32_t formatCount;
@@ -154,9 +138,8 @@ if (formatCount != 0) {
 }
 ```
 
-Make sure that the vector is resized to hold all the available formats. And
-finally, querying the supported presentation modes works exactly the same way
-with `vkGetPhysicalDeviceSurfacePresentModesKHR`:
+Finalement, récupérer les modes de présentation supportés suit le même principe et utilise 
+`vkGetPhysicalDeviceSurfacePresentModesKHR` :
 
 ```c++
 uint32_t presentModeCount;
@@ -168,11 +151,9 @@ if (presentModeCount != 0) {
 }
 ```
 
-All of the details are in the struct now, so let's extend `isDeviceSuitable`
-once more to utilize this function to verify that swap chain support is
-adequate. Swap chain support is sufficient for this tutorial if there is at
-least one supported image format and one supported presentation mode given the
-window surface we have.
+Tous les détails sont dans des structures, donc étendons `isDeviceSuitable` une fois de plus et utilisons cette 
+fonction pour vérifier que le support de la swap chain nous correspond. Nous ne demanderons que des choses très 
+simples dans ce tutoriel.
 
 ```c++
 bool swapChainAdequate = false;
@@ -182,32 +163,30 @@ if (extensionsSupported) {
 }
 ```
 
-It is important that we only try to query for swap chain support after verifying
-that the extension is available. The last line of the function changes to:
-
+Il est important de ne vérifier le support de la swap chain qu'après s'être assuré que l'extension est disponible. La
+dernière ligne de la fonction devient donc :
+ 
 ```c++
 return indices.isComplete() && extensionsSupported && swapChainAdequate;
 ```
 
-## Choosing the right settings for the swap chain
+## Choisir les bons paramètres pour la swap chain
 
-If the `swapChainAdequate` conditions were met then the support is definitely
-sufficient, but there may still be many different modes of varying optimality.
-We'll now write a couple of functions to find the right settings for the best
-possible swap chain. There are three types of settings to determine:
+Si la fonction `swapChainAdequate` retourne `true` le support de la swap chain est assuré. Il existe cependant encore 
+plusieurs modes d'intérêts différents. Nous allons maintenant écrire quelques fonctions qui détermineront les bons 
+paramètres pour obtenir une swap chain la plus efficace possible. Il y a trois types de paramètres à déterminer :
 
-* Surface format (color depth)
-* Presentation mode (conditions for "swapping" images to the screen)
-* Swap extent (resolution of images in swap chain)
+* Format de la surface (profondeur de la couleur)
+* Modes de présentation (conditions de "l'échange" des images à l'écran)
+* Swap extent (résolution des images dans la swap chain)
 
-For each of these settings we'll have an ideal value in mind that we'll go with
-if it's available and otherwise we'll create some logic to find the next best
-thing.
+Pour chacun de ces paramètres nous aurons une valeur idéale que nous activerons si elle est disponible, sinon nous nous 
+rabatterons sur ce qui nous restera de mieux.
 
-### Surface format
+### Format de la surface
 
-The function for this setting starts out like this. We'll later pass the
-`formats` member of the `SwapChainSupportDetails` struct as argument.
+La fonction utilisée pour déterminer ce paramètre commence ainsi. Nous lui passerons en argument le membre donnée 
+`formats` de la structure `SwapChainSupportDetails`.
 
 ```c++
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -215,22 +194,18 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 }
 ```
 
-Each `VkSurfaceFormatKHR` entry contains a `format` and a `colorSpace` member. The
-`format` member specifies the color channels and types. For example,
-`VK_FORMAT_B8G8R8A8_UNORM` means that we store the B, G, R and alpha channels in
-that order with an 8 bit unsigned integer for a total of 32 bits per pixel. The
-`colorSpace` member indicates if the SRGB color space is supported or not using
-the `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR` flag. Note that this flag used to be
-called `VK_COLORSPACE_SRGB_NONLINEAR_KHR` in old versions of the specification.
+Chaque `VkSurfaceFormatKHR` contient les données `format` et `colorSpace`. `format` indique les canaux de couleur 
+disponibles et les types. Par exemple `VK_FORMAT_B8G8R8A8_UNORM` signifie que nous stockons les canaux de couleur R, 
+G, B et A dans cet ordre et en entiers non signés de 8 bits. `colorSpace` permet de vérifier que SRGB est supporté en
+utilisant le champ de bits `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR`.
 
-For the color space we'll use SRGB if it is available, because it [results in more accurate perceived colors](http://stackoverflow.com/questions/12524623/).
-Working directly with SRGB colors is a little bit challenging, so we'll use
-standard RGB for the color format, of which one of the most common ones is
+Pour l'espace de couleur nous utiliserons SRGB si c'est disponible, car cela résulte dans
+[un rendu plus réaliste](http://stackoverflow.com/questions/12524623/). Fonctionner directement avec SRGB est un peu 
+compliqué donc nous utilserons un espace linéaire pour manipuler les couleurs. Le format le plus commun est
 `VK_FORMAT_B8G8R8A8_UNORM`.
 
-The best case scenario is that the surface has no preferred format, which Vulkan
-indicates by only returning one `VkSurfaceFormatKHR` entry which has its
-`format` member set to `VK_FORMAT_UNDEFINED`.
+Dans le meilleur des mondes la surface n'a pas de format préféré, ce que Vulkan indique en ne retournant qu'un seul 
+`VkSurfaceFormatKHR` dont la valeur du membre format est `VK_FORMAT_UNDEFINED`.
 
 ```c++
 if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
@@ -238,8 +213,8 @@ if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDE
 }
 ```
 
-If we're not free to choose any format, then we'll go through the list and see
-if the preferred combination is available:
+Si nous ne pouvons choisir librement le format nous itérerons toute la liste et choisirons la meilleure combinaison 
+pour nous si elle est disponible :
 
 ```c++
 for (const auto& availableFormat : availableFormats) {
@@ -249,9 +224,8 @@ for (const auto& availableFormat : availableFormats) {
 }
 ```
 
-If that also fails then we could start ranking the available formats based on
-how "good" they are, but in most cases it's okay to just settle with the first
-format that is specified.
+Si cette approche échoue aussi nous pourrions trier les combinaisons disponibles, mais pour rester simple nous 
+prendrons le premier format disponible.
 
 ```c++
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -269,32 +243,27 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 }
 ```
 
-### Presentation mode
+### Mode de présentation
 
-The presentation mode is arguably the most important setting for the swap chain,
-because it represents the actual conditions for showing images to the screen.
-There are four possible modes available in Vulkan:
+Le mode de présentation est clairement le paramètre le plus important pour la swap chain, car il touche aux 
+conditions de l'affichage des images à l'écran. Il existe quatre modes avec Vulkan :
 
-* `VK_PRESENT_MODE_IMMEDIATE_KHR`: Images submitted by your application are
-transferred to the screen right away, which may result in tearing.
-* `VK_PRESENT_MODE_FIFO_KHR`: The swap chain is a queue where the display takes
-an image from the front of the queue when the display is refreshed and the
-program inserts rendered images at the back of the queue. If the queue is full
-then the program has to wait. This is most similar to vertical sync as found in
-modern games. The moment that the display is refreshed is known as "vertical
-blank".
-* `VK_PRESENT_MODE_FIFO_RELAXED_KHR`: This mode only differs from the previous
-one if the application is late and the queue was empty at the last vertical
-blank. Instead of waiting for the next vertical blank, the image is transferred
-right away when it finally arrives. This may result in visible tearing.
-* `VK_PRESENT_MODE_MAILBOX_KHR`: This is another variation of the second mode.
-Instead of blocking the application when the queue is full, the images that are
-already queued are simply replaced with the newer ones. This mode can be used to
-implement triple buffering, which allows you to avoid tearing with significantly
-less latency issues than standard vertical sync that uses double buffering.
+* `VK_PRESENT_MODE_IMMEDIATE_KHR` : les images émises par votre application sont directement envoyées à l'écran, ce 
+qui peut produire des déchirures (tearing).
+* `VK_PRESENT_MODE_FIFO_KHR` : la swap chain est une file d'attente, et l'écran récupère l'image en haut de la pile 
+quand il est rafraichi, alors que le programme insère ses nouvelles images à l'arrière. Si la queue est pleine le 
+programme doit attendre. Ce mode est très similaire à la synchronisation verticale utilisée par la plupart des jeux 
+vidéo modernes. L'instant durant lequel l'écran est rafraichi s'appelle "blanc vertical" (vertical blank).
+* `VK_PRESENT_MODE_FIFO_RELAXED_KHR` : ce mode ne diffère du précédent que si l'application est en retard et que la 
+queue est vide pendant le vertical blank. Au lieu d'attendre le prochain vertical blank, une image arrivant dans la 
+file d'attente sera immédiatement transmise à l'écran.
+* `VK_PRESENT_MODE_MAILBOX_KHR` : ce mode est une autre variation du second mode. Au lieu de bloquer l'application 
+quand le file d'attente est pleine, les images présentes dans la queue sont simplement remplacées par de nouvelles. 
+Ce mode peut être utilisé pour implémenter le triple buffering, qui vous permet d'éliminer le tearing tout en évitant
+le temps de latence entre le rendu et l'affichage qu'une file d'attente implique.
 
-Only the `VK_PRESENT_MODE_FIFO_KHR` mode is guaranteed to be available, so we'll
-again have to write a function that looks for the best mode that is available:
+Seul `VK_PRESENT_MODE_FIFO_KHR` est toujours disponible. Nous aurons donc encore à écrire une fonction pour réaliser 
+un choix, car le mode que nous choisirons préférentiellement est `VK_PRESENT_MODE_MAILBOX_KHR` :
 
 ```c++
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
@@ -302,10 +271,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
 }
 ```
 
-I personally think that triple buffering is a very nice trade-off. It allows us
-to avoid tearing while still maintaining a fairly low latency by rendering new
-images that are as up-to-date as possible right until the vertical blank. So,
-let's look through the list to see if it's available:
+Je pense que le triple buffering est un très bon compromis. Vérifions si ce mode est disponible :
 
 ```c++
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
@@ -319,9 +285,8 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
 }
 ```
 
-Unfortunately some drivers currently don't properly support
-`VK_PRESENT_MODE_FIFO_KHR`, so we should prefer `VK_PRESENT_MODE_IMMEDIATE_KHR`
-if `VK_PRESENT_MODE_MAILBOX_KHR` is not available:
+Malheuresement certains drivers ne supportent pas bien `VK_PRESENT_MODE_FIFO_KHR`, nous devons donc préférer 
+`VK_PRESENT_MODE_IMMEDIATE_MODE` si `VK_PRESENT_MODE_MAILBOX_KHR` n'est pas disponible :
 
 ```c++
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
@@ -341,7 +306,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
 
 ### Swap extent
 
-That leaves only one major property, for which we'll add one last function:
+Il ne nous reste plus qu'une propriété, pour laquelle nous allons créer encore une autre fonction :
 
 ```c++
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
@@ -349,15 +314,13 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-The swap extent is the resolution of the swap chain images and it's almost
-always exactly equal to the resolution of the window that we're drawing to. The
-range of the possible resolutions is defined in the `VkSurfaceCapabilitiesKHR`
-structure. Vulkan tells us to match the resolution of the window by setting the
-width and height in the `currentExtent` member. However, some window managers do
-allow us to differ here and this is indicated by setting the width and height in
-`currentExtent` to a special value: the maximum value of `uint32_t`. In that
-case we'll pick the resolution that best matches the window within the
-`minImageExtent` and `maxImageExtent` bounds.
+Le swap extent donne la résolution des images dans la swap chain et correspond quasiment toujours à la résolution de 
+la fenêtre que nous utilisons. L'étendue des résolutions disponibles est définie dans la 
+stucture `VkSurfaceCapabilitiesKHR`. Vulkan nous demande de faire correspondre notre résolution à celle de la fenêtre
+fournie par le membre `currentExtent`. Cependant certains gestionnaires de fenêtres nous permettent de choisir une 
+résolution différente, ce qui nous pouvons détecter car alors les membres `width` et `height` sont égaux à la plus 
+grande valeur d'un `uint32_t`. Dans ce cas nous choisirons la résolution correspondant le mieux à la taille de la 
+fenêtre, dans les bornes de `minImageExtent` et `maxImageExtent`.
 
 ```c++
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
@@ -374,18 +337,16 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-The `max` and `min` functions are used here to clamp the value of `WIDTH` and
-`HEIGHT` between the allowed minimum and maximum extents that are supported by
-the implementation. Make sure to include the `<algorithm>` header to use them.
+Les fonction `min` et `max` sont utilisée ici pour limiter les valeurs `WIDTH` et `HEIGHT` entre le minimum et le 
+maximum supportés par l'implémentation. Incluez `<algorithm>` pour les utiliser.
 
-## Creating the swap chain
+## Création de la swap chain
 
-Now that we have all of these helper functions assisting us with the choices we
-have to make at runtime, we finally have all the information that is needed to
-create a working swap chain.
+Maintenant que nous avons toutes ces fonctions nous pouvons enfin acquérir toutes les informations nécessaires à la 
+création d'une swap chain.
 
-Create a `createSwapChain` function that starts out with the results of these
-calls and make sure to call it from `initVulkan` after logical device creation.
+Créez une fonction `createSwapChain` commençant par récupérer les résultats de ces fonctions et appelez-la depuis 
+`initVulkan` après la création du logical device.
 
 ```c++
 void initVulkan() {
@@ -406,12 +367,10 @@ void createSwapChain() {
 }
 ```
 
-There is actually one more small things that need to be decided upon, but it's
-so simple that it's not really worth creating separate functions for them. The
-first one is the number of images in the swap chain, essentially the queue
-length. The implementation specifies the minimum amount of images to function
-properly and we'll try to have one more than that to properly implement triple
-buffering.
+Il existe en fait encore une dernière chose que nous devons choisir, mais c'est suffisement simple pour ne pas mériter
+de fonction. Nous devons déterminer le nombre d'images dans la swap chain. L'implémentation spécifie le minimum 
+nécessaire à un bon fonctionnement, et nous essayerons d'en avoir une de plus que ce nombre pour pouvoir implémenter 
+correctement le triple buffering.
 
 ```c++
 uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
@@ -420,20 +379,19 @@ if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSup
 }
 ```
 
-A value of `0` for `maxImageCount` means that there is no limit besides memory
-requirements, which is why we need to check for that.
+La valeur `0` pour `maxImageCount` signifie que la seule limite est la mémoire, c'est pourquoi nous devons 
+étudier ce cas séparément.
 
-As is tradition with Vulkan objects, creating the swap chain object requires
-filling in a large structure. It starts out very familiarly:
-
+Comme la tradition le veut avec Vulkan, la création d'une swap chain nécessite de remplir une grande structure. Elle 
+commence d'une manière familière :
 ```c++
 VkSwapchainCreateInfoKHR createInfo = {};
 createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 createInfo.surface = surface;
 ```
 
-After specifying which surface the swap chain should be tied to, the details of
-the swap chain images are specified:
+Après avoir spécifié la surface à laquelle la swap chain doit être liée, les détails sur les images de la swap chain 
+doivent être spécifiées :
 
 ```c++
 createInfo.minImageCount = imageCount;
@@ -444,15 +402,13 @@ createInfo.imageArrayLayers = 1;
 createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 ```
 
-The `imageArrayLayers` specifies the amount of layers each image consists of.
-This is always `1` unless you are developing a stereoscopic 3D application. The
-`imageUsage` bit field specifies what kind of operations we'll use the images in
-the swap chain for. In this tutorial we're going to render directly to them,
-which means that they're used as color attachment. It is also possible that
-you'll render images to a separate image first to perform operations like
-post-processing. In that case you may use a value like
-`VK_IMAGE_USAGE_TRANSFER_DST_BIT` instead and use a memory operation to transfer
-the rendered image to a swap chain image.
+Le membre `imageArrayLayers` indique le nombre de couches chaque image possède. Ce sera toujours `1` sauf si vous 
+développez une application stéréoscopique 3D. Le champ de bits `imageUsage` spécifie le type d'opérations que nous 
+appliquerons aux images de la swap chain. Dans ce tutoriel nous effectuerons un rendu directement sur les images, 
+nous les utiliserons donc comme _color attachement_. Vous voudrez peut-être travailler sur une image séparée pour 
+pouvoir appliquer des effets en post-processing. Dans ce cas vous voudrez utiliser une valeur comme 
+`VK_IMAGE_USAGE_TRANSFER_DST_BIT` à la place et utiliser une opération de transfert de mémoire pour placer le 
+résultat final dans une image de la swap chain.
 
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -464,90 +420,78 @@ if (indices.graphicsFamily != indices.presentFamily) {
     createInfo.pQueueFamilyIndices = queueFamilyIndices;
 } else {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.queueFamilyIndexCount = 0; // Optional
-    createInfo.pQueueFamilyIndices = nullptr; // Optional
+    createInfo.queueFamilyIndexCount = 0; // Optionel
+    createInfo.pQueueFamilyIndices = nullptr; // Optionel
 }
 ```
 
-Next, we need to specify how to handle swap chain images that will be used
-across multiple queue families. That will be the case in our application if the
-graphics queue family is different from the presentation queue. We'll be drawing
-on the images in the swap chain from the graphics queue and then submitting them
-on the presentation queue. There are two ways to handle images that are
-accessed from multiple queues:
+Nous devons ensuite indiquer comment les images de la swap chain seront utilisées dans le cas où plusieurs queues
+seront à l'origine d'opérations. Cela sera le cas si la graphics queue n'est pas la même que la presentation queue. 
+Nous devrons alors dessiner avec la graphics queue puis fournir l'image à la presentation queue. Il existe deux 
+manières de gérer les images accédées par plusieurs queues :
 
-* `VK_SHARING_MODE_EXCLUSIVE`: An image is owned by one queue family at a time
-and ownership must be explicitly transfered before using it in another queue
-family. This option offers the best performance.
-* `VK_SHARING_MODE_CONCURRENT`: Images can be used across multiple queue
-families without explicit ownership transfers.
+* `VK_SHARING_MODE_EXCLUSIVE` : une image n'est accesible que par une queue à la fois et doit être explicitement 
+donnée à une autre queue pour pouvoir être utilisée. Cette option offre des performances optimales.
+* `VK_SHARING_MODE_CONCURRENT` : les images peuvent être simplement utilisées par différentes queue families.
 
-If the queue families differ, then we'll be using the concurrent mode in this
-tutorial to avoid having to do the ownership chapters, because these involve
-some concepts that are better explained at a later time. Concurrent mode
-requires you to specify in advance between which queue families ownership will
-be shared using the `queueFamilyIndexCount` and `pQueueFamilyIndices`
-parameters. If the graphics queue family and presentation queue family are the
-same, which will be the case on most hardware, then we should stick to exclusive
-mode, because concurrent mode requires you to specify at least two distinct
-queue families.
+Si nous avons deux queues différentes, nous utiliserons le mode concurent pour éviter d'ajouter un chapitre sur la
+possession des ressources, car cela nécessite des concepts que nous ne pourrons comprendre correctement que plus tard.
+Le mode concurrent vous demande de spécifier à l'avance les queues qui partageront les images en utilisant les 
+paramètres `queueFamilyIndexCount` et `pQueueFamilyIndices`. Si les graphics queue et presentation queue sont les 
+mêmes, ce qui est le cas sur la plupart des cartes graphiques, nous devons rester sur le mode exclusif car le mode 
+concurent requiert au moins deux queues différentes.
 
 ```c++
 createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
 ```
 
-We can specify that a certain transform should be applied to images in the swap
-chain if it is supported (`supportedTransforms` in `capabilities`), like a 90
-degree clockwise rotation or horizontal flip. To specify that you do not want
-any transformation, simply specify the current transformation.
+Nous pouvons spécifier une transformation à appliquer aux images quand elles entrent dans la swap chain si cela est 
+supporté (à vérifier avec `supportedTransforms` dans `capabilities`), comme par exemple une rotation de 90 degrés ou 
+une symétrie verticale. Si vous ne voulez pas de transformation, spécifiez la transformation actuelle;
 
 ```c++
 createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 ```
 
-The `compositeAlpha` field specifies if the alpha channel should be used for
-blending with other windows in the window system. You'll almost always want to
-simply ignore the alpha channel, hence `VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR`.
+Le champ `compositeAlpha` indique si le canal alpha doit être utilisé pour mélanger les couleurs avec celles des autres
+fenêtres. Vous voudrez quasiment tout le temps ignorer cela, et indiquer `VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR` :
 
 ```c++
 createInfo.presentMode = presentMode;
 createInfo.clipped = VK_TRUE;
 ```
 
-The `presentMode` member speaks for itself. If the `clipped` member is set to
-`VK_TRUE` then that means that we don't care about the color of pixels that are
-obscured, for example because another window is in front of them. Unless you
-really need to be able to read these pixels back and get predictable results,
-you'll get the best performance by enabling clipping.
+Le membre `presentMode` est évident. Si le membre `clipped` est activé avec `VK_TRUE` alors les couleurs des pixels 
+masqués par d'autres fenêtres seront ignorées. Si vous n'avez pas un besoin non négotiable de lire ces informations, 
+vous obtiendrez de meilleures performances en activant ce mode.
 
 ```c++
 createInfo.oldSwapchain = VK_NULL_HANDLE;
 ```
 
-That leaves one last field, `oldSwapChain`. With Vulkan it's possible that your swap chain becomes invalid or unoptimized while your application is
-running, for example because the window was resized. In that case the swap chain
-actually needs to be recreated from scratch and a reference to the old one must
-be specified in this field. This is a complex topic that we'll learn more about
-in [a future chapter](!Drawing_a_triangle/Swap_chain_recreation). For now we'll
-assume that we'll only ever create one swap chain.
+Ce qui nous laisse avec un dernier champ, `oldSwapChain`. Il est possible avec Vulkan que la swap chain devienne 
+invalide ou mal optimisée pendant que votre application tourne, par exmple parce que la fenêtre a été redimensionnée.
+Dans ce cas la swap chain doit être intégralement recréée et une référence à l'ancienne swap chain doit être fournie.
+C'est un sujet compliqué que nous aborderons [dans un chapitre futur.](!Drawing_a_triangle/Swap_chain_recreation).
+Pour le moment, considérons que nous ne devrons jamais créer qu'une swap chain.
 
-Now add a class member to store the `VkSwapchainKHR` object:
+Ajoutez un membre donnée pour stocker l'objet `VkSwapchainKHR` :
 
 ```c++
 VkSwapchainKHR swapChain;
 ```
 
-Creating the swap chain is now as simple as calling `vkCreateSwapchainKHR`:
+Créer la swap chain ne se résume plus qu'à appeler `vkCreateSwapchainKHR` :
 
 ```c++
 if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create swap chain!");
+    throw std::runtime_error("échec lors de la création de la swap chain!");
 }
 ```
 
-The parameters are the logical device, swap chain creation info, optional custom
-allocators and a pointer to the variable to store the handle in. No surprises
-there. It should be cleaned up using `vkDestroySwapchainKHR` before the device:
+Les paramètres sont le logical device, la structure contenant les informations, l'allocateur optionel et la variable 
+contenant la référence à la swap chain. Cet objet devra être explicitement détruit à l'aide de la fonction 
+`vkDestroySwapchainKHR` avant de détruire le logical device :
 
 ```c++
 void cleanup() {
@@ -556,34 +500,31 @@ void cleanup() {
 }
 ```
 
-Now run the application to ensure that the swap chain is created successfully! If at this point you get an access violation error in `vkCreateSwapchainKHR` or see a message like `Failed to find 'vkGetInstanceProcAddress' in layer SteamOverlayVulkanLayer.dll`, then see the [FAQ entry](!FAQ) about the Steam overlay layer.
+Lancez maintenant l'application et contemplez la création de la swap chain! Si vous obtenez une erreur de violation 
+d'accès dans `vkCreateSwapchainKHR` ou voyez un message comme `Failed to find 'vkGetInstanceProcAddress' in layer 
+SteamOverlayVulkanLayer.ddl`, allez voir [la FAQ à propos de la layer Steam](!FAQ).
 
-Try removing the `createInfo.imageExtent = extent;` line with validation layers
-enabled. You'll see that one of the validation layers immediately catches the
-mistake and a helpful message is printed:
+Essayez de retirer la ligne `createInfo.imageExtent = extent;` avec les validation layers actives. Vous verrez que 
+l'une d'entre elles verra l'erreur et un message vous sera envoyé :
 
 ![](/images/swap_chain_validation_layer.png)
 
-## Retrieving the swap chain images
+## Récupérer les images de la swap chain
 
-The swap chain has been created now, so all that remains is retrieving the
-handles of the `VkImage`s in it. We'll reference these during rendering
-operations in later chapters. Add a class member to store the handles:
+La swap chain est enfin créée. Il nous faut maintenant récupérer les références aux `VkImage`s dans la swap 
+chain. Nous les utiliserons pour l'affichage et dans les chapitres ultérieurs. Ajoutez un membre donnée pour les 
+stocker :
 
 ```c++
 std::vector<VkImage> swapChainImages;
 ```
 
-The images were created by the implementation for the swap chain and they will
-be automatically cleaned up once the swap chain has been destroyed, therefore we
-don't need to add any cleanup code.
+Ces images ont été crées par l'implémentation avec la swap chain et elles seront automatiquement supprimées avec la 
+destruction de la swap chain, nous n'aurons donc rien à rajouter dans la fonction `cleanup`.
 
-I'm adding the code to retrieve the handles to the end of the `createSwapChain`
-function, right after the `vkCreateSwapchainKHR` call. Retrieving them is very
-similar to the other times where we retrieved an array of objects from Vulkan.
-First query the number of images in the swap chain with a call to
-`vkGetSwapchainImagesKHR`, then resize the container and finally call it again
-to retrieve the handles.
+Ajoutons le code pour extraire les références à la fin de `createSwapChain`, juste après l'appel à 
+`vkCreateSwapchainKHR`. L'extraction est quasiment identique à la procédure standard pour récupérer des tableaux 
+d'objets.
 
 ```c++
 vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
@@ -591,12 +532,11 @@ swapChainImages.resize(imageCount);
 vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 ```
 
-Note that when we created the swap chain, we passed the number of desired images
-to a field called `minImageCount`. The implementation is allowed to create more
-images, which is why we need to explicitly query the amount again.
+Notez que lorsque nous avons créé la swap chain nous avons indiqué une valeur `minImageCount`, mais nous ne pouvons 
+nous y fier car l'implémentation peut en créer plus, et c'est pourquoi nous devons demander le nombre d'images.
 
-One last thing, store the format and extent we've chosen for the swap chain
-images in member variables. We'll need them in future chapters.
+Une dernière chose : gardez dans des variables le format et le nombre d'images dans la swap chain, nous en aurons 
+besoin dans de futurs chapitres.
 
 ```c++
 VkSwapchainKHR swapChain;
@@ -610,9 +550,8 @@ swapChainImageFormat = surfaceFormat.format;
 swapChainExtent = extent;
 ```
 
-We now have a set of images that can be drawn onto and can be presented to the
-window. The next chapter will begin to cover how we can set up the images as
-render targets and then we start looking into the actual graphics pipeline and
-drawing commands!
+Nous avons maintenant un ensemble d'images sur lesquelles nous pouvons travailler et qui peuvent être présentées pour
+être affichées. Dans le prochain chapitre nous verrons comment utiliser ces images comme des cibles pour le rendu, 
+puis nous verrons la pipeline graphique et les commandes d'affichage!
 
-[C++ code](/code/06_swap_chain_creation.cpp)
+[Code C++](/code/06_swap_chain_creation.cpp)
