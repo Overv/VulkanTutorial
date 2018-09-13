@@ -1,21 +1,18 @@
-To use any `VkImage`, including those in the swap chain, in the render pipeline
-we have to create a `VkImageView` object. An image view is quite literally a
-view into an image. It describes how to access the image and which part of the
-image to access, for example if it should be treated as a 2D texture depth
-texture without any mipmapping levels.
+Quelque soit la `VkImage` que nous voulons utiliser, dont celles de la swap chain, nous devons en créer une 
+`VkImageView` pour la pipeline. Cette image view correspond assez litéralement à une vue dans l'image. Elle décrit 
+l'accès à l'image et les parties de l'image à accéder, par exemple indique si elle doit être traitée comme une 
+texture 2D pour la profondeur sans aucun niveau de mipmapping.
 
-In this chapter we'll write a `createImageViews` function that creates a basic
-image view for every image in the swap chain so that we can use them as color
-targets later on.
+Dans ce chapitre nous écrirons une fonction `createImageViews` pour créer une image view basique pour chacune des 
+images dans la swap chain, pour que nous puissions les utiliser comme cibles de couleur.
 
-First add a class member to store the image views in:
+Ajoutez d'abord un membre donnée pour y stocker une image view :
 
 ```c++
 std::vector<VkImageView> swapChainImageViews;
 ```
 
-Create the `createImageViews` function and call it right after swap chain
-creation.
+Créez la fonction `createImageViews` et appelez-la juste après la création de la swap chain.
 
 ```c++
 void initVulkan() {
@@ -33,8 +30,7 @@ void createImageViews() {
 }
 ```
 
-The first thing we need to do is resize the list to fit all of the image views
-we'll be creating:
+Nous devons d'abord redimensionner la liste pour pouvoir y mettre toutes les image views que nous créerons :
 
 ```c++
 void createImageViews() {
@@ -43,7 +39,7 @@ void createImageViews() {
 }
 ```
 
-Next, set up the loop that iterates over all of the swap chain images.
+Créez ensuite la boucle qui parcourera toutes les images de la swap chain.
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -51,8 +47,8 @@ for (size_t i = 0; i < swapChainImages.size(); i++) {
 }
 ```
 
-The parameters for image view creation are specified in a
-`VkImageViewCreateInfo` structure. The first few parameters are straightforward.
+Les paramètres pour la création d'image views se spécifient dans la structure `VkImageViewCreateInfo`. Les deux 
+premiers paramètres sont assez simples :
 
 ```c++
 VkImageViewCreateInfo createInfo = {};
@@ -60,19 +56,17 @@ createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 createInfo.image = swapChainImages[i];
 ```
 
-The `viewType` and `format` fields specify how the image data should be
-interpreted. The `viewType` parameter allows you to treat images as 1D textures,
-2D textures, 3D textures and cube maps.
+Les champs `viewType` et `format` indiquent la manière dont les images doivent être interprétés. Le paramètre 
+`viewType` permet de traiter les images comme des textures 1D, 2D, 3D ou cube maps.
 
 ```c++
 createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 createInfo.format = swapChainImageFormat;
 ```
 
-The `components` field allows you to swizzle the color channels around. For
-example, you can map all of the channels to the red channel for a monochrome
-texture. You can also map constant values of `0` and `1` to a channel. In our
-case we'll stick to the default mapping.
+Le champ `components` vous permet de jouer avec les canaux de couleur. Par exemple, vous pouvez envoyer tous les 
+canaux au canal rouge pour obtenir une texture monochrome. Vous pouvez aussi donner les valeurs constantes `0` ou `1`
+à un canal. Dans notre cas nous garderons les paramètres par défaut.
 
 ```c++
 createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -81,9 +75,8 @@ createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 ```
 
-The `subresourceRange` field describes what the image's purpose is and which
-part of the image should be accessed. Our images will be used as color targets
-without any mipmapping levels or multiple layers.
+Le champ `subresourceRange` décrit l'utilisation de l'image et indique quelles parties de l'image devraient être 
+accédées. Notre image sera utilisée comme cible de couleur et n'aura ni mipmapping ni plusieurs couches.
 
 ```c++
 createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -93,21 +86,20 @@ createInfo.subresourceRange.baseArrayLayer = 0;
 createInfo.subresourceRange.layerCount = 1;
 ```
 
-If you were working on a stereographic 3D application, then you would create a
-swap chain with multiple layers. You could then create multiple image views for
-each image representing the views for the left and right eyes by accessing
-different layers.
+Si vous travailliez sur une application 3D stéréoscopique, vous devrez alors créer une swap chain avec plusieurs 
+couches. Vous pourriez alors créer plusieurs image views pour chaque image représentant ce qui sera affiché par 
+l'oeil gauche et l'oeil droit.
 
-Creating the image view is now a matter of calling `vkCreateImageView`:
+Créer l'image view ne se résume plus qu'à un appel à `vkCreateImageView` :
 
 ```c++
 if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create image views!");
+    throw std::runtime_error("échec lors de la création d'une image view!");
 }
 ```
 
-Unlike images, the image views were explicitly created by us, so we need to add
-a similar loop to destroy them again at the end of the program:
+À la différence des images, nous avons créé les image views explicitement et devons donc les détruire de la même 
+manière, ce que nous faisons à l'aide d'une boucle :
 
 ```c++
 void cleanup() {
@@ -119,9 +111,8 @@ void cleanup() {
 }
 ```
 
-An image view is sufficient to start using an image as a texture, but it's not
-quite ready to be used as a render target just yet. That requires one more step
-of indirection, known as a framebuffer. But first we'll have to set up the
-graphics pipeline.
+Une image view est suffisante pour commencer à utiliser une image comme une texture, mais pas pour que l'image soit 
+utilisée comme cible d'affichage. Pour cela nous avons encore une étape, appelée framebuffer. Mais nous devons 
+d'abord paramétrer la pipelinie graphique.
 
-[C++ code](/code/07_image_views.cpp)
+[CCode ++](/code/07_image_views.cpp)
