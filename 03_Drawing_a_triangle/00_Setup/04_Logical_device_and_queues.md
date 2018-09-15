@@ -40,7 +40,7 @@ QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 VkDeviceQueueCreateInfo queueCreateInfo = {};
 queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
 queueCreateInfo.queueCount = 1;
 ```
 
@@ -161,7 +161,7 @@ and a pointer to the variable to store the queue handle in. Because we're only
 creating a single queue from this family, we'll simply use index `0`.
 
 ```c++
-vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
+vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 ```
 
 With the logical device and queue handles we can now actually start using the

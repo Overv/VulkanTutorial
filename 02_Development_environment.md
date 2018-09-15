@@ -177,6 +177,10 @@ Enter the names of the Vulkan and GLFW object files:
 
 ![](/images/vs_dependencies.png)
 
+And finally change the compiler to support C++17 features:
+
+![](/images/vs_cpp17.png)
+
 You can now close the project properties dialog. If you did everything right
 then you should no longer see any more errors being highlighted in the code.
 
@@ -361,10 +365,10 @@ VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
 Make sure to replace `user` with your own username and `x.x.x.x` with the right version. Next, define a `CFLAGS` variable that will specify the basic compiler flags:
 
 ```make
-CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include
 ```
 
-We're going to use modern C++ (`-std=c++11` or `std=c++14`), and we need to be
+We're going to use modern C++ (`-std=c++17`), and we need to be
 able to locate `vulkan.h` in the LunarG SDK.
 
 Similarly, define the linker flags in a `LDFLAGS` variable:
@@ -436,7 +440,7 @@ You should now have a complete makefile that resembles the following:
 ```make
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
 
-CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
 VulkanTest: main.cpp
