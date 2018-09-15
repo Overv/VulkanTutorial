@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdlib>
+#include <optional>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -37,10 +38,10 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 }
 
 struct QueueFamilyIndices {
-    int graphicsFamily = -1;
+    std::optional<uint32_t> graphicsFamily;
 
     bool isComplete() {
-        return graphicsFamily >= 0;
+        return graphicsFamily.has_value();
     }
 };
 

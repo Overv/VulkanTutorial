@@ -205,20 +205,19 @@ Right now we'll only look for a queue that supports graphics commands, but we
 may extend this function to look for more at a later point in time.
 
 This function will return the indices of the queue families that satisfy certain
-desired properties. The best way to do that is using a structure, where an
-index of `-1` will denote "not found":
+desired properties. The best way to do that is using a structure where we use `std::optional` to track if an index was found:
 
 ```c++
 struct QueueFamilyIndices {
-    int graphicsFamily = -1;
+    std::optional<uint32_t> graphicsFamily;
 
     bool isComplete() {
-        return graphicsFamily >= 0;
+        return graphicsFamily.has_value();
     }
 };
 ```
 
-We can now begin implementing `findQueueFamilies`:
+Note that this also requires including `<optional>`. We can now begin implementing `findQueueFamilies`:
 
 ```c++
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {

@@ -137,11 +137,11 @@ account that there could be a distinct presentation queue by modifying the
 
 ```c++
 struct QueueFamilyIndices {
-    int graphicsFamily = -1;
-    int presentFamily = -1;
+    std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
 
     bool isComplete() {
-        return graphicsFamily >= 0 && presentFamily >= 0;
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 ```
@@ -194,10 +194,10 @@ unique queue families that are necessary for the required queues:
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-std::set<int> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
 
 float queuePriority = 1.0f;
-for (int queueFamily : uniqueQueueFamilies) {
+for (uint32_t queueFamily : uniqueQueueFamilies) {
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -218,7 +218,7 @@ If the queue families are the same, then we only need to pass its index once.
 Finally, add a call to retrieve the queue handle:
 
 ```c++
-vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
+vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 ```
 
 In case the queue families are the same, the two handles will most likely have
