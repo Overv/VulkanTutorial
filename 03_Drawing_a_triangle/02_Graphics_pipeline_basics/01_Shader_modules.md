@@ -287,6 +287,8 @@ arguments to see what kinds of flags it supports. It can, for example, also
 output the bytecode into a human-readable format so you can see exactly what
 your shader is doing and any optimizations that have been applied at this stage.
 
+Compiling shaders on the commandline is one of the most straightforward options and it's the one that we'll use in this tutorial, but it's also possible to compile shaders directly from your own code. The Vulkan SDK includes [libshaderc](https://github.com/google/shaderc), which is a library to compile GLSL code to SPIR-V from within your program.
+
 ## Loading a shader
 
 Now that we have a way of producing SPIR-V shaders, it's time to load them into
