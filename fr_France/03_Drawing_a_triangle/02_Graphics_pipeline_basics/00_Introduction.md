@@ -1,81 +1,65 @@
-Over the course of the next few chapters we'll be setting up a graphics pipeline
-that is configured to draw our first triangle. The graphics pipeline is the
-sequence of operations that take the vertices and textures of your meshes all
-the way to the pixels in the render targets. A simplified overview is displayed
-below:
+Dans les chapitres qui viennent nous allons configurer une pipeline graphique pour qu'elle affiche notre premier 
+triangle. La pipeline graphique est l'ensemble des opérations qui prennent les vertices et les textures de vos 
+éléments et les utilisent pour en faire des pixels sur les cibles d'affichage. Un résumé simplifié serait comme ceci :
 
 ![](/images/vulkan_simplified_pipeline.svg)
 
-The *input assembler* collects the raw vertex data from the buffers you specify
-and may also use an index buffer to repeat certain elements without having to
-duplicate the vertex data itself.
+L'_input assembler_ collecte les données des vertices à partir des buffers que vous avez mis en place, et peut aussi 
+usiliser un index buffer pour répéter certains éléments sans avoir à stocker deux fois les mêmes données dans un buffer.
 
-The *vertex shader* is run for every vertex and generally applies
-transformations to turn vertex positions from model space to screen space. It
-also passes per-vertex data down the pipeline.
+Le _vertex shader_ est exécuté pour chaque vertex et applique en général des transformations sur les vertices pour 
+qu'elles passent de l'espace du modèle (model space) à l'espace de l'écran (screen space). Il passe ensuite des
+données à la suite de la pipeline.
 
-The *tessellation shaders* allow you to subdivide geometry based on certain
-rules to increase the mesh quality. This is often used to make surfaces like
-brick walls and staircases look less flat when they are nearby.
+Les _tesselation shaders_ permettent de subdiviser la géométrie selon des règles paramétrables afin d'améliorer la 
+qualité du rendu. Ce procédé est notemment utilisé pour que des surface comme les murs de briques ou les escaliers 
+aient l'air moins plats lorsque l'on s'en approche.
 
-The *geometry shader* is run on every primitive (triangle, line, point) and can
-discard it or output more primitives than came in. This is similar to the
-tessellation shader, but much more flexible. However, it is not used much in
-today's applications because the performance is not that good on most graphics
-cards except for Intel's integrated GPUs.
+Le _geometry shader_ est invoqué pour chaque primitive (triangle, ligne, points...) et peut les détruires ou en créer
+de nouvelles, du même type ou non. Ce travail est similaire au tesselation shader tout en étant beaucoup plus 
+flexible.Il n'est cependant pas beaucoup utilisé à cause de performances assez moyennes sur les cartes graphiques 
+(sauf pour les GPUs intégrés d'Intel).
 
-The *rasterization* stage discretizes the primitives into *fragments*. These are
-the pixel elements that they fill on the framebuffer. Any fragments that fall
-outside the screen are discarded and the attributes outputted by the vertex
-shader are interpolated across the fragments, as shown in the figure. Usually
-the fragments that are behind other primitive fragments are also discarded here
-because of depth testing.
+La _rasterization_ transforme les primitives en _fragments_. Ce sont les pixels que les primitives remplissent sur 
+le frambuffer. Tout fragment en dehors de l'écran est abandonné. Les attributs sortant du vertex shader 
+sont interpolés lorsqu'ils sont donnés aux étapes suivantes. Les fragments cachés par d'autres fragments sont aussi 
+quasiment toujours éliminé grâce au test de profondeur.
 
-The *fragment shader* is invoked for every fragment that survives and determines
-which framebuffer(s) the fragments are written to and with which color and depth
-values. It can do this using the interpolated data from the vertex shader, which
-can include things like texture coordinates and normals for lighting.
+Le _fragment shader_ est invoqué pour chaque fragment ayant survécu et détermine à quel(s) framebuffer(s) le fragment
+est envoyé, et quelles données y sont inscrites. Il réalise ce travail à l'aide des données interpolées émises par le
+vertex shader, ce qui inclut souvent des coordonnées de texture et des normales pour effectuer l'éclairage.
 
-The *color blending* stage applies operations to mix different fragments that
-map to the same pixel in the framebuffer. Fragments can simply overwrite each
-other, add up or be mixed based upon transparency.
+Le _color blending_ applique des opérations pour mixer différents fragments correspondant à un même pixel sur le 
+framebuffer. Les fragments peuvent remplacer les valeurs des autres, s'additionner ou se mélanger selon les 
+paramètres de transparence (ou plus correctement de translucidité, en anglais translucency).
 
-Stages with a green color are known as *fixed-function* stages. These stages
-allow you to tweak their operations using parameters, but the way they work is
-predefined.
+Les étapes écrites en vert s'appellent _étapes à fonction fixée_. Elles ne vous permettent que de modifier leurs 
+calculs à l'aide de paramètres, mais leur fonctionnement est prédéfini.
 
-Stages with an orange color on the other hand are `programmable`, which means
-that you can upload your own code to the graphics card to apply exactly the
-operations you want. This allows you to use fragment shaders, for example, to
-implement anything from texturing and lighting to ray tracers. These programs
-run on many GPU cores simultaneously to process many objects, like vertices and
-fragments in parallel.
+Les étapes colorées en orange sont programmables, ce qui signifie que vous pouvez charger votre propre code dans la 
+carte graphique pour y appliquer exactement ce que vous voulez. Cela vous permet par exemple d'utiliser les fragment
+shaders pour implémenter n'importe quoi, de l'utililsation de textures et d'éclairage jusqu'au _ray tracing_. Ces 
+programmes tournent sur de nombreux coeurs simultanément pour y traiter de nombreuses données en parrallèle.
 
-If you've used older APIs like OpenGL and Direct3D before, then you'll be used
-to being able to change any pipeline settings at will with calls like
-`glBlendFunc` and `OMSetBlendState`. The graphics pipeline in Vulkan is almost
-completely immutable, so you must recreate the pipeline from scratch if you want
-to change shaders, bind different framebuffers or change the blend function. The
-disadvantage is that you'll have to create a number of pipelines that represent
-all of the different combinations of states you want to use in your rendering
-operations. However, because all of the operations you'll be doing in the
-pipeline are known in advance, the driver can optimize for it much better.
+Si vous avez utilisé d'anciens APIs comme OpenGL ou Direct3D, vous êtes habitués à pouvoir changer un quelconque 
+paramètre de la pipeline à tout moment, avec des fonctions comme `glBlendFunc` ou `OMSSetBlendState`. Cela n'est plus
+possible avec Vulkan. La pipeline graphique y est quasiment fixée, et vous devrez en recréer une complètement si 
+vous voulez changer de shader, y attacher différents framebuffers ou changer le color blending. Devoir créer une
+pipeline graphique pour chacune des combinaisons dont vous aurez besoin tout au long du programme fait certes 
+du travail, mais permet au driver d'optimiser beaucoup mieux tout ce travail car il sait à l'avance ce qu'il aura
+à faire.
 
-Some of the programmable stages are optional based on what you intend to do. For
-example, the tessellation and geometry stages can be disabled if you are just
-drawing simple geometry. If you are only interested in depth values then you can
-disable the fragment shader stage, which is useful for [shadow map](https://en.wikipedia.org/wiki/Shadow_mapping)
-generation.
+Certaines étapes programmables sont optionnelles selon ce que vous comptez faire. Par exemple la tesselation et le 
+geometry shader peuvent être désactivés. Si vous n'êtes intéressé que par les valeurs de profondeur vous pouvez 
+désactiver le fragment shader, ce qui est utile pour les [shadow maps](https://en.wikipedia.org/wiki/Shadow_mapping).
 
-In the next chapter we'll first create the two programmable stages required to
-put a triangle onto the screen: the vertex shader and fragment shader. The
-fixed-function configuration like blending mode, viewport, rasterization will be
-set up in the chapter after that. The final part of setting up the graphics
-pipeline in Vulkan involves the specification of input and output framebuffers.
+Dans le prochain chapitre nous allons d'abord créer deux étapes nécessaires à l'affichage d'un triangle à l'écran : 
+le vertex shader et le fragment shader. Les étapes à fonction fixée seront mises en place dans le chapitre d'après. 
+Le dernier travail à effectuer pour paramétrer la pipeline graphique Vulkan sera de fournir les framebuffers d'entrée
+et de sortie.
 
-Create a `createGraphicsPipeline` function that is called right after
-`createImageViews` in `initVulkan`. We'll work on this function throughout the
-following chapters.
+Créez la fonction `createGraphicsPipeline` et appelez-la depuis `initVulkan` après `createImageViews`. Nous 
+travaillerons sur cette fonction dans les chapitres suivants.
 
 ```c++
 void initVulkan() {
@@ -96,4 +80,4 @@ void createGraphicsPipeline() {
 }
 ```
 
-[C++ code](/code/08_graphics_pipeline.cpp)
+[Code C++](/code/08_graphics_pipeline.cpp)
