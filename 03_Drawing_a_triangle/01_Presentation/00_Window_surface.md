@@ -194,7 +194,7 @@ unique queue families that are necessary for the required queues:
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
 float queuePriority = 1.0f;
 for (uint32_t queueFamily : uniqueQueueFamilies) {
