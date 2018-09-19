@@ -1,89 +1,64 @@
-Unlike earlier APIs, shader code in Vulkan has to be specified in a bytecode
-format as opposed to human-readable syntax like [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
-and [HLSL](https://en.wikipedia.org/wiki/High-Level_Shading_Language). This
-bytecode format is called [SPIR-V](https://www.khronos.org/spir) and is designed
-to be used with both Vulkan and OpenCL (both Khronos APIs). It is a format that
-can be used to write graphics and compute shaders, but we will focus on shaders
-used in Vulkan's graphics pipelines in this tutorial.
+À la différence d'anciens APIs, le code des shaders doit être fourni à Vulkan sous la forme de bytecode et non sous une
+forme compréhensible par l'homme, comme [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) ou
+[HLSL](https://en.wikipedia.org/wiki/High-Level_Shading_Language). Ce format est appelé
+[SPIR-V](https://www.khronos.org/spir) et est conçu pour fonctionner avec Vulkan et OpenCL (deux APIs de Khronos). Ce
+format peut servir à écrire du code éxécuté sur la carte graphique et pour les graphismes et pour le calcul, mais nous 
+nous concentrerons sur la pipeline graphique dans ce tutoriel.
 
-The advantage of using a bytecode format is that the compilers written by GPU
-vendors to turn shader code into native code are significantly less complex. The
-past has shown that with human-readable syntax like GLSL, some GPU vendors were
-rather flexible with their interpretation of the standard. If you happen to
-write non-trivial shaders with a GPU from one of these vendors, then you'd risk
-other vendor's drivers rejecting your code due to syntax errors, or worse, your
-shader running differently because of compiler bugs. With a straightforward
-bytecode format like SPIR-V that will hopefully be avoided.
+L'avantage d'un tel format est que le compilateur spécifique de la carte graphique a beaucoup moins de travail. 
+L'expérience a de plus montré qu'avec les syntaxes compréhensibles par l'homme, certains compilateurs étaient très 
+laxistes par rapport à la spécification qui leur était fournie. Si vous écriviez du code complexe, il pouvait être 
+accepté par l'une et pas par l'autre, ou pire s'éxécuter différemment. Avec le format de plus bas niveau qu'est 
+SPIR-V, ces erreurs seront normalement évitées.
 
-However, that does not mean that we need to write this bytecode by hand. Khronos
-has released their own vendor-independent compiler that compiles GLSL to SPIR-V.
-This compiler is designed to verify that your shader code is fully standards
-compliant and produces one SPIR-V binary that you can ship with your program.
-You can also include this compiler as a library to produce SPIR-V at runtime,
-but we won't be doing that in this tutorial. The compiler is already included
-with the LunarG SDK as `glslangValidator.exe`, so you don't need to download
-anything extra.
+Cela ne veut cependant pas dire que nous devrons écrire ces bytecodes à la main. Khronos fournit lui-même un 
+compilateur transformant GLSL en SPIR-V. Ce compilateur standard vérifiera que votre code correspond à la spécification.
+Le compilateur est fourni avec le SDK et s'appelle `glslangValidator`, vous n'aurez donc rien de plus à télécharger.
 
-GLSL is a shading language with a C-style syntax. Programs written in it have a
-`main` function that is invoked for every object. Instead of using parameters
-for input and a return value as output, GLSL uses global variables to handle
-input and output. The language includes many features to aid in graphics
-programming, like built-in vector and matrix primitives. Functions for
-operations like cross products, matrix-vector products and reflections around a
-vector are included. The vector type is called `vec` with a number indicating
-the amount of elements. For example, a 3D position would be stored in a `vec3`.
-It is possible to access single components through members like `.x`, but it's
-also possible to create a new vector from multiple components at the same time.
-For example, the expression `vec3(1.0, 2.0, 3.0).xy` would result in `vec2`. The
-constructors of vectors can also take combinations of vector objects and scalar
-values. For example, a `vec3` can be constructed with
-`vec3(vec2(1.0, 2.0), 3.0)`.
+GLSL est un language possédant une syntaxe proche du C. Les programmes y ont une fonction `main` invoquée pour chaque 
+objet à traiter. Plutôt que d'utiliser des paramètres et des valeurs de retour, GLSL utilise des variables globales 
+pour les entrées et sorties des invocations. Le language possède des fonctionnalités avancées pour aider le travail 
+avec les mathématiques nécessaires aux graphismes, avec par exemple des vecteurs, des matrices et des fonctions pour 
+les traiter. On y trouve des fonctions pour réaliser des produits vectoriels ou des réflexions d'un vecteurs par 
+rapport à un autre. Le type pour le vecteur d'appelle `vec` et est suivi d'un nombre indiquant le nombre d'éléments,
+par exemple `vec3`. On peut accéder à ses données comme des membres avec par exemple `.y`, mais aussi créer de nouveaux
+vecteurs avec plusieurs indications, par exemple `vec3(1.0, 2.0, 3.0).xz` qui crée un `vec2` égal à `(1.0, 3.0)`. 
+Leurs constructeurs peuvent aussi être des combinaisons de vecteurs et de valeurs. Par exemple il est possible de
+créer un `vec3` ainsi : `vec3(vec2(1.0, 2.0), 3.0)`.
 
-As the previous chapter mentioned, we need to write a vertex shader and a
-fragment shader to get a triangle on the screen. The next two sections will
-cover the GLSL code of each of those and after that I'll show you how to produce
-two SPIR-V binaries and load them into the program.
+Comme nous l'avons dit au chapitre précédent, nous devrons écrire un vertex shader et un fragment shader pour pouvoir
+afficher un triangle à l'écran. Les deux prochaines sections couvrirons ce travail, puis nous verrons comment créer 
+des bytecodes SPIR-V avec ce code.
 
 ## Vertex shader
 
-The vertex shader processes each incoming vertex. It takes its attributes, like
-world position, color, normal and texture coordinates as input. The output is
-the final position in clip coordinates and the attributes that need to be passed
-on to the fragment shader, like color and texture coordinates. These values will
-then be interpolated over the fragments by the rasterizer to produce a smooth
-gradient.
+Le vertex shader traite chaque vertex envoyé depuis le programme C++. Il récupère des données telles la position, la
+normale, la couleur ou les coordonnées de texture. Ses sorties sont la position du vertex dans l'espace de l'écran et
+les autres attributs qui doivent être fournies au reste de la pipeline, comme la couleur ou les coordonnées de texture.
+Ces valeurs seront interpolées lors de la rasterization afin de produire un dégradé continu.
 
-A *clip coordinate* is a four dimensional vector from the vertex shader that is
-subsequently turned into a *normalized device coordinate* by dividing the whole
-vector by its last component. These normalized device coordinates are
-[homogeneous coordinates](https://en.wikipedia.org/wiki/Homogeneous_coordinates)
-that map the framebuffer to a [-1, 1] by [-1, 1] coordinate system that looks
-like the following:
+Une _clip coordinate_ est un vecteur à quatre éléments émis par le vertex shader. Il est ensuite transformé en une 
+_normalized screen coordinate_ en divisant ses trois premiers composants par le quatrième. Ces coordonnées sont des 
+[coordonnées homogènes](https://en.wikipedia.org/wiki/Homogeneous_coordinates) qui permettent d'accéder au frambuffer
+grâce à un repère de [-1, 1] par [-1, 1]. Il ressemble à cela :
 
 ![](/images/normalized_device_coordinates.svg)
 
-You should already be familiar with these if you have dabbled in computer
-graphics before. If you have used OpenGL before, then you'll notice that the
-sign of the Y coordinates is now flipped. The Z coordinate now uses the same
-range as it does in Direct3D, from 0 to 1.
+Vous devriez déjà être familier de ces notions si vous avez déjà utilisé des graphismes 3D. Si vous avez utilisé 
+OpenGL avant vous vous rendrez compte que l'axe Y est maintenenant inversé et que l'axe Z va de 0 à 1, comme Direct3D.
 
-For our first triangle we won't be applying any transformations, we'll just
-specify the positions of the three vertices directly as normalized device
-coordinates to create the following shape:
+Pour notre premier triangle nous n'appliquerons aucune transformation, nous nous contenterons de spécifier 
+directement les coordonnées des trois vertices pour créer la forme suivante :
 
 ![](/images/triangle_coordinates.svg)
 
-We can directly output normalized device coordinates by outputting them as clip
-coordinates from the vertex shader with the last component set to `1`. That way
-the division to transform clip coordinates to normalized device coordinates will
-not change anything.
+Nous pouvons directement émettre ces coordonnées en mettant leur quatrième composant à 1 de telle sorte que la 
+division ne change pas les valeurs. 
 
-Normally these coordinates would be stored in a vertex buffer, but creating a
-vertex buffer in Vulkan and filling it with data is not trivial. Therefore I've
-decided to postpone that until after we've had the satisfaction of seeing a
-triangle pop up on the screen. We're going to do something a little unorthodox
-in the meanwhile: include the coordinates directly inside the vertex shader. The
-code looks like this:
+Ces coordonnées devraient normalement être stockées dans un vertex buffer, mais sa création et son remplissage ne 
+sont pas des opérations triviales. J'ai donc décidé de retarder ce sujet afin d'obtenir plus rapidement un résultat 
+visible à l'écran. Nous ferons ainsi quelque chose de peu orthodoxe en attendant : inclure les coordonnées directement 
+dans le vertex shader. Son code ressemble donc à ceci :
 
 ```glsl
 #version 450
@@ -104,22 +79,18 @@ void main() {
 }
 ```
 
-The `main` function is invoked for every vertex. The built-in `gl_VertexIndex`
-variable contains the index of the current vertex. This is usually an index into
-the vertex buffer, but in our case it will be an index into a hardcoded array
-of vertex data. The position of each vertex is accessed from the constant array
-in the shader and combined with dummy `z` and `w` components to produce a
-position in clip coordinates. The built-in variable `gl_Position` functions as
-the output. The `GL_ARB_separate_shader_objects` extension is required for
-Vulkan shaders to work.
+La fonction `main` est invoquée pour chaque vertex. La variable prédéfinie `gl_VertexIndex` contient l'index du 
+vertex à l'origine de l'invocation du `main`. Elle est en général utilisée comme index dans le vertex buffer, mais nous 
+l'emploierons pour déterminer la coordonnée à émettre. Cette coordonnée est extraite d'un tableau prédéfini à trois 
+entrées, et est combinée avec un `z` à 0.0 et un `w` à 1.0 pour faire de la division une identité. La variable 
+prédiéfinie `gl_Position` fonctionne comme sortie pour les coordonnées. L'extension `GL_ARB_separate_shader_objects` 
+est requise pour fonctionnner avec Vulkan.
 
 ## Fragment shader
 
-The triangle that is formed by the positions from the vertex shader fills an
-area on the screen with fragments. The fragment shader is invoked on these
-fragments to produce a color and depth for the framebuffer (or framebuffers). A
-simple fragment shader that outputs the color red for the entire triangle looks
-like this:
+Le triangle formé par les positions émises par le vertex shader remplit un certain nombre de fragments. Le fragment 
+shader est invoqué pour chacun d'entre eux et produit une couleur et une profondeur, qu'il envoie à un ou plusieurs
+framebuffer(s). Un fragment shader colorant tout en rouge est fournit ici :
 
 ```glsl
 #version 450
@@ -132,26 +103,21 @@ void main() {
 }
 ```
 
-The `main` function is called for every fragment just like the vertex shader
-`main` function is called for every vertex. Colors in GLSL are 4-component
-vectors with the R, G, B and alpha channels within the [0, 1] range. Unlike
-`gl_Position` in the vertex shader, there is no built-in variable to output a
-color for the current fragment. You have to specify your own output variable for
-each framebuffer where the `layout(location = 0)` modifier specifies the index
-of the framebuffer. The color red is written to this `outColor` variable that is
-linked to the first (and only) framebuffer at index `0`.
+Le `main` est appelé pour chaque fragment de la même manière que le vertex shader est appelé pour chaque vertex. Les 
+couleurs sont des vecteurs de quatre composants : R, G, B et le canal alpha. Les valeurs doivent être incluses dans 
+[0, 1]. Au contraire de `gl_Position`, il n'y a pas (plus exactement il n'y a plus) de variable prédéfinie dans 
+laquelle entrer la valeur de la couleur. Vous devrez spécifier votre propre variable pour contenir la couleur du 
+fragment, où `layout(location = 0)` indique l'index du framebuffer où la couleur sera écrite. Ici, la couleur rouge est 
+écrite dans `outColor` liée au seul et unique premier framebuffer.
 
-## Per-vertex colors
+## Une couleur pour chaque vertex
 
-Making the entire triangle red is not very interesting, wouldn't something like
-the following look a lot nicer?
+Afficher ce que vous voyez sur cette image ne serait pas plus intéressant qu'un triangle entièrement rouge?
 
 ![](/images/triangle_coordinates_colors.png)
 
-We have to make a couple of changes to both shaders to accomplish this. First
-off, we need to specify a distinct color for each of the three vertices. The
-vertex shader should now include an array with colors just like it does for
-positions:
+Nous devons pour cela faire quelques petits changements aux deux shaders. Spécifions d'abord une couleur distincte 
+pour chaque vertex. Ces couleurs seront inscrites dans le vertex shader de la même manière que les positions :
 
 ```glsl
 vec3 colors[3] = vec3[](
@@ -161,9 +127,9 @@ vec3 colors[3] = vec3[](
 );
 ```
 
-Now we just need to pass these per-vertex colors to the fragment shader so it
-can output their interpolated values to the framebuffer. Add an output for color
-to the vertex shader and write to it in the `main` function:
+Nous devons maintenant passer ces couleurs au fragment shader afin qu'il puisse émettre des valeurs interpolées au 
+framebuffer. Ajoutez une variable de sortie pour la couleur dans le vertex shader et donnez lui une valeur dans le 
+`main`:
 
 ```glsl
 layout(location = 0) out vec3 fragColor;
@@ -174,7 +140,8 @@ void main() {
 }
 ```
 
-Next, we need to add a matching input in the fragment shader:
+Nous devons ensuite ajouter l'entrée correspondante dans le fragment shader, dont la valeur sera l'interpolation 
+correspondant à la position du fragment pour lequel le shader sera invoqué :
 
 ```glsl
 layout(location = 0) in vec3 fragColor;
@@ -184,21 +151,17 @@ void main() {
 }
 ```
 
-The input variable does not necessarily have to use the same name, they will be
-linked together using the indexes specified by the `location` directives. The
-`main` function has been modified to output the color along with an alpha value.
-As shown in the image above, the values for `fragColor` will be automatically
-interpolated for the fragments between the three vertices, resulting in a smooth
-gradient.
+Les deux variables n'ont pas nécessairement le même nom, elles seront reliées selon l'index fournit par la directive 
+`location`. La fonction `main` doit être modifiée pour émettre une couleur possédant un canal alpha. Le résultat 
+montré dans l'image précédente est dû à l'interpolation réalisée lors de la rasterization.
 
-## Compiling the shaders
+## Compilation des shaders
 
-Create a directory called `shaders` in the root directory of your project and
-store the vertex shader in a file called `shader.vert` and the fragment shader
-in a file called `shader.frag` in that directory. GLSL shaders don't have an
-official extension, but these two are commonly used to distinguish them.
+Créez un dossier `shaders` à la racine de votre projet, puis enregistrez le vertex shader dans un fichier appelé
+`shader.vert` et le fragment shader dans un fichier appelé `shader.frag`. Les shaders en GLSL n'ont pas d'extension 
+officielle mais celles-ci correspondent à l'usage communément accepté.
 
-The contents of `shader.vert` should be:
+Le contenu de `shader.vert` devrait être:
 
 ```glsl
 #version 450
@@ -228,7 +191,7 @@ void main() {
 }
 ```
 
-And the contents of `shader.frag` should be:
+Et `shader.frag` devrait contenir :
 
 ```glsl
 #version 450
@@ -243,12 +206,11 @@ void main() {
 }
 ```
 
-We're now going to compile these into SPIR-V bytecode using the
-`glslangValidator` program.
+Nous allons maintenant compiler ces shaders en bytecode SPIR-V à l'aide du programme `glslangValidator`.
 
 **Windows**
 
-Create a `compile.bat` file with the following contents:
+Créez un fichier `compile.bat` et inscrivez ceci à l'intérieur :
 
 ```bash
 C:/VulkanSDK/1.0.17.0/Bin32/glslangValidator.exe -V shader.vert
@@ -256,42 +218,39 @@ C:/VulkanSDK/1.0.17.0/Bin32/glslangValidator.exe -V shader.frag
 pause
 ```
 
-Replace the path to `glslangValidator.exe` with the path to where you installed
-the Vulkan SDK. Double click the file to run it.
+Corrigez le chemin vers `glslangValidator.exe` pour que le .bat pointe effectivement là où le votre se trouve. 
+Double-cliquez pour lancer ce script.
 
 **Linux**
 
-Create a `compile.sh` file with the following contents:
+Créez un fichier `compile.sh` et inscrivez ceci à l'intérieur :
 
 ```bash
 /home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslangValidator -V shader.vert
 /home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslangValidator -V shader.frag
 ```
 
-Replace the path to `glslangValidator` with the path to where you installed the
-Vulkan SDK. Make the script executable with `chmod +x compile.sh` and run it.
+Corrigez le chemin menant au `glslangValidator` pour qu'il pointe là où il faut. Rendez le script exécutable avec la 
+commande `chmod +x compile.sh` et lancez-le.
 
-**End of platform-specific instructions**
+**Fin des instructions spécifiques**
 
-These two commands invoke the compiler with the `-V` flag, which tells it to
-compile the GLSL source files to SPIR-V bytecode. When you run the compile
-script, you'll see that two SPIR-V binaries are created: `vert.spv` and
-`frag.spv`. The names are automatically derived from the type of shader, but you
-can rename them to anything you like. You may get a warning about some missing
-features when compiling your shaders, but you can safely ignore that.
+Ces deux commmandes invoquent le programme avec l'argument `-V`. Celui-ci indique au programme de compiler les sources 
+GLSL en bytecode SPIR-V, sinon le programme se contenterait de vérifier que les sources correspondent au standard. 
+Une fois le script exécuté vous vous retrouverez avec deux nouveaux fichiers : `vert.spv` et `frag.spv`. Les noms 
+sont automatiquement dérivés du type de shader, mais vous pouvez les renommer si vous le souhaitez. Vous aurez 
+peut-être un message parlant de fonctionnalités manquantes mais vous pouvez l'ignorer sans problème.
 
-If your shader contains a syntax error then the compiler will tell you the line
-number and problem, as you would expect. Try leaving out a semicolon for example
-and run the compile script again. Also try running the compiler without any
-arguments to see what kinds of flags it supports. It can, for example, also
-output the bytecode into a human-readable format so you can see exactly what
-your shader is doing and any optimizations that have been applied at this stage.
+Si votre shader contient une erreur de syntaxe le compilateur vous indiquera le problème et la ligne à laquelle il 
+apparait. Essayez de retirer un point-virgule et voyez l'efficacité du débugger. Essayez également de voir les 
+arguments supportés. Il peut par exemple se forcer à émettre le bytecode sous un format compréhensible permettant de 
+voir exactement ce que le shader fait et quelles optimisations le compilateur y a fait.
 
-## Loading a shader
+## Charger un shader
 
-Now that we have a way of producing SPIR-V shaders, it's time to load them into
-our program to plug them into the graphics pipeline at some point. We'll first
-write a simple helper function to load the binary data from the files.
+Maintenant quevous pouvez créer des shaders SPIR-V il est grand temps de les charger dans le programme et de les 
+intégrer à la pipeline graphique. Nous allons d'abord écrire une fonction pour assister au chargement des données 
+binaires à partir des fichiers.
 
 ```c++
 #include <fstream>
@@ -302,35 +261,31 @@ static std::vector<char> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {
-        throw std::runtime_error("failed to open file!");
+        throw std::runtime_error("échec lors de l'ouverture du fichier!");
     }
 }
 ```
 
-The `readFile` function will read all of the bytes from the specified file and
-return them in a byte array managed by `std::vector`. We start by opening the
-file with two flags:
+La fonction `readFile` lira tous les octets du fichier qu'on lui indique et les retournera dans un `vertor` de 
+charactères servant ici d'octets. Nous ouvrons le fichier deux paramètres particuliers :
+* `ate` : permet de commencer la lecture à la fin du fichier
+* `binary` : indique que le fichier doit être lu comme des octets et que ceux-ci ne doivent pas être formattés
 
-* `ate`: Start reading at the end of the file
-* `binary`: Read the file as binary file (avoid text transformations)
-
-The advantage of starting to read at the end of the file is that we can use the
-read position to determine the size of the file and allocate a buffer:
+Commencer la lecture à la fin permet d'utiliser la position du pointeur comme indicateur de la taille totale du 
+fichier et nous pouvons ainsi allouer un stockage suffisant :
 
 ```c++
 size_t fileSize = (size_t) file.tellg();
 std::vector<char> buffer(fileSize);
 ```
-
-After that, we can seek back to the beginning of the file and read all of the
-bytes at once:
+Après cela nous revenons au déubut du fichier et lisons tous les octéts d'un coup :
 
 ```c++
 file.seekg(0);
 file.read(buffer.data(), fileSize);
 ```
 
-And finally close the file and return the bytes:
+Nous pouvons enfin fermer le fichier et retourner les octets :
 
 ```c++
 file.close();
@@ -338,8 +293,7 @@ file.close();
 return buffer;
 ```
 
-We'll now call this function from `createGraphicsPipeline` to load the bytecode
-of the two shaders:
+Appelons maintenant cette fonction depuis `createGraphicsPipeline` pour charger les bytecodes des deux shaders :
 
 ```c++
 void createGraphicsPipeline() {
@@ -348,14 +302,13 @@ void createGraphicsPipeline() {
 }
 ```
 
-Make sure that the shaders are loaded correctly by printing the size of the
-buffers and checking if they match the actual file size in bytes.
+Assurez-vous que les shaders soient correctement charger en affichant la taille des fichiers lus depuis votre 
+programme et comparez ces valeurs à la taille des fichiers.
 
-## Creating shader modules
+## Créer des modeules shader
 
-Before we can pass the code to the pipeline, we have to wrap it in a
-`VkShaderModule` object. Let's create a helper function `createShaderModule` to
-do that.
+Avant de passer ce code à la pipeline nous devons en faire un `VkShaderModule`. Créez une fonction 
+`createShaderModule` qui fera ce travail.
 
 ```c++
 VkShaderModule createShaderModule(const std::vector<char>& code) {
@@ -363,18 +316,14 @@ VkShaderModule createShaderModule(const std::vector<char>& code) {
 }
 ```
 
-The function will take a buffer with the bytecode as parameter and create a
-`VkShaderModule` from it.
+Cette fonction aura comme paramètre le buffer contenant le bytecode et crééra un `VkShaderModule` de ce code.
 
-Creating a shader module is simple, we only need to specify a pointer to the
-buffer with the bytecode and the length of it. This information is specified in
-a `VkShaderModuleCreateInfo` structure. The one catch is that the size of the
-bytecode is specified in bytes, but the bytecode pointer is a `uint32_t` pointer
-rather than a `char` pointer. Therefore we will need to cast the pointer with
-`reinterpret_cast` as shown below. When you perform a cast like this, you also
-need to ensure that the data satisfies the alignment requirements of `uint32_t`.
-Lucky for us, the data is stored in an `std::vector` where the default allocator
-already ensures that the data satisfies the worst case alignment requirements.
+La création d'un module shader est très simple, nous avons juste à indiquer un pointeur vers le buffer et la taille 
+de ce buffer. Ces informations seront inscrites dans la structure `VkShaderModuleCreatInfo`. Le seul problème est que
+la taille doit être donnée en octets mais le pointeur sur le code est du type `uint32_t` et non du type `char`. Nous 
+devrons donc utiliser `reinterpet_cast` sur notre pointeur. Avec un tel cast vous devez être certain que vos données 
+satisfont l'alignement mémoire d'un `uint32_t`. Heuresement pour nous l'objet allocateur de la classe `std::vector` 
+s'assure que les données satisfont le pire cas d'alignement.
 
 ```c++
 VkShaderModuleCreateInfo createInfo = {};
@@ -383,44 +332,43 @@ createInfo.codeSize = code.size();
 createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 ```
 
-The `VkShaderModule` can then be created with a call to `vkCreateShaderModule`:
+Le `VkShaderModule` peut alors être créé en appelant la fonction `vkCreateShaderModule` :
+
 
 ```c++
 VkShaderModule shaderModule;
 if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create shader module!");
+    throw std::runtime_error("échec lors de la création d'un module shader!");
 }
 ```
 
-The parameters are the same as those in previous object creation functions: the
-logical device, pointer to create info structure, optional pointer to custom
-allocators and handle output variable. The buffer with the code can be freed
-immediately after creating the shader module. Don't forget to return the created
-shader module:
+Les paramètres sont les mêmes que lors de la création des objets précédents : le logical device, le pointeur sur la 
+structure d'informations, le pointeur vers l'allocateur optionnnel et la référence à l'objet créé. Le buffer 
+contenant le code peut être libéré immédiatement après l'appel. Retournez enfin le shader module créé :
 
 ```c++
 return shaderModule;
 ```
 
-The shader module objects are only required during the pipeline creation
-process, so instead of declaring them as class members, we'll make them local
-variables in the `createGraphicsPipeline` function:
+Les modules shader ne sont requis que pendant la création de la pipeline shader, par conséquent nous ne les 
+stockerons pas dans des membres données de la classe mais seulement comme des variables dans la fonction 
+`createGraphicsPipeline` :
 
 ```c++
 VkShaderModule vertShaderModule;
 VkShaderModule fragShaderModule;
 ```
 
-Call the helper function we created to load the shader modules:
+Appelez le fonction que nous venons de créer pour charger les modules shader :
 
 ```c++
 vertShaderModule = createShaderModule(vertShaderCode);
 fragShaderModule = createShaderModule(fragShaderCode);
 ```
 
-They should be cleaned up when the graphics pipeline has been created and
-`createGraphicsPipeline` returns, so make sure that they are deleted at the end
-of the function:
+Ils doivent être libérés une fois que la pipeline est créée, juste avant que `createGraphicsPipeline` ne retourne. 
+Ajoutez ceci à la fin de la fonction :
+
 
 ```c++
     ...
@@ -429,16 +377,14 @@ of the function:
 }
 ```
 
-## Shader stage creation
+## Création des étapes shader
 
-The `VkShaderModule` object is just a dumb wrapper around the bytecode buffer.
-The shaders aren't linked to each other yet and they haven't even been given a
-purpose yet. Assigning a shader module to either the vertex or fragment shader
-stage in the pipeline happens through a `VkPipelineShaderStageCreateInfo`
-structure, which is part of the actual pipeline creation process.
+L'objet `VkShaderModule` n'est qu'un simple wrapper autour du bytecode. Les shaders ne sont pas liés l'un à l'autre 
+et on ne leur a pas assigné de tâche. Pour indiquer à quelle étape il doivent intervenir nous devons remplir la 
+structure `VkPipelineShaderStageCreateInfo`.
 
-We'll start by filling in the structure for the vertex shader, again in the
-`createGraphicsPipeline` function.
+Nous allons d'abord remplir cette structure pour le vertex shader, une fois de plus dans la fonction 
+`createGraphicsPipeline`.
 
 ```c++
 VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -446,32 +392,26 @@ vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 ```
 
-The first step, besides the obligatory `sType` member, is telling Vulkan in
-which pipeline stage the shader is going to be used. There is an enum value for
-each of the programmable stages described in the previous chapter.
+La première étape, sans compter le membre `sType`, consiste à dire à Vulkan à quelle étape le shader sera utilisé. Il
+existe une énumération pour chacune des étapes possibles décrites dans le chapitre précédent.
 
 ```c++
 vertShaderStageInfo.module = vertShaderModule;
 vertShaderStageInfo.pName = "main";
 ```
 
-The next two members specify the shader module containing the code, and the
-function to invoke. That means that it's possible to combine multiple fragment
-shaders into a single shader module and use different entry points to
-differentiate between their behaviors. In this case we'll stick to the standard
-`main`, however.
+Les deux membres suivants indiquent le module contenant le code et la fonction à invoquer. Il est donc possible de 
+combiner plusieurs fragment shaders dans un seul module et de les différencier à l'aide de leurs points d'entrée. 
+Nous nous contenterons du `main` standard.
 
-There is one more (optional) member, `pSpecializationInfo`, which we won't be
-using here, but is worth discussing. It allows you to specify values for shader
-constants. You can use a single shader module where its behavior can be
-configured at pipeline creation by specifying different values for the constants
-used in it. This is more efficient than configuring the shader using variables
-at render time, because the compiler can do optimizations like eliminating `if`
-statements that depend on these values. If you don't have any constants like
-that, then you can set the member to `nullptr`, which our struct initialization
-does automatically.
+Il existe un autre membre, celui-ci optionnel, appelé `pSpecializationInfo`, que nous n'utiliserons pas mais qu'il 
+est intéressant d'évoquer. Il vous permet de donner des valeurs à des constantes présentes dans le code du shader. 
+Vous pouvez ainsi configurer le comportement d'un shader lors de la création de la pipeline, ce qui est plus efficace
+que de le faire pendant l'affichage, car alors le compilateur (sui n'a toujours pas été invoqué!) peut éliminer des 
+pants entiers de code sous un `if` vérifiant la valeur d'une constante ainsi configurée. Si vous n'avez aucune 
+constante mettez ce paramètre à `nullptr`.
 
-Modifying the structure to suit the fragment shader is easy:
+Modifier la structure pour qu'elle corresponde au fragment shader est très simple :
 
 ```c++
 VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
@@ -481,16 +421,15 @@ fragShaderStageInfo.module = fragShaderModule;
 fragShaderStageInfo.pName = "main";
 ```
 
-Finish by defining an array that contains these two structs, which we'll later
-use to reference them in the actual pipeline creation step.
+Intégrez ces deux valeurs dans un tableau que nous utiliserons plus tard et vous aurez fini ce chapitre!
 
 ```c++
 VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 ```
 
-That's all there is to describing the programmable stages of the pipeline. In
-the next chapter we'll look at the fixed-function stages.
+C'est tout ce que nous dirons sur les étapes programmables de la pipeline. Dans le prochain chapitre nous verrons les
+étapes à fonction fixée.
 
-[C++ code](/code/09_shader_modules.cpp) /
+[Code C++](/code/09_shader_modules.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
