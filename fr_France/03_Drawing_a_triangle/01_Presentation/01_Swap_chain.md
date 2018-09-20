@@ -420,8 +420,8 @@ if (indices.graphicsFamily != indices.presentFamily) {
     createInfo.pQueueFamilyIndices = queueFamilyIndices;
 } else {
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.queueFamilyIndexCount = 0; // Optionel
-    createInfo.pQueueFamilyIndices = nullptr; // Optionel
+    createInfo.queueFamilyIndexCount = 0; // Optionnel
+    createInfo.pQueueFamilyIndices = nullptr; // Optionnel
 }
 ```
 
@@ -489,7 +489,7 @@ if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS
 }
 ```
 
-Les paramètres sont le logical device, la structure contenant les informations, l'allocateur optionel et la variable 
+Les paramètres sont le logical device, la structure contenant les informations, l'allocateur optionnel et la variable 
 contenant la référence à la swap chain. Cet objet devra être explicitement détruit à l'aide de la fonction 
 `vkDestroySwapchainKHR` avant de détruire le logical device :
 
