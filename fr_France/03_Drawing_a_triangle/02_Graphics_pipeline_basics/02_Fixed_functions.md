@@ -1,62 +1,56 @@
-The older graphics APIs provided default state for most of the stages of the
-graphics pipeline. In Vulkan you have to be explicit about everything, from
-viewport size to color blending function. In this chapter we'll fill in all of
-the structures to configure these fixed-function operations.
+Les anciens APIs définissaient des configurations par défaut pour toutes les étapes de la pipeline graphique. Avec 
+Vulkan vous devez être explicite dans ce domaine également et devrez donc configurer la fonction de mélange par 
+exemple. Dans ce chapitre nous remplirons toutes les structures nécessaires à la configuration des fonctions à 
+fonction fixée.
 
-## Vertex input
+## Entrée des vertices
 
-The `VkPipelineVertexInputStateCreateInfo` structure describes the format of the
-vertex data that will be passed to the vertex shader. It describes this in
-roughly two ways:
+La structure `VkPipelineVertexInputStateCreateInfo` décrit le format des vertices envoyées au vertex shader. Elle 
+fait cela de deux manières :
 
-* Bindings: spacing between data and whether the data is per-vertex or
-per-instance (see [instancing](https://en.wikipedia.org/wiki/Geometry_instancing))
-* Attribute descriptions: type of the attributes passed to the vertex shader,
-which binding to load them from and at which offset
+* Liens : espace entre les données et information sur ces données; sont-elles par vertex ou par instance? (voyez 
+[l'instanciation](https://en.wikipedia.org/wiki/Geometry_instancing))
+* Descriptions d'attributs : types d'attributs passés au vertex shader, de quels liens les charger et à quel décalage.
 
-Because we're hard coding the vertex data directly in the vertex shader, we'll
-fill in this structure to specify that there is no vertex data to load for now.
-We'll get back to it in the vertex buffer chapter.
+Dans la mesure où nous avons écrit les coordonnées directement dans le vertex shader, nous remplirons cette structure
+en indiquant qu'il n'y a aucune donnée à charger. Nous y reviendrons dans le chapitre sur les vertex buffers.
 
 ```c++
 VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 vertexInputInfo.vertexBindingDescriptionCount = 0;
-vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
+vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optionnel
 vertexInputInfo.vertexAttributeDescriptionCount = 0;
-vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optionnel
 ```
 
-The `pVertexBindingDescriptions` and `pVertexAttributeDescriptions` members
-point to an array of structs that describe the aforementioned details for
-loading vertex data. Add this structure to the `createGraphicsPipeline` function
-right after the `shaderStages` array.
+Les membres `pVertexBindingDescriptions` et `pVertexAttributeDescriptions` pointent sur un tableau de structures
+décrivant les détails du chargement des données des vertices. Ajoutez cette structure à la fonction 
+`createGraphicsPipeline` juste après le tableau `shaderStages`.
 
 ## Input assembly
 
-The `VkPipelineInputAssemblyStateCreateInfo` struct describes two things: what
-kind of geometry will be drawn from the vertices and if primitive restart should
-be enabled. The former is specified in the `topology` member and can have values
-like:
+La structure `VkPipelineInputAssemblyStateCreateInfo` indique la géométrie dessinée à partir des vertices et dit à 
+Vulkan si la réévaluation des vertices est activée. La première information est décrite dans le membre `topology` et 
+peut prendre ces valeurs :
 
-* `VK_PRIMITIVE_TOPOLOGY_POINT_LIST`: points from vertices
-* `VK_PRIMITIVE_TOPOLOGY_LINE_LIST`: line from every 2 vertices without reuse
-* `VK_PRIMITIVE_TOPOLOGY_LINE_STRIP`: the end vertex of every line is used as
-start vertex for the next line
-* `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST`: triangle from every 3 vertices without
-reuse
-* `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP `: the second and third vertex of every
-triangle are used as first two vertices of the next triangle
+* `VK_PRIMITIVE_TOPOLOGY_POINT_LIST` : dessine des points
+* `VK_PRIMITIVE_TOPOLOGY_LINE_LIST` : dessine une ligne liant deux vertices en ne les utilisant qu'une seule fois
+* `VK_PRIMITIVE_TOPOLOGY_LINE_STRIP` : la dernière vertice de chaque ligne ligne est utilisée comme première vertice 
+par la ligne suivante
+* `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST` : dessine un triangle en utilisant trois vertices, sans qu'elles soient 
+réutilisées
+* `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ` : la deuxième et troisième vertices sont utilisées comme les deux premières
+pour le triangle suivant
 
-Normally, the vertices are loaded from the vertex buffer by index in sequential
-order, but with an *element buffer* you can specify the indices to use yourself.
-This allows you to perform optimizations like reusing vertices. If you set the
-`primitiveRestartEnable`  member to `VK_TRUE`, then it's possible to break up
-lines and triangles in the `_STRIP` topology modes by using a special index of
-`0xFFFF` or `0xFFFFFFFF`.
+Les vertices sont normalement séquentiellement chargées depuis le vertex buffer. Avec un _element buffer_ vous pouvez
+cependant choisir vous-même les indices à charger. Vous pouvez ainsi réaliser des optimisations telles que n'utiliser
+une combinaison de vertices qu'une fois au lieu de répéter ces données. Si vous mettez le membre
+`primitiveRestartEnable` à la valeur `VK_TRUE`, il devient alors possible d'interrompre les liaisons des vertices 
+pour les modes `_STRIP` en utilisant l'index spécial `0xFFFF` ou `0xFFFFFFFF`.
 
-We intend to draw triangles throughout this tutorial, so we'll stick to the
-following data for the structure:
+Nous ne voulons qu'afficher des triangles dans ce tutoriel, nous nous contenterons donc de remplir la structure de 
+cette manière :
 
 ```c++
 VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -65,11 +59,10 @@ inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 inputAssembly.primitiveRestartEnable = VK_FALSE;
 ```
 
-## Viewports and scissors
+## Viewports et ciseaux
 
-A viewport basically describes the region of the framebuffer that the output
-will be rendered to. This will almost always be `(0, 0)` to `(width, height)`
-and in this tutorial that will also be the case.
+Un viewport décrit simplement la région d'un framebuffer sur laquelle le rendu sera effectué. Il couvrira dans la
+pratique quasiment toujours la totalité du framebuffer, et ce sera le cas dans ce tutoriel.
 
 ```c++
 VkViewport viewport = {};
@@ -81,27 +74,24 @@ viewport.minDepth = 0.0f;
 viewport.maxDepth = 1.0f;
 ```
 
-Remember that the size of the swap chain and its images may differ from the
-`WIDTH` and `HEIGHT` of the window. The swap chain images will be used as
-framebuffers later on, so we should stick to their size.
+N'oubliez pas que la taille des images de la swap chain peuvent ne pas avoir les mêmes valeurs que les macros `WIDTH` et
+`HEIGHT`. Les images de la swap chain seront plus tard les framebuffers sur lesquels la pipeline opérera, nous devons
+donc prendre en compte cela et donner les valeurs dynamiquement acquises.
 
-The `minDepth` and `maxDepth` values specify the range of depth values to use
-for the framebuffer. These values must be within the `[0.0f, 1.0f]` range, but
-`minDepth` may be higher than `maxDepth`. If you aren't doing anything special,
-then you should stick to the standard values of `0.0f` and `1.0f`.
+Les valeurs `minDepth` et `maxDepth` indiquent l'étendue des valeurs à utiliser pour le frambuffer. Ces valeurs 
+doivent être dans `[0.0f, 1.0f]` mais `minDepth` peut être supérieure à `maxDepth`. Si vous ne faites rien de 
+particulier contentez-vous des valeurs `0.0f` et `1.0f`.
 
-While viewports define the transformation from the image to the framebuffer,
-scissor rectangles define in which regions pixels will actually be stored. Any
-pixels outside the scissor rectangles will be discarded by the rasterizer. They
-function like a filter rather than a transformation. The difference is
-illustrated below. Note that the left scissor rectangle is just one of the many
-possibilities that would result in that image, as long as it's larger than the
-viewport.
+Alors que les viewports définissent la transformation de l'image vers le framebuffer, les rectangles de ciseaux 
+définissent la région de pixels qui sera conservée. Tout pixel en dehors des rectangles de ciseaux seront 
+éliminés par le rasterizer. Ils fonctionnent plus comme un filtre que comme une transformation. Les différence sont
+illustrée ci-dessous. Notez que le rectangle de ciseau dessiné sous l'image de gauche n'est qu'une des possibilités :
+tout rectangle plus grand que le viewport aurait fonctionné.
 
 ![](/images/viewports_scissors.png)
 
-In this tutorial we simply want to draw to the entire framebuffer, so we'll
-specify a scissor rectangle that covers it entirely:
+Dans ce tutoriel nous ne voulons que dessiner sur la totalité du framebuffer, et ce sans transformation. Nous 
+définirons donc un rectangle de ciseaux couvrant tout le frambuffer :
 
 ```c++
 VkRect2D scissor = {};
@@ -109,11 +99,10 @@ scissor.offset = {0, 0};
 scissor.extent = swapChainExtent;
 ```
 
-Now this viewport and scissor rectangle need to be combined into a viewport
-state using the `VkPipelineViewportStateCreateInfo` struct. It is possible to
-use multiple viewports and scissor rectangles on some graphics cards, so its
-members reference an array of them. Using multiple requires enabling a GPU
-feature (see logical device creation).
+Le viewport et le rectangle de ciseau doivent être combinés en un *viewport state* à l'aide de la structure 
+`VkPipelineViewportStateCreateInfo`. Il est possible sur certaines cartes graphiques d'utiliser plusieurs viewports 
+et rectangles de ciseaux, c'est pourquoi la structure permet d'envoyer des tableaux de ces deux données. 
+L'utilisation de ces capacités nécessite de les activer au préalable lors de la création du logical device.
 
 ```c++
 VkPipelineViewportStateCreateInfo viewportState = {};
@@ -126,13 +115,11 @@ viewportState.pScissors = &scissor;
 
 ## Rasterizer
 
-The rasterizer takes the geometry that is shaped by the vertices from the vertex
-shader and turns it into fragments to be colored by the fragment shader. It also
-performs [depth testing](https://en.wikipedia.org/wiki/Z-buffering),
-[face culling](https://en.wikipedia.org/wiki/Back-face_culling) and the scissor
-test, and it can be configured to output fragments that fill entire polygons or
-just the edges (wireframe rendering). All this is configured using the
-`VkPipelineRasterizationStateCreateInfo` structure.
+Le rasterizer récupère la géomértie définie par des vertices et en fait des fragments ensuite traités par le 
+fragment shaders. Il exécute également un [test de profondeur](https://en.wikipedia.org/wiki/Z-buffering), le [face 
+culling](https://en.wikipedia.org/wiki/Back-face_culling) et le test de ciseau. Il peut être configuré pour émettre 
+des fragments remplissant tous les polygones ou bien ne remplissant que les cotés (wireframe rendering). Tout cela se
+configure dans la structure `VkPipelineRasterizationStateCreateInfo`.
 
 ```c++
 VkPipelineRasterizationStateCreateInfo rasterizer = {};
@@ -140,123 +127,113 @@ rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 rasterizer.depthClampEnable = VK_FALSE;
 ```
 
-If `depthClampEnable` is set to `VK_TRUE`, then fragments that are beyond the
-near and far planes are clamped to them as opposed to discarding them. This is
-useful in some special cases like shadow maps. Using this requires enabling a
-GPU feature.
+Si le membre `depthClampEnable` est mis à `VK_TRUE`, les fragments au-delà des plans near et far ne pas supprimés 
+mais affichés à cette distance. Cela est utile dans quelques situations telles que les shadow maps. Cela aussi doit 
+être explicitement activé avec le logical device.
 
 ```c++
 rasterizer.rasterizerDiscardEnable = VK_FALSE;
 ```
 
-If `rasterizerDiscardEnable` is set to `VK_TRUE`, then geometry never passes
-through the rasterizer stage. This basically disables any output to the
-framebuffer.
+Si le membre `rasterizerDiscardEnable` est mis à `VK_TRUE`, aucune géométrie ne passe l'étape du rasterizer, ce qui 
+désactive purement et simplement toute émission de donnée vers le frambuffer.
 
 ```c++
 rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 ```
 
-The `polygonMode` determines how fragments are generated for geometry. The
-following modes are available:
+Le membre `polygonMode` définit la génération des fragments pour la géométrie. Les modes suivants sont disponibles :
 
-* `VK_POLYGON_MODE_FILL`: fill the area of the polygon with fragments
-* `VK_POLYGON_MODE_LINE`: polygon edges are drawn as lines
-* `VK_POLYGON_MODE_POINT`: polygon vertices are drawn as points
+* `VK_POLYGON_MODE_FILL` : remplit les polygones de fragments
+* `VK_POLYGON_MODE_LINE` : les côtés des polygones sont dessinés comme des lignes
+* `VK_POLYGON_MODE_POINT` : les vertices sont dessinées comme des points
 
-Using any mode other than fill requires enabling a GPU feature.
+Tout autre mode que fill doit être activé avec le logical device.
 
 ```c++
 rasterizer.lineWidth = 1.0f;
 ```
 
-The `lineWidth` member is straightforward, it describes the thickness of lines
-in terms of number of fragments. The maximum line width that is supported
-depends on the hardware and any line thicker than `1.0f` requires you to enable
-the `wideLines` GPU feature.
+Le membre `lineWidth` définit la largeur des lignes en terme de fragments. La taille maximale supportée dépend du GPU
+et pour toute valeur autre que `1.0f` l'extension `wideLines` doit être activée.
 
 ```c++
 rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 ```
 
-The `cullMode` variable determines the type of face culling to use. You can
-disable culling, cull the front faces, cull the back faces or both. The
-`frontFace` variable specifies the vertex order for faces to be considered
-front-facing and can be clockwise or counterclockwise.
+Le membre `cullMode` détermine quel type de face culling utiliser. Vous pouvez désactiver cette élimination, 
+n'éliminer que les faces de devant, que celles de derrière ou éliminer toutes les faces. Le membre `frontFace` 
+indique l'ordre d'évalutaion des vertices pour dire que la face est devant ou derrière, et peut indiquer l'ordre des
+aiguilles d'une montre ou le contraire.
 
 ```c++
 rasterizer.depthBiasEnable = VK_FALSE;
-rasterizer.depthBiasConstantFactor = 0.0f; // Optional
-rasterizer.depthBiasClamp = 0.0f; // Optional
-rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+rasterizer.depthBiasConstantFactor = 0.0f; // Optionnel
+rasterizer.depthBiasClamp = 0.0f; // Optionnel
+rasterizer.depthBiasSlopeFactor = 0.0f; // Optionnel
 ```
 
-The rasterizer can alter the depth values by adding a constant value or biasing
-them based on a fragment's slope. This is sometimes used for shadow mapping, but
-we won't be using it. Just set `depthBiasEnable` to `VK_FALSE`.
+Le rasterizer peut altérer la profondeur en y ajoutant un valeur constante ou en la modifiant selon la pente du 
+fragment. Ces possibilités sont parfois exploitées pour le shadow mapping mais nous ne les utiliserons pas. Laissez 
+`depthBiasEnabled` à la valeur `VK_FALSE`.
 
 ## Multisampling
 
-The `VkPipelineMultisampleStateCreateInfo` struct configures multisampling,
-which is one of the ways to perform [anti-aliasing](https://en.wikipedia.org/wiki/Multisample_anti-aliasing).
-It works by combining the fragment shader results of multiple polygons that
-rasterize to the same pixel. This mainly occurs along edges, which is also where
-the most noticeable aliasing artifacts occur. Because it doesn't need to run the
-fragment shader multiple times if only one polygon maps to a pixel, it is
-significantly less expensive than simply rendering to a higher resolution and
-then downscaling. Enabling it requires enabling a GPU feature.
+La structure `VkPipelineMultisampleCreateInfo` configure le multisampling, l'un des outils permettant de réaliser
+[l'anti aliasing](https://en.wikipedia.org/wiki/Multisample_anti-aliasing). L'anti aliasing combine les résultats
+de fragment shaders invoqués pour des fragments que le rasterizer détermine appartenir au mêmes polygones. Cette
+superposition arrive plutôt sur les limites entre les géométries, et c'est aussi là que les problèmes visuels de
+hachage arrivent. Dans la mesure où le fragment shader n'a pas besoin d'être invoqués plusieurs fois si seul un
+polygone correspond à un pixel, cette approche est beaucoup plus efficace que d'augmenter la résolution de la texture.
+Son utilisation nécessite son activation au niveau du GPU.
 
 ```c++
 VkPipelineMultisampleStateCreateInfo multisampling = {};
 multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 multisampling.sampleShadingEnable = VK_FALSE;
 multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-multisampling.minSampleShading = 1.0f; // Optional
-multisampling.pSampleMask = nullptr; // Optional
-multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
-multisampling.alphaToOneEnable = VK_FALSE; // Optional
+multisampling.minSampleShading = 1.0f; // Optionnel
+multisampling.pSampleMask = nullptr; // Optionnel
+multisampling.alphaToCoverageEnable = VK_FALSE; // Optionnel
+multisampling.alphaToOneEnable = VK_FALSE; // Optionnel
 ```
 
-We'll revisit multisampling in later chapter, for now let's keep it disabled.
+Nous reverrons le multisampling plus tard, pour l'instant laissez-le désacitvé.
 
-## Depth and stencil testing
+## Tests de profondeur et de pochoir
 
-If you are using a depth and/or stencil buffer, then you also need to configure
-the depth and stencil tests using `VkPipelineDepthStencilStateCreateInfo`. We
-don't have one right now, so we can simply pass a `nullptr` instead of a pointer
-to such a struct. We'll get back to it in the depth buffering chapter.
+Si vous utilisez un buffer de profondeur et/ou de pochoir vous devez configurer les tests de profondeur et de pochoir
+avec la structure `VkPipelineDepthStencilStateCreateInfo`. Nous n'avons aucun de ces buffers donc nous indiquerons 
+`nullptr` à la place d'une structure. Nous y reviendrons au chapitre sur le depth buffering.
 
 ## Color blending
 
-After a fragment shader has returned a color, it needs to be combined with the
-color that is already in the framebuffer. This transformation is known as color
-blending and there are two ways to do it:
+La couleur donnée par un fragment shader doit être combinée avec la couleur déjà présente dans le framebuffer. Cette 
+transformation s'appelle color blending et il y a deux manières de la réaliser :
 
-* Mix the old and new value to produce a final color
-* Combine the old and new value using a bitwise operation
+* Mélanger les anciennes et les nouvelles valeurs pour créer le résultat
+* Combiner les anciennes et nouvelles valeurs à l'aide d'une opération bit à bit.
 
-There are two types of structs to configure color blending. The first struct,
-`VkPipelineColorBlendAttachmentState` contains the configuration per attached
-framebuffer and the second struct, `VkPipelineColorBlendStateCreateInfo`
-contains the *global* color blending settings. In our case we only have one
-framebuffer:
+Il y a deux types de structures pour configurer le color blending. La première,
+`VkPipelineColorBlendAttachmentState`, contient une configuration pour chaque framebuffer et la seconde,
+`VkPipelineColorBlendStateCreateInfo` contient les paramètres globaux pour ce color blending. Dans notre cas nous
+n'avons qu'un seul framebuffer :
 
 ```c++
 VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 colorBlendAttachment.blendEnable = VK_FALSE;
-colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
-colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optionnel
+colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optionnel
+colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optionnel
+colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optionnel
+colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optionnel
+colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optionnel
 ```
 
-This per-framebuffer struct allows you to configure the first way of color
-blending. The operations that will be performed are best demonstrated using the
-following pseudocode:
+Cette structure spécifique de chaque framebuffer vous permet de configurer le color blending. L'opération sera 
+effectuée à peu près comme ce pseudocode le montre :
 
 ```c++
 if (blendEnable) {
@@ -269,21 +246,21 @@ if (blendEnable) {
 finalColor = finalColor & colorWriteMask;
 ```
 
-If `blendEnable` is set to `VK_FALSE`, then the new color from the fragment
-shader is passed through unmodified. Otherwise, the two mixing operations are
-performed to compute a new color. The resulting color is AND'd with the
-`colorWriteMask` to determine which channels are actually passed through.
+Si `blendEnable` vaut `VK_FALSE` la nouvelle couleur du fragment shader est inscrite dans le framebuffer sans 
+modification et sans considération de la valeur déjà présente dans le framebuffer. Sinon les deux opérations de 
+mélange sont exécutées pour former une nouvelle couleur. Un AND binaire lui est appliquée avec `colorWriteMask` pour 
+déterminer les canaux devant passer.
 
-The most common way to use color blending is to implement alpha blending, where
-we want the new color to be blended with the old color based on its opacity. The
-`finalColor` should then be computed as follows:
+L'utilisation la plus commune du mélange de couleurs utilise le canal alpha pour déterminer l'opacité du matériau et 
+donc le mélange lui-même. La couleur finale devrait alors être calculée ainsi :
 
 ```c++
 finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
 finalColor.a = newAlpha.a;
 ```
 
-This can be accomplished with the following parameters:
+Avec cette méthode la valeur alpha correspond à une pondération pour la nouvelle valeur par rapport à l'ancienne. Les
+paramètres suivants permettent de réaliser ce calcul :
 
 ```c++
 colorBlendAttachment.blendEnable = VK_TRUE;
@@ -295,41 +272,37 @@ colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 ```
 
-You can find all of the possible operations in the `VkBlendFactor` and
-`VkBlendOp` enumerations in the specification.
+Vous pouvez trouver toutes les opérations possibles dans les énumérations `VkBlendFactor` et `VkBlendOp` dans la 
+spécification.
 
-The second structure references the array of structures for all of the
-framebuffers and allows you to set blend constants that you can use as blend
-factors in the aforementioned calculations.
+La seconde structure doit posséder une référence aux structures spécifiques des framebuffers. Vous pouvez également y
+indiquer des constantes utilisables lors des opérations de mélange que nous venons de voir.
 
 ```c++
 VkPipelineColorBlendStateCreateInfo colorBlending = {};
 colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 colorBlending.logicOpEnable = VK_FALSE;
-colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
+colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optionnel
 colorBlending.attachmentCount = 1;
 colorBlending.pAttachments = &colorBlendAttachment;
-colorBlending.blendConstants[0] = 0.0f; // Optional
-colorBlending.blendConstants[1] = 0.0f; // Optional
-colorBlending.blendConstants[2] = 0.0f; // Optional
-colorBlending.blendConstants[3] = 0.0f; // Optional
+colorBlending.blendConstants[0] = 0.0f; // Optionnel
+colorBlending.blendConstants[1] = 0.0f; // Optionnel
+colorBlending.blendConstants[2] = 0.0f; // Optionnel
+colorBlending.blendConstants[3] = 0.0f; // Optionnel
 ```
 
-If you want to use the second method of blending (bitwise combination), then you
-should set `logicOpEnable` to `VK_TRUE`. The bitwise operation can then be
-specified in the `logicOp` field. Note that this will automatically disable the
-first method, as if you had set `blendEnable` to `VK_FALSE` for every
-attached framebuffer! The `colorWriteMask` will also be used in this mode to
-determine which channels in the framebuffer will actually be affected. It is
-also possible to disable both modes, as we've done here, in which case the
-fragment colors will be written to the framebuffer unmodified.
+Si vous voulez utiliser la seconde méthode de mélange (la combinaison bit à bit) vous devez indiquer `VK_TRUE` au 
+membre `logicOpEnable` et déterminer l'opération dans `logicOp`. Activer ce mode de mélange désactive automatiquement
+la permière méthode aussi efficacement que si vous aviez indiqué `VK_FALSE` au membre `blendEnable` de la 
+précédente structure pour chaque framebuffer. Le membre `colorWriteMask` sera également utilisé dans ce second mode pour
+déterminer les canaux affectés. Il est aussi possible de désactiver les deux modes comme nous l'avons fait ici. Dans 
+ce cas les résultats des invocations du fragment shader seront écrites directement dans le framebuffer.
 
-## Dynamic state
+## États dynamiques
 
-A limited amount of the state that we've specified in the previous structs *can*
-actually be changed without recreating the pipeline. Examples are the size of
-the viewport, line width and blend constants. If you want to do that, then
-you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
+Un petit nombre d'états que nous avons spécifiés dans les structures précédentes peuvent en fait être altérés 
+sans avoir à recréer la pipeline. On y trouve la taille du viewport, la largeur des lignes et les constantes de mélange.
+Pour cela vous devrez remplir la structure `VkPipelineDynamicStateCreateInfo` comme suit :
 
 ```c++
 VkDynamicState dynamicStates[] = {
@@ -343,49 +316,43 @@ dynamicState.dynamicStateCount = 2;
 dynamicState.pDynamicStates = dynamicStates;
 ```
 
-This will cause the configuration of these values to be ignored and you will be
-required to specify the data at drawing time. We'll get back to this in a future
-chapter. This struct can be substituted by a `nullptr` later on if you don't
-have any dynamic state.
+Les valeurs données lors de la configuration seront ignorées et vous devrez en fournir au moment du rendu. Nous y 
+reviendrons plus tard. Cette structure peut être remplacée par `nullptr` si vous n'avez aucun état dynamique.
 
 ## Pipeline layout
 
-You can use `uniform` values in shaders, which are globals similar to dynamic
-state variables that can be changed at drawing time to alter the behavior of
-your shaders without having to recreate them. They are commonly used to pass the
-transformation matrix to the vertex shader, or to create texture samplers in the
-fragment shader.
+Les variables `uniform` dans les shaders sont des données globales similaires aux états dynamiques. Elles doivent 
+être déterminées lors du rendu pour altérer les calculs des shaders sans avoir à les recréer. Elles sont très uilisées 
+pour fournir les matrices de transformation au vertex shader et pour créer des samplers de texture dans les fragment 
+shaders.
 
-These uniform values need to be specified during pipeline creation by creating a
-`VkPipelineLayout` object. Even though we won't be using them until a future
-chapter, we are still required to create an empty pipeline layout.
+Ces variables doivent être configurées lors de la création de la pipeline en créant un objet référencé une variable 
+de type `VkPipelineLayout`. Même si nous n'en utilisons pas dans nos shaders atuels nous devons en créer un vide.
 
-Create a class member to hold this object, because we'll refer to it from other
-functions at a later point in time:
+Créez un membre donnée pour stocker la référence car nous en aurons besoin plus tard.
 
 ```c++
 VkPipelineLayout pipelineLayout;
 ```
 
-And then create the object in the `createGraphicsPipeline` function:
+Créons maintenant l'objet dans la fonction `createGraphicsPipline` :
 
 ```c++
 VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-pipelineLayoutInfo.setLayoutCount = 0; // Optional
-pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+pipelineLayoutInfo.setLayoutCount = 0;            // Optionnel
+pipelineLayoutInfo.pSetLayouts = nullptr;         // Optionnel
+pipelineLayoutInfo.pushConstantRangeCount = 0;    // Optionnel
+pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optionnel
 
 if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create pipeline layout!");
+    throw std::runtime_error("échec lors de la création du pipeline layout!");
 }
 ```
 
-The structure also specifies *push constants*, which are another way of passing
-dynamic values to shaders that we may get into in a future chapter. The pipeline
-layout will be referenced throughout the program's lifetime, so it should be
-destroyed at the end:
+Cette structure informe également sur les _push constants_, une autre manière de passer des valeurs dynamiques au 
+shader que nous verrons dans de prochains chapitres. Le pipeline layout sera utilisé pendant toute la durée du 
+programme, nous devons donc le détruire dans la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -396,15 +363,13 @@ void cleanup() {
 
 ## Conclusion
 
-That's it for all of the fixed-function state! It's a lot of work to set all of
-this up from scratch, but the advantage is that we're now nearly fully aware of
-everything that is going on in the graphics pipeline! This reduces the chance of
-running into unexpected behavior because the default state of certain components
-is not what you expect.
+Voila tout ce qu'il y a à savoir sur les étapes à fonctions fixées! Leur configuration représente un gros travail 
+mais nous sommes au courant de tout ce qui se passe dans la pipeline graphique, ce qui réduit les chances de 
+comportement imprévu à cause d'un paramètre par défaut oublié.
 
-There is however one more object to create before we can finally create the
-graphics pipeline and that is a [render pass](!Drawing_a_triangle/Graphics_pipeline_basics/Render_passes).
+Il reste cependant encore un objet à créer avant du finaliser la pipeline graphique. Cet objet s'appelle
+[passe de rendu](!Drawing_a_triangle/Graphics_pipeline_basics/Render_passes).
 
-[C++ code](/code/10_fixed_functions.cpp) /
+[Code C++](/code/10_fixed_functions.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
