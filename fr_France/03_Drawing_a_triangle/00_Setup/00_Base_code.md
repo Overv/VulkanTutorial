@@ -50,7 +50,7 @@ int main() {
 Nous incluons ici d'abord le header Vulkan du SDK, qui fournit les fonctions, les structures et les énumérations.
 `stdexcept` et `iostream` nous permettront de reporter et de traiter les erreurs. Le header `functional` nous servira
 pour l'écriture d'une lambda dans la section sur la gestion des ressources. `cstdlib` nous fournit `EXIT_FAILURE` et
-`EXIT_SUCCESS` (optionels).
+`EXIT_SUCCESS` (optionnels).
 
 Le programme est écrit à l'intérieur d'une classe, dans laquelle nous stockerons les objets Vulkan. Nous avons également
  une fonction pour la création de chacun de ces objets. Une fois toute l'initialisation réalisée, nous entrons dans la
