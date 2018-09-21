@@ -1,20 +1,18 @@
-We can now combine all of the structures and objects from the previous chapters
-to create the graphics pipeline! Here's the types of objects we have now, as a
-quick recap:
+Nous pouvons maintenant combiner toutes les structures et les objets des chapitres précédentes pour créer la 
+pipeline graphique! Voici un petit récapitulatif des objets que nous avons :
 
-* Shader stages: the shader modules that define the functionality of the
-programmable stages of the graphics pipeline
-* Fixed-function state: all of the structures that define the fixed-function
-stages of the pipeline, like input assembly, rasterizer, viewport and color
-blending
-* Pipeline layout: the uniform and push values referenced by the shader that can
-be updated at draw time
-* Render pass: the attachments referenced by the pipeline stages and their usage
+* Étapes shader : les modules shader définissent le fonctionnement des étapes programmables de la pipeline graphique
+* Étapes à fonction fixées : plusieurs structures paramétrant les étapes à fonction fixées comme l'assemblage des 
+entrées, le rasterizer, le viewport et le mélange des couleurs
+* Organisation de la pipeline : les uniformes et variables push utilisées par les shaders et que l'on peut changer 
+pendant l'exécution
+* Passe de rendu : les attachements référencés par la pipeline et leurs utilisations
 
-All of these combined fully define the functionality of the graphics pipeline,
-so we can now begin filling in the `VkGraphicsPipelineCreateInfo` structure at
-the end of the `createGraphicsPipeline` function. But before the calls to 
-`vkDestroyShaderModule` because these are still to be used during the creation.
+Tout cela combiné définit le fonctionnement de la pipeline graphique. Nous pouvons maintenant remplir la structure 
+`VkGraphicsPipelineCreateInfo` à la fin de la fonction `createGraphicsPipeline`, mais avant les appels à la fonction 
+`vkDestroyShaderModule` pour ne pas invalider les shaders que la pipeline utilisera.
+
+Commençons par référencer le tableau de `VkPipelineShaderStageCreateInfo`.
 
 ```c++
 VkGraphicsPipelineCreateInfo pipelineInfo = {};
@@ -23,7 +21,7 @@ pipelineInfo.stageCount = 2;
 pipelineInfo.pStages = shaderStages;
 ```
 
-We start by referencing the array of `VkPipelineShaderStageCreateInfo` structs.
+Puis donnons toutes les structure décrivant les étapes à fonction fixée.
 
 ```c++
 pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -31,78 +29,66 @@ pipelineInfo.pInputAssemblyState = &inputAssembly;
 pipelineInfo.pViewportState = &viewportState;
 pipelineInfo.pRasterizationState = &rasterizer;
 pipelineInfo.pMultisampleState = &multisampling;
-pipelineInfo.pDepthStencilState = nullptr; // Optional
+pipelineInfo.pDepthStencilState = nullptr; // Optionnel
 pipelineInfo.pColorBlendState = &colorBlending;
-pipelineInfo.pDynamicState = nullptr; // Optional
+pipelineInfo.pDynamicState = nullptr; // Optionnel
 ```
 
-Then we reference all of the structures describing the fixed-function stage.
+Après cela vient l'organisation de la pipeline, contenue dans un type fourni par Vulkan au lieu d'une structure.
 
 ```c++
 pipelineInfo.layout = pipelineLayout;
 ```
 
-After that comes the pipeline layout, which is a Vulkan handle rather than a
-struct pointer.
+Finalement nous devons fournir les références à la passe de rendu et aux indices des subpasses. Il est aussi possible
+d'utiliser d'autres passes de rendu avec cette pipeline mais elles doivent être compatibles avec `renderPass`. La 
+signification de compatible est donnée
+[ici](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#renderpass-compatibility), mais nous 
+n'utiliserons pas cette possibilité dans ce tutoriel.
 
 ```c++
 pipelineInfo.renderPass = renderPass;
 pipelineInfo.subpass = 0;
 ```
 
-And finally we have the reference to the render pass and the index of the sub
-pass where this graphics pipeline will be used. It is also possible to use other
-render passes with this pipeline instead of this specific instance, but they
-have to be *compatible* with `renderPass`. The requirements for compatibility
-are described [here](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#renderpass-compatibility),
-but we won't be using that feature in this tutorial.
+Il nous reste en fait deux paramètres : `basePipelineHandle` et `basePipelineIndex`. Vulkan vous permet de créer une 
+nouvelle pipeline en "héritant" d'une pipeline déjà existante. L'idée derrière cette possibilité est qu'il
+est moins coûteux de créer une pipeline à partir d'une qui existe déjà, mais surtout que passer d'une pipeline à une
+autre est plus rapide si elles ont un même parent. Vous pouvez spécifier une pipeline de deux manières : soit en 
+fournissant une référence soit en donnant l'indice d'une pipeline qui va être crée. Nous n'utilisons pas cela donc 
+nous indiquerons une référence nulle et un indice invalide. Ces valeurs ne sont de toute façon utilisées que si le champ
+`flags` de la structure `VkGraphicsPipelineCreateInfo` comporte `VK_PIPELINE_CREATE_DERIVATIVE_BIT`.
 
 ```c++
-pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-pipelineInfo.basePipelineIndex = -1; // Optional
+pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optionnel
+pipelineInfo.basePipelineIndex = -1; // Optionnel
 ```
 
-There are actually two more parameters: `basePipelineHandle` and
-`basePipelineIndex`. Vulkan allows you to create a new graphics pipeline by
-deriving from an existing pipeline. The idea of pipeline derivatives is that it
-is less expensive to set up pipelines when they have much functionality in
-common with an existing pipeline and switching between pipelines from the same
-parent can also be done quicker. You can either specify the handle of an
-existing pipeline with `basePipelineHandle` or reference another pipeline that
-is about to be created by index with `basePipelineIndex`. Right now there is
-only a single pipeline, so we'll simply specify a null handle and an invalid
-index. These values are only used if the `VK_PIPELINE_CREATE_DERIVATIVE_BIT`
-flag is also specified in the `flags` field of `VkGraphicsPipelineCreateInfo`.
-
-Now prepare for the final step by creating a class member to hold the
-`VkPipeline` object:
+Préparons nous pour l'étape finale en créant un membre donnée pour stocker l'objet `VkPipeline` :
 
 ```c++
 VkPipeline graphicsPipeline;
 ```
 
-And finally create the graphics pipeline:
+Et créez enfin la pipeline graphique :
 
 ```c++
 if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create graphics pipeline!");
+    throw std::runtime_error("échec lors de la création de la pipeline graphique!");
 }
 ```
 
-The `vkCreateGraphicsPipelines` function actually has more parameters than the
-usual object creation functions in Vulkan. It is designed to take multiple
-`VkGraphicsPipelineCreateInfo` objects and create multiple `VkPipeline` objects
-in a single call.
+La fonction `vkCreateGraphicsPipelines` possède en fait plus de paramètres que les fonctions de création d'objet que 
+nous avons pu voir jusqu'à présent. Elles peut en effet accepter plusieurs structures `VkGraphicsPipelineCreateInfo` 
+et créer plusieurs `VkPipeline` en un seul appel.
 
-The second parameter, for which we've passed the `VK_NULL_HANDLE` argument,
-references an optional `VkPipelineCache` object. A pipeline cache can be used to
-store and reuse data relevant to pipeline creation across multiple calls to
-`vkCreateGraphicsPipelines` and even across program executions if the cache is
-stored to a file. This makes it possible to significantly speed up pipeline
-creation at a later time. We'll get into this in the pipeline cache chapter.
+Le second paramètre que nous n'utilisons pas ici (mais que nous reverrons dans un chapitre qui lui sera dédié) sert à
+fournir un objet `VkPipelineCache` optionnel. Un tel objet peut être stocké et réutilisé entre plusieurs appels de la
+fonction et même entre plusieurs exécutions du programme si son contenu est correctement stocké dans un fichier. Cela
+permet de grandement accélérer la création des pipelines.
 
-The graphics pipeline is required for all common drawing operations, so it
-should also only be destroyed at the end of the program:
+La pipeline graphique est nécéssaire à toutes les opérations d'affichage, nous ne devrons donc la supprimer qu'à la fin
+du programme dans la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -112,11 +98,10 @@ void cleanup() {
 }
 ```
 
-Now run your program to confirm that all this hard work has resulted in a
-successful pipeline creation! We are already getting quite close to seeing
-something pop up on the screen. In the next couple of chapters we'll set up the
-actual framebuffers from the swap chain images and prepare the drawing commands.
+Exécutez votre programme pour vérifier que tout ce travail a enfin résulté dans la création d'une pipeline graphique.
+Nous sommes de plus en plus proches d'avoir un dessin à l'écran! Dans les prochains chapitres nous génèrerons les 
+framebuffers à partir des images de la swap chain et préparerons les commandes d'affichage.
 
-[C++ code](/code/12_graphics_pipeline_complete.cpp) /
+[Code C++](/code/12_graphics_pipeline_complete.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
