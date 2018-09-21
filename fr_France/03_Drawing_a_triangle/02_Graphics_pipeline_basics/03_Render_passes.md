@@ -1,12 +1,10 @@
-## Setup
+##  Préparation
 
-Before we can finish creating the pipeline, we need to tell Vulkan about the
-framebuffer attachments that will be used while rendering. We need to specify
-how many color and depth buffers there will be, how many samples to use for each
-of them and how their contents should be handled throughout the rendering
-operations. All of this information is wrapped in a *render pass* object, for
-which we'll create a new `createRenderPass` function. Call this function from
-`initVulkan` before `createGraphicsPipeline`.
+Avant de finaliser la création de la pipeline nous devons informer Vulkan des attachements des framebuffers utilisés 
+lors du rendu. Nous devons indiquer combien chacun aura de buffers de couleur et de profondeur, combien de samples il
+faudra utiliser avec chaque frambuffer et comment les utiliser tout au long des opérations de rendu. Toutes ces 
+informations sont contenues dans un objet appelé _render pass_ pour la configuration duquel nous créerons la fonction
+`createRenderPass`. Appelez cette fonction depuis `initVulkan` après `createGraphicsPipeline`.
 
 ```c++
 void initVulkan() {
@@ -28,10 +26,9 @@ void createRenderPass() {
 }
 ```
 
-## Attachment description
+## Description de l'attachement
 
-In our case we'll have just a single color buffer attachment represented by one
-of the images from the swap chain.
+Dans notre cas nous aurons un seul attachement de couleur représenté par une image de la swap chain.
 
 ```c++
 void createRenderPass() {
@@ -41,89 +38,72 @@ void createRenderPass() {
 }
 ```
 
-The `format` of the color attachment should match the format of the swap chain
-images, and we're not doing anything with multisampling yet, so we'll stick to 1
-sample.
+Le `format` de l'attachement de couleur est le même que le format de l'image de la swap chain. Nous n'utilisons pas 
+de multisampling pour le moment donc nous devons indiquer que nous n'utilisons qu'un seul sample.
 
 ```c++
 colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 ```
 
-The `loadOp` and `storeOp` determine what to do with the data in the attachment
-before rendering and after rendering. We have the following choices for
-`loadOp`:
+Les membres `loadOp` et `storeOp` définissent ce qui doit être fait avec les données de l'attachement respectivement
+avant et après le rendu. Pour `loadOp` nous avons les choix suivants :
 
-* `VK_ATTACHMENT_LOAD_OP_LOAD`: Preserve the existing contents of the attachment
-* `VK_ATTACHMENT_LOAD_OP_CLEAR`: Clear the values to a constant at the start
-* `VK_ATTACHMENT_LOAD_OP_DONT_CARE`: Existing contents are undefined; we don't
-care about them
+* `VK_ATTACHMENT_LOAD_OP_LOAD` : conserve les données présentes dans l'attachement
+* `VK_ATTACHMENT_LOAD_OP_CLEAR` : remplace le contenu par une constante
+* `VK_ATTACHMENT_LOAD_OP_DONT_CARE` : ce qui existe n'est pas défini et ne nous intéresse pas
 
-In our case we're going to use the clear operation to clear the framebuffer to
-black before drawing a new frame. There are only two possibilities for the
-`storeOp`:
+Dans notre cas nous utiliserons l'opération de remplacement pour obtenir un framebuffer noir avant d'afficher une 
+nouvelle image. Il n'y a que deux possibilités pour le membre `storeOp` :
 
-* `VK_ATTACHMENT_STORE_OP_STORE`: Rendered contents will be stored in memory and
-can be read later
-* `VK_ATTACHMENT_STORE_OP_DONT_CARE`: Contents of the framebuffer will be
-undefined after the rendering operation
+* `VK_ATTACHMENT_STORE_OP_STORE` : le rendu est gardé en mémoire et accessible plus tard
+* `VK_ATTACHMENT_STORE_OP_DONT_CARE` : le contenu du framebuffer est indéfini dès la fin du rendu
 
-We're interested in seeing the rendered triangle on the screen, so we're going
-with the store operation here.
+Nous voulons voir le triangle à l'écran donc nous voulons l'opération de stockage.
 
 ```c++
 colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 ```
 
-The `loadOp` and `storeOp` apply to color and depth data, and `stencilLoadOp` /
-`stencilStoreOp` apply to stencil data. Our application won't do anything with
-the stencil buffer, so the results of loading and storing are irrelevant.
+Les membres `loadOp` et `storeOp` s'appliquent aux données de couleur et de profondeur, et `stencilLoadOp` et 
+`stencilStoreOp` s'appliquent aux données de pochoir. Notre application n'uilisant pas de pochoir, nous 
+pouvons indiquer que les données ne nous intéressent pas.
 
 ```c++
 colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 ```
 
-Textures and framebuffers in Vulkan are represented by `VkImage` objects with a
-certain pixel format, however the layout of the pixels in memory can change
-based on what you're trying to do with an image.
+Les textures et les framebuffers dans Vulkan sont représentés par des objets de type `VkImage` possédant un certain 
+format de pixels. Cependant l'organisation des pixels dans la mémoire peut changer selon ce que vous faites de cette 
+image.
 
-Some of the most common layouts are:
+Les organisations les plus communes sont :
 
-* `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`: Images used as color attachment
-* `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`: Images to be presented in the swap chain
-* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`: Images to be used as destination for a
-memory copy operation
+* `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` : images utilisées comme attachements de couleur
+* `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` : images présentées à une swap chain
+* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` : image utilisées comme destination d'opérations de recopie de mémoire
 
-We'll discuss this topic in more depth in the texturing chapter, but what's
-important to know right now is that images need to be transitioned to specific
-layouts that are suitable for the operation that they're going to be involved in
-next.
+Nous discuterons plus précisément de ce sujet dans le chapitre sur les textures. Ce qui compte pour le moment est que
+les images doivent changer d'organisation mémoire selon les opérations qui leur sont appliquées.
 
-The `initialLayout` specifies which layout the image will have before the render
-pass begins. The `finalLayout` specifies the layout to automatically transition
-to when the render pass finishes. Using `VK_IMAGE_LAYOUT_UNDEFINED` for
-`initialLayout` means that we don't care what previous layout the image was in.
-The caveat of this special value is that the contents of the image are not
-guaranteed to be preserved, but that doesn't matter since we're going to clear
-it anyway. We want the image to be ready for presentation using the swap chain
-after rendering, which is why we use `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` as
-`finalLayout`.
+Le membre `initialLayout` spécifie l'organisation de l'image avant le début du rendu. Le membre `finalLayout` fournit
+l'organisation vers laquelle l'image doit transitionner à la fin du rendu. La valeur `VK_IMAGE_LAYOUT_UNDEFINED` 
+indique que le format précédent de l'image ne nous intéresse pas, ce qui peut faire perdre les données précédentes. 
+Mais ce n'est pas un problème puisque nous effaçons de toute façon toutes les données avant le rendu. Puis, afin de 
+rendre l'image compatible avec la swap chain, nous fournissons `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` pour `finalLayout`.
 
-## Subpasses and attachment references
+## Subpasses et références aux attachements
 
-A single render pass can consist of multiple subpasses. Subpasses are subsequent
-rendering operations that depend on the contents of framebuffers in previous
-passes, for example a sequence of post-processing effects that are applied one
-after another. If you group these rendering operations into one render pass,
-then Vulkan is able to reorder the operations and conserve memory bandwidth for
-possibly better performance. For our very first triangle, however, we'll stick
-to a single subpass.
+Une unique passe de rendu consiste est composée de plusieurs subpasses. Les subpasses sont des opérations de rendu 
+ultérieures dépendant du contenu qui aura été mis dans le framebuffer. Elles peuvent consister en des opérations de 
+post-processing exécutées l'une après l'autre. En regroupant toutes ces opérations en une seule passe, Vulkan peut 
+alors réaliser des optimisations et conserver de la bande passante pour de potentiellement meilleures performances. 
+Pour notre triangle nous nous contenterons d'une seule subpasse.
 
-Every subpass references one or more of the attachments that we've described
-using the structure in the previous sections. These references are themselves
-`VkAttachmentReference` structs that look like this:
+Chacune d'entre elle référence un ou plusieurs attachements décrits par les structures que nous avons vues 
+précédemment. Ces références sont elles-mêmes des structures du type `VkAttachmentReference` et ressemblent à cela :
 
 ```c++
 VkAttachmentReference colorAttachmentRef = {};
@@ -131,57 +111,52 @@ colorAttachmentRef.attachment = 0;
 colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 ```
 
-The `attachment` parameter specifies which attachment to reference by its index
-in the attachment descriptions array. Our array consists of a single
-`VkAttachmentDescription`, so its index is `0`. The `layout` specifies which
-layout we would like the attachment to have during a subpass that uses this
-reference. Vulkan will automatically transition the attachment to this layout
-when the subpass is started. We intend to use the attachment to function as a
-color buffer and the `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` layout will give
-us the best performance, as its name implies.
+Le paramètre `attachment` spécifie l'attachement à référencer à l'aide d'un indice correspondant à la position de la 
+structure dans le tableau de descriptions d'attachements. Notre tableau ne consistera qu'en une seule référence donc 
+son indice est nécessairement `0`. Le membre `layout` donne l'organisation que l'attachement devrait avoir pendant une 
+subpasse utilsant cette référence. Vulkan changera automatiquement l'organisation de l'attachement quand la subpasse 
+commence. Nous voulons que l'attachement soit un color buffer, et pour cela la meilleure performance sera obtenue avec
+`VK_IMAGE_LAYOUT_COLOR_OPTIMAL`, comme son nom le laisse penser.
 
-The subpass is described using a `VkSubpassDescription` structure:
+Le subpasse est décrite dans la structure `VkSubpassDescription` :
 
 ```c++
 VkSubpassDescription subpass = {};
 subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 ```
 
-Vulkan may also support compute subpasses in the future, so we have to be
-explicit about this being a graphics subpass. Next, we specify the reference to
-the color attachment:
+Vulkan supportera également des subpasses de calcul donc nous devons indiquer que celle que nous créeons est destinée 
+aux graphismes. Nous spécifions ensuite la référence à l'attachement de couleurs :
 
 ```c++
 subpass.colorAttachmentCount = 1;
 subpass.pColorAttachments = &colorAttachmentRef;
 ```
 
-The index of the attachment in this array is directly referenced from the
-fragment shader with the `layout(location = 0) out vec4 outColor` directive!
+L'indice de cet attachement est indiqué dans le fragment shader avec la directive `layout(location = 0) out vec4 
+outColor`.
 
-The following other types of attachments can be referenced by a subpass:
+Les types d'attachements suivants peuvent être référencés pour une subpasse :
 
-* `pInputAttachments`: Attachments that are read from a shader
-* `pResolveAttachments`: Attachments used for multisampling color attachments
-* `pDepthStencilAttachment`: Attachments for depth and stencil data
-* `pPreserveAttachments`: Attachments that are not used by this subpass, but for
-which the data must be preserved
+* `pInputAttachments` : attachements lus depuis un shader
+* `pResolveAttachments` : attachements utilisés pour le multisampling d'attachements de couleurs
+* `pDepthStencilAttachment` : attachements pour la profondeur et le pochoir
+* `pPreserveAttachments` : attachements qui ne sont pas utilisés par cette subpasse mais dont les données doivent 
+être conservées
 
-## Render pass
+## Passe de rendu
 
-Now that the attachment and a basic subpass referencing it have been described,
-we can create the render pass itself. Create a new class member variable to hold
-the `VkRenderPass` object right above the `pipelineLayout` variable:
+Maintenant que les attachements et une subpasse simple ont été décrits nous pouvons enfin créer la passe de rendu. 
+Créez une nouvelle variable du type `VkRenderPass` au-dessus de la variable `pipelineLayout` :
 
 ```c++
 VkRenderPass renderPass;
 VkPipelineLayout pipelineLayout;
 ```
 
-The render pass object can then be created by filling in the
-`VkRenderPassCreateInfo` structure with an array of attachments and subpasses.
-The `VkAttachmentReference` objects reference attachments using the indices of
-this array.
+L'objet représentant la passe de rendu peut alors être créé en remplissant la structure `VkRenderPassCreateInfo` dans
+laquelle nous devons remplir un tableau d'attachements et de subpasses. Les objets `VkAttachmentReference` référencent
+les attachements en utilisant les indices de ce tableau.
 
 ```c++
 VkRenderPassCreateInfo renderPassInfo = {};
@@ -192,12 +167,12 @@ renderPassInfo.subpassCount = 1;
 renderPassInfo.pSubpasses = &subpass;
 
 if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create render pass!");
+    throw std::runtime_error("échec lors de la création de la passe de rendu!");
 }
 ```
 
-Just like the pipeline layout, the render pass will be referenced throughout the
-program, so it should only be cleaned up at the end:
+Comme l'organisation de la pipeline, nous aurons à utiliser la référence à la passe de rendu tout au long du 
+programme. Nous devons donc la détruire dans la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -207,9 +182,9 @@ void cleanup() {
 }
 ```
 
-That was a lot of work, but in the next chapter it all comes together to finally
-create the graphics pipeline object!
+Nous avons eu beaucoup de travail, mais nous allons enfin créer la pipeline graphique et l'utiliser dès le prochain 
+chapitre!
 
-[C++ code](/code/11_render_passes.cpp) /
+[Code C++](/code/11_render_passes.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
