@@ -1,22 +1,20 @@
-Commands in Vulkan, like drawing operations and memory transfers, are not
-executed directly using function calls. You have to record all of the operations
-you want to perform in command buffer objects. The advantage of this is that all
-of the hard work of setting up the drawing commands can be done in advance and
-in multiple threads. After that, you just have to tell Vulkan to execute the
-commands in the main loop.
+Les commandes Vulkan, comme les opérations d'affichage et de transfert mémoire, ne sont pas réalisées avec des appels de
+fonctions. Vous devez pré-enregistrer toutes les opérations dans des _command buffers_. L'avantage est que vous pouvez
+préparer tout ce travail à l'avance et depuis plusieurs threads, puis vous contenter d'indiquer à Vulkan quel command
+buffer doit être exécuté. Cela réduit considérablement la bande passante entre le CPU et le GPU pour de bien meilleures
+performances.
 
 ## Command pools
 
-We have to create a command pool before we can create command buffers. Command
-pools manage the memory that is used to store the buffers and command buffers
-are allocated from them. Add a new class member to store a `VkCommandPool`:
+Nous devons créer une _command pool_ avant de pouvoir créer les command buffers. Les command pools gèrent la mémoire
+utilisée par les buffers, et c'est de fait les command pools qui nous instancient les command buffers. Ajoutez un 
+nouveau membre donnée à la classe de type `VkCommandPool` :
 
 ```c++
 VkCommandPool commandPool;
 ```
 
-Then create a new function `createCommandPool` and call it from `initVulkan`
-after the framebuffers were created.
+Créez ensuite la fonction `createCommandPool` et appelez-la depuis `initVulkan` après la création du framebuffer.
 
 ```c++
 void initVulkan() {
@@ -40,7 +38,7 @@ void createCommandPool() {
 }
 ```
 
-Command pool creation only takes two parameters:
+La création d'une command pool ne nécessite que deux paramètres :
 
 ```c++
 QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
@@ -48,36 +46,32 @@ QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 VkCommandPoolCreateInfo poolInfo = {};
 poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
-poolInfo.flags = 0; // Optional
+poolInfo.flags = 0; // Optionnel
 ```
 
-Command buffers are executed by submitting them on one of the device queues,
-like the graphics and presentation queues we retrieved. Each command pool can
-only allocate command buffers that are submitted on a single type of queue.
-We're going to record commands for drawing, which is why we've chosen the
-graphics queue family.
+Les commands buffers sont exécutés depuis une queue, comme la queue des graphismes et de présentation que nous avons 
+récupérées. Une command pool ne peut allouer des command buffers compatibles qu'avec un seul type de queue. Nous allons
+enregistrer des commandes d'affichage, c'est pourquoi nous avons récupéré une queue de graphismes.
 
-There are two possible flags for command pools:
+Il existe deux valeurs acceptées par `flags` pour les command pools :
 
-* `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT`: Hint that command buffers are
-rerecorded with new commands very often (may change memory allocation behavior)
-* `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT`: Allow command buffers to be
-rerecorded individually, without this flag they all have to be reset together
+* `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT` : informe que les command buffers sont ré-enregistrés très souvent, ce qui
+peut inciter Vulkan à ne pas utiliser le même type de mémoire
+* `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` : permet aux command buffers d'être ré-enregistrés individuellement,
+ce que les autres configurations ne permettent pas
 
-We will only record the command buffers at the beginning of the program and then
-execute them many times in the main loop, so we're not going to use either of
-these flags.
+Nous n'enregistrerons les command buffers qu'une seule fois au début du programme, nous n'aurons donc pas besoin de ces
+configurations.
 
 ```c++
 if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create command pool!");
+    throw std::runtime_error("échec lors de la création d'une command pool!");
 }
 ```
 
-Finish creating the command pool using the `vkCreateCommandPool` function. It
-doesn't have any special parameters. Commands will be used throughout the
-program to draw things on the screen, so the pool should only be destroyed at
-the end:
+Terminez la création de la command pool à l'aide de la fonction `vkCreateComandPool`. Elle ne comprend pas de
+paramètre particulier. Les commandes seront utilisées tout au long du programme pour tout affichage, nous ne devons
+donc la détruire que dans la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -87,21 +81,19 @@ void cleanup() {
 }
 ```
 
-## Command buffer allocation
+## Allocation des command buffers
 
-We can now start allocating command buffers and recording drawing commands in
-them. Because one of the drawing commands involves binding the right
-`VkFramebuffer`, we'll actually have to record a command buffer for every image
-in the swap chain once again. To that end, create a list of `VkCommandBuffer`
-objects as a class member. Command buffers will be automatically freed when their
-command pool is destroyed, so we don't need an explicit cleanup.
+Nous pouvons maintenant allouer des command buffers et enregistrer les commandes d'affichage. Dans la mesure où l'une
+des commandes consiste à lier un framebuffer nous devrons les enregistrer pour chacune des images de la swap chain.
+Créez pour cela une liste de `VkCommandBuffer` et stockez-la dans un membre donnée de la classe. Les command buffers
+sont libérés avec la destruction de leur command pool, nous n'avons donc pas à faire ce travail.
 
 ```c++
 std::vector<VkCommandBuffer> commandBuffers;
 ```
 
-We'll now start working on a `createCommandBuffers` function that allocates and
-records the commands for each swap chain image.
+Commençons maintenant à travailler sur notre fonction `createCommandBuffers` qui allouera et enregistrera les command
+buffers pour chacune des images de la swap chain.
 
 ```c++
 void initVulkan() {
@@ -126,9 +118,8 @@ void createCommandBuffers() {
 }
 ```
 
-Command buffers are allocated with the `vkAllocateCommandBuffers` function,
-which takes a `VkCommandBufferAllocateInfo` struct as parameter that specifies
-the command pool and number of buffers to allocate:
+Les command buffers sont alloués par la fonction `vkAllocateCommandBuffers` qui prend en paramètre une structure du
+type `VkCommandBufferAllocateInfo`. Cette structure spécifie la command pool et le nombre de buffers à allouer :
 
 ```c++
 VkCommandBufferAllocateInfo allocInfo = {};
@@ -138,65 +129,59 @@ allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
 if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-    throw std::runtime_error("failed to allocate command buffers!");
+    throw std::runtime_error("échec lors de l'allocation de command buffers!");
 }
 ```
 
-The `level` parameter specifies if the allocated command buffers are primary or
-secondary command buffers.
+Les command buffers peuvent être _primaires_ ou _secondaires_, ce que l'on indique avec le paramètre `level`. Il peut
+prendre les valeurs suivantes :
 
-* `VK_COMMAND_BUFFER_LEVEL_PRIMARY`: Can be submitted to a queue for execution,
-but cannot be called from other command buffers.
-* `VK_COMMAND_BUFFER_LEVEL_SECONDARY`: Cannot be submitted directly, but can be
-called from primary command buffers.
+* `VK_COMMAND_BUFFER_LEVEL_PRIMARY` : peut être envoyé à une queue pour y être exécuté mais ne peut être appelé par
+d'autres command buffers
+* `VK_COMMAND_BUFFER_LEVEL_SECONDARY` : ne peut pas être directement émis à une queue mais peut être appelé par un autre
+command buffer
 
-We won't make use of the secondary command buffer functionality here, but you
-can imagine that it's helpful to reuse common operations from primary command
-buffers.
+Nous n'utiliserons pas la fonctionnalité de command buffer secondaire ici mais vous pouvez imaginer que cela évite la
+redondance d'exécutions basiques.
 
-## Starting command buffer recording
+## Début de l'enregistrement des commandes
 
-We begin recording a command buffer by calling `vkBeginCommandBuffer` with a
-small `VkCommandBufferBeginInfo` structure as argument that specifies some
-details about the usage of this specific command buffer.
+Nous commençons l'enregistrement des commandes en appelant `vkBeginCommandBuffer`. Cette fonction prend une petite
+struture du type `VkCommandBufferBeginInfo` en argument, permettant d'indiquer quelques détails sur l'utilisation du
+command buffer.
 
 ```c++
 for (size_t i = 0; i < commandBuffers.size(); i++) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    beginInfo.pInheritanceInfo = nullptr; // Optional
+    beginInfo.pInheritanceInfo = nullptr; // Optionnel
 
     if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-        throw std::runtime_error("failed to begin recording command buffer!");
+        throw std::runtime_error("échec au début de l'enregistrement d'un command buffer!");
     }
 }
 ```
 
-The `flags` parameter specifies how we're going to use the command buffer. The
-following values are available:
+L'utilisation du command buffer est spécifiée dans le paramètre `flags`, qui peut prendre les valeurs suivantes :
 
-* `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`: The command buffer will be
-rerecorded right after executing it once.
-* `VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`: This is a secondary
-command buffer that will be entirely within a single render pass.
-* `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`: The command buffer can be
-resubmitted while it is also already pending execution.
+* `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT` : le command buffer sera ré-enregistré après son utilisation
+* `VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT` : ce command buffer secondaire sera intégralement exécuté dans une
+render pass
+* `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT` : le command buffer peut être ré-envoyé à la queue alors qu'il y est
+déjà et/ou est en cours d'exécution
 
-We have used the last flag because we may already be scheduling the drawing
-commands for the next frame while the last frame is not finished yet. The
-`pInheritanceInfo` parameter is only relevant for secondary command buffers. It
-specifies which state to inherit from the calling primary command buffers.
+Nous devons utiliser la dernière valeur pour le cas où nous préparons l'affichage de la frame suivante alors que la
+frame actuelle n'est pas finie. Le paramètre `pInheritanceInfo` n'a de sens que pour les command buffers secondaires. Il
+indique l'état à hériter de l'appel par le command buffer primaire.
 
-If the command buffer was already recorded once, then a call to
-`vkBeginCommandBuffer` will implicitly reset it. It's not possible to append
-commands to a buffer at a later time.
+Si un command buffer est déjà prêt un appel à `vkBeginCommandBuffer` le regénèrera implicitement. Il n'est pas possible
+d'enregistrer un command buffer en plusieurs fois.
 
-## Starting a render pass
+## Commencer une passe de rendu
 
-Drawing starts by beginning the render pass with `vkCmdBeginRenderPass`. The
-render pass is configured using some parameters in a `VkRenderPassBeginInfo`
-struct.
+L'affichage commence par le lancement de la passe de rendu réalisé par `vkCmdBeginRenderPass`. La passe est configurée
+à l'aide des paramètres remplis dans une structure de type `VkRenderPassBeginInfo`.
 
 ```c++
 VkRenderPassBeginInfo renderPassInfo = {};
@@ -205,19 +190,17 @@ renderPassInfo.renderPass = renderPass;
 renderPassInfo.framebuffer = swapChainFramebuffers[i];
 ```
 
-The first parameters are the render pass itself and the attachments to bind. We
-created a framebuffer for each swap chain image that specifies it as color
-attachment.
+Ces premiers paramètres sont la passe de rendu elle-même et les attachements à lui fournir. Nous avons créé un
+framebuffer pour chacune des images de la swap chain qui spécifient ces images comme attachements de couleur.
 
 ```c++
 renderPassInfo.renderArea.offset = {0, 0};
 renderPassInfo.renderArea.extent = swapChainExtent;
 ```
 
-The next two parameters define the size of the render area. The render area
-defines where shader loads and stores will take place. The pixels outside this
-region will have undefined values. It should match the size of the attachments
-for best performance.
+Les deux paramètres qui suivent définissent la taille de la zone de rendu. Cette zone de rendu définit où les
+chargements et stockages shaders se produiront. Les pixels hors de cette région auront une valeur non définie. Elle
+doit correspondre à la taille des attachements pour avoir une performance optimale.
 
 ```c++
 VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -225,82 +208,74 @@ renderPassInfo.clearValueCount = 1;
 renderPassInfo.pClearValues = &clearColor;
 ```
 
-The last two parameters define the clear values to use for
-`VK_ATTACHMENT_LOAD_OP_CLEAR`, which we used as load operation for the color
-attachment. I've defined the clear color to simply be black with 100% opacity.
+Les deux derniers paramètres définissent les valeurs à utiliser pour remplacer le contenu (fonctionnalité que nous 
+avions activée avec `VK_ATTACHMENT_LOAD_CLEAR`). J'ai utilisé un noir complètement opaque.
 
 ```c++
 vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 ```
 
-The render pass can now begin. All of the functions that record commands can be
-recognized by their `vkCmd` prefix. They all return `void`, so there will be no
-error handling until we've finished recording.
+La passe de rendu peut maintenant commencer. Toutes les fonctions enregistrables se reconnaisent à leur préfixe `vkCmd`.
+Comme elles retournent toutes `void` nous n'avons aucun moyen de gérer d'éventuelles erreurs d'ici à ce que nous 
+ayons fini l'enregistrement.
 
-The first parameter for every command is always the command buffer to record the
-command to. The second parameter specifies the details of the render pass we've
-just provided. The final parameter controls how the drawing commands within the
-render pass will be provided. It can have one of two values:
+Le premier paramètre de chaque commande est toujours le command buffer qui stockera l'appel. Le second paramètre donne
+des détails sur la passe de rendu à l'aide de la structure que nous avons préparée. Le dernier paramètre informe sur la
+provenance des commandes pendant l'exécution de la passe. Il peut prendre ces valeurs :
 
-* `VK_SUBPASS_CONTENTS_INLINE`: The render pass commands will be embedded in
-the primary command buffer itself and no secondary command buffers will be
-executed.
-* `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS`: The render pass commands will
-be executed from secondary command buffers.
+* `VK_SUBPASS_CONTENTS_INLINE` : les commandes de la passe de rendu seront incluses directement dans le command buffer
+(qui est donc primaire)
+* `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFER` : les commandes de la passe de rendu seront fournies par un ou
+plusieurs command buffers secondaires
 
-We will not be using secondary command buffers, so we'll go with the first
-option.
+Nous n'utiliserons pas de command buffer secondaire, nous devons donc fournir la première valeur à la fonction.
 
-## Basic drawing commands
+## Commandes d'affichage basiques
 
-We can now bind the graphics pipeline:
+Nous pouvons maintentant activer la pipeline graphique :
 
 ```c++
 vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 ```
 
-The second parameter specifies if the pipeline object is a graphics or compute
-pipeline. We've now told Vulkan which operations to execute in the graphics
-pipeline and which attachment to use in the fragment shader, so all that remains
-is telling it to draw the triangle:
+Le second paramètre indique que la pipeline est bien une pipeline graphique et non de calcul. Nous avons fourni à Vulkan
+les opérations à exécuter avec la pipeline graphique et les attachements que le fragment shader devra utiliser. Il ne
+nous reste donc plus qu'à lui dire d'afficher un triangle :
 
 ```c++
 vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
 ```
 
-The actual `vkCmdDraw` function is a bit anticlimactic, but it's so simple
-because of all the information we specified in advance. It has the following
-parameters, aside from the command buffer:
+Le fonction `vkCmdDraw` semble en fait assez ridicule quand on sait tout ce qu'elle implique, mais sa simplicité est due
+à ce que tout a déjà été préparé en vue de ce moment tant attendu. Elle possède les paramètres suivants en plus du
+command buffer concerné :
 
-* `vertexCount`: Even though we don't have a vertex buffer, we technically still
-have 3 vertices to draw.
-* `instanceCount`: Used for instanced rendering, use `1` if you're not doing
-that.
-* `firstVertex`: Used as an offset into the vertex buffer, defines the lowest
-value of `gl_VertexIndex`.
-* `firstInstance`: Used as an offset for instanced rendering, defines the lowest
-value of `gl_InstanceIndex`.
+* `vertexCount` : même si nous n'avons pas de vertex buffer nous avons techniquement trois vertices à dessiner
+* `instanceCount` : sert au rendu instancié (instanced rendering), indiquez `1` si vous ne l'utilisez pas
+* `firstVertex` : utilisé comme décalage dans le vertex buffer et définit ainsi la valeur la plus basse pour
+`glVertexIndex`
+* `firstInstance` : utilisé comme décalage pour l'instanced rendering et définit ainsi la valeur la plus basse pour
+`gl_InstanceIndex`
 
-## Finishing up
+## Finitions
 
-The render pass can now be ended:
+La passe de rendu peut ensuite être terminée :
 
 ```c++
 vkCmdEndRenderPass(commandBuffers[i]);
 ```
 
-And we've finished recording the command buffer:
+Et nous avons fini l'enregistrement du command buffer :
 
 ```c++
 if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
-    throw std::runtime_error("failed to record command buffer!");
+    throw std::runtime_error("échec lors de l'enregistrement d'un command buffer!");
 }
 ```
 
-In the next chapter we'll write the code for the main loop, which will acquire
-an image from the swap chain, execute the right command buffer and return the
-finished image to the swap chain.
+Dans le prochain chapitre nous écrirons le code pour la boucle principale. Elle récupérera une image de la swap chain,
+exécutera le bon command buffer et retournera l'image complète à la swap chain.
 
-[C++ code](/code/14_command_buffers.cpp) /
+[Code C++](/code/14_command_buffers.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
