@@ -1,24 +1,21 @@
-We've talked a lot about framebuffers in the past few chapters and we've set up
-the render pass to expect a single framebuffer with the same format as the swap
-chain images, but we haven't actually created any yet.
+Nous avons beaucoup parlé de framebuffers dans les chapitres précédents, et nous avons paramétré la passe de rendu 
+pour qu'elle en accepte un unique du même format que les images de la swap chain, mais nous n'en avons pour l'instant
+créé aucun.
 
-The attachments specified during render pass creation are bound by wrapping them
-into a `VkFramebuffer` object. A framebuffer object references all of the
-`VkImageView` objects that represent the attachments. In our case that will be
-only a single one: the color attachment. However, the image that we have to use
-for the attachment depends on which image the swap chain returns when we retrieve one
-for presentation. That means that we have to create a framebuffer for all of the
-images in the swap chain and use the one that corresponds to the retrieved image
-at drawing time.
+Les attachements spécifiés durant la passe de rendu sont liés en les considérant dans des objets de type
+`VkFramebuffer`. Un tel objet référence toutes les `VkImageView` utilisées comme attachements par une passe. Dans notre
+cas nous n'en aurons qu'un : un attachement de couleur. Cependant l'image utilisée dépendra de l'image fournie par la
+swap chain lors de la requète pour l'affichage. Cela signifie que nous devons créer un framebuffer pour chacune des
+images de la swap chain et utiliser celui qui correspond au moment de l'affichage.
 
-To that end, create another `std::vector` class member to hold the framebuffers:
+Pour cela créez un autre `std::vector` qui contiendra un framebuffer :
 
 ```c++
 std::vector<VkFramebuffer> swapChainFramebuffers;
 ```
 
-We'll create the objects for this array in a new function `createFramebuffers`
-that is called from `initVulkan` right after creating the graphics pipeline:
+Nous allons remplir cette liste depuis une nouvelle fonction `createFramebuffers` que nous appellerons depuis
+`initVulkan` juste après la création de la pipeline graphique :
 
 ```c++
 void initVulkan() {
@@ -41,7 +38,7 @@ void createFramebuffers() {
 }
 ```
 
-Start by resizing the container to hold all of the framebuffers:
+Commencez par redimensionner le conteneur afin qu'il stocke tous les framebuffers :
 
 ```c++
 void createFramebuffers() {
@@ -49,7 +46,7 @@ void createFramebuffers() {
 }
 ```
 
-We'll then iterate through the image views and create framebuffers from them:
+Nous allons maintenant itérer à travers toutes les images et créer un framebuffer à partir de chacune d'entre elles :
 
 ```c++
 for (size_t i = 0; i < swapChainImageViews.size(); i++) {
@@ -67,26 +64,23 @@ for (size_t i = 0; i < swapChainImageViews.size(); i++) {
     framebufferInfo.layers = 1;
 
     if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create framebuffer!");
+        throw std::runtime_error("échec lors de la création d'un framebuffer!");
     }
 }
 ```
 
-As you can see, creation of framebuffers is quite straightforward. We first need
-to specify with which `renderPass` the framebuffer needs to be compatible. You
-can only use a framebuffer with the render passes that it is compatible with,
-which roughly means that they use the same number and type of attachments.
+Comme vous le pouvez le voir la création d'un framebuffer est assez simple. Nous devons d'abord indiquer avec quelle
+`renderPass` le framebuffer doit être compatible. Vous ne pouvez utiliser un framebuffer qu'avec des passes de rendu
+compatibles, où compatible signifie approximativement que les passes de rendu utilisent le même nombre et les mêmes
+types d'attachements.
 
-The `attachmentCount` and `pAttachments` parameters specify the `VkImageView`
-objects that should be bound to the respective attachment descriptions in
-the render pass `pAttachment` array.
+Les paramètres `attachementCount` et `pAttachments` doivent donner la taille du tableau contenant les `VkImageViews`
+qui servent d'attachements.
 
-The `width` and `height` parameters are self-explanatory and `layers` refers to
-the number of layers in image arrays. Our swap chain images are single images,
-so the number of layers is `1`.
+Les paramètres `width` et `height` sont évidents. Le membre `layers` réfère au nombres de couches dans les images
+fournies comme attachements. Les images de la swap chain n'ont qu'une seule couche donc nous indiquons `1`.
 
-We should delete the framebuffers before the image views and render pass that
-they are based on, but only after we've finished rendering:
+Nous devons détruire les framebuffers avant les image views et la passe de rendu dans la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -98,10 +92,9 @@ void cleanup() {
 }
 ```
 
-We've now reached the milestone where we have all of the objects that are
-required for rendering. In the next chapter we're going to write the first
-actual drawing commands.
+Nous avons atteint le moment où tous les objets sont prêts pour l'affichage. Dans le prochain chapitre nous allons
+écrire les commandes d'affichage.
 
-[C++ code](/code/13_framebuffers.cpp) /
+[Code C++](/code/13_framebuffers.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
