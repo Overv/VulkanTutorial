@@ -1,8 +1,7 @@
-## Setup
+## Mise en place
 
-This is the chapter where everything is going to come together. We're going to
-write the `drawFrame` function that will be called from the main loop to put the
-triangle on the screen. Create the function and call it from `mainLoop`:
+Nous en sommes au chapitre où tout s'assemble. Nous allons écrire une fonction `drawFrame` qui sera appelée depuis la
+boucle principale et affichera les triangles à l'écran. Créez la fonction et appelez-la depuis `mainLoop` :
 
 ```c++
 void mainLoop() {
@@ -19,46 +18,42 @@ void drawFrame() {
 }
 ```
 
-## Synchronization
+## Synchronisation
 
-The `drawFrame` function will perform the following operations:
+Le fonction `drawFrame` réalisera les opérations suivantes :
 
-* Acquire an image from the swap chain
-* Execute the command buffer with that image as attachment in the framebuffer
-* Return the image to the swap chain for presentation
+* Aquérir une image depuis la swap chain
+* Exécuter le command buffer possédant le framebuffer dont l'attachement est l'image obtenue
+* Retourner l'image à la swap chain pour présentation
 
-Each of these events is set in motion using a single function call, but they are
-executed asynchronously. The function calls will return before the operations
-are actually finished and the order of execution is also undefined. That is
-unfortunate, because each of the operations depends on the previous one
-finishing.
+Chacune de ces actions n'est réalisée qu'avec un appel de fonction. Cependant ce n'est pas aussi simple : les
+opérations sont par défaut exécutées de manière asynchrones. La fonction retourne avant que les opérations ne soient
+terminées, et par conséquent l'ordre d'exécution est indéfini. Cela nous pose problème car les opérations que nous
+voulons lancer dépendent des résultats des opérations précédentes.
 
-There are two ways of synchronizing swap chain events: fences and semaphores.
-They're both objects that can be used for coordinating operations by having one
-operation signal and another operation wait for a fence or semaphore to go from
-the unsignaled to signaled state.
+Il y a deux manières de synchroniser les évènements de la swap chain : les _fences_ et les _sémaphores_. Ces deux objets
+permettent d'attendre qu'une opération se termine en relayant un signal émis par un processus généré par la fonction à
+l'origine du lancement de l'opération.
 
-The difference is that the state of fences can be accessed from your program
-using calls like `vkWaitForFences` and semaphores cannot be. Fences are mainly
-designed to synchronize your application itself with rendering operation,
-whereas semaphores are used to synchronize operations within or across command
-queues. We want to synchronize the queue operations of draw commands and
-presentation, which makes semaphores the best fit.
+Ils ont cependant une différence : l'état d'une fence peut être accedé depuis le programme à l'aide de fonctions telles
+que `vkWaitForFences` alors que les sémaphores ne le permettent pas. Les fences sont généralement utilisées pour 
+synchroniser votre programme avec les opérations alors que les sémaphores synchronisent les opération entre elles. Nous
+voulons synchroniser les queues, les commandes d'affichage et la présentation, donc les sémaphores nous conviennent le
+mieux.
 
-## Semaphores
+## Sémaphores
 
-We'll need one semaphore to signal that an image has been acquired and is ready
-for rendering, and another one to signal that rendering has finished and
-presentation can happen. Create two class members to store these semaphore
-objects:
+Nous aurons besoin d'un premier sémaphore pour indiquer que l'aquisition de l'image s'est bien réalisée, puis d'un
+second pour prévenir de la fin du rendu et permettre à l'image d'être retournée dans la swap chain. Créez deux membre
+données pour stocker ces sémaphores :
 
 ```c++
 VkSemaphore imageAvailableSemaphore;
 VkSemaphore renderFinishedSemaphore;
 ```
 
-To create the semaphores, we'll add the last `create` function for this part of
-the tutorial: `createSemaphores`:
+Pour leur création nous allons avoir besoin d'une dernière fonction `create...` pour cette partie du tutoriel.
+Appelez-la `createSemaphores` :
 
 ```c++
 void initVulkan() {
@@ -84,9 +79,8 @@ void createSemaphores() {
 }
 ```
 
-Creating semaphores requires filling in the `VkSemaphoreCreateInfo`, but in the
-current version of the API it doesn't actually have any required fields besides
-`sType`:
+La création d'un sémaphore passe par le remplissage d'une structure de type `VkSemaphoreCreateInfo`. Cependant cette
+structure ne requiert pour l'instant rien d'autre que le membre `sType` :
 
 ```c++
 void createSemaphores() {
@@ -95,20 +89,18 @@ void createSemaphores() {
 }
 ```
 
-Future versions of the Vulkan API or extensions may add functionality for the
-`flags` and `pNext` parameters like it does for the other structures. Creating
-the semaphores follows the familiar pattern with `vkCreateSemaphore`:
+De futures version de Vulkan ou des extensions pourront à terme donner un intérêt aux membre `flags` et `pNext` comme
+pour d'autres structures. Créez les sémaphores comme suit :
 
 ```c++
 if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
     vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
 
-    throw std::runtime_error("failed to create semaphores!");
+    throw std::runtime_error("échec lors de la création des sémaphores!");
 }
 ```
 
-The semaphores should be cleaned up at the end of the program, when all commands
-have finished and no more synchronization is necessary:
+Les sémaphores doivent être détruits à la fin du programme depuis la fonction `cleanup` :
 
 ```c++
 void cleanup() {
@@ -116,12 +108,10 @@ void cleanup() {
     vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 ```
 
-## Acquiring an image from the swap chain
+## Acquérir une image de la swap chain
 
-As mentioned before, the first thing we need to do in the `drawFrame` function
-is acquire an image from the swap chain. Recall that the swap chain is an
-extension feature, so we must use a function with the `vk*KHR` naming
-convention:
+La première opération à réaliser dans `drawFrame` est d'acquérir une image depuis la swap chain. La swap chain étant une
+extension nous allons encore devoir utiliser des fonction suffixées de `KHR` :
 
 ```c++
 void drawFrame() {
@@ -130,26 +120,22 @@ void drawFrame() {
 }
 ```
 
-The first two parameters of `vkAcquireNextImageKHR` are the logical device and
-the swap chain from which we wish to acquire an image. The third parameter
-specifies a timeout in nanoseconds for an image to become available. Using the
-maximum value of a 64 bit unsigned integer disables the timeout.
+Les deux premiers paramètres de `vkAcquireNextImageKHR` sont le logical device et la swap chain depuis laquelle
+récupérer les images. Le troisième paramètre spécifie une durée en nanosecondes avant qu'une image ne devienne
+disponible. Pour le désactiver nous utiliserons la plus grande valeur possible pour un `uint32_t`.
 
-The next two parameters specify synchronization objects that are to be signaled
-when the presentation engine is finished using the image. That's the point in
-time where we can start drawing to it. It is possible to specify a semaphore,
-fence or both. We're going to use our `imageAvailableSemaphore` for that purpose
-here.
+Les deux paramètres suivants spécifient les objets de synchronisation qui doivent être informés de la complétion de
+l'opération de récupération. C'est à partir du moment où le sémaphore que nous lui fournissons reçoit un signal que
+nous pouvons commencer à dessiner.
 
-The last parameter specifies a variable to output the index of the swap chain
-image that has become available. The index refers to the `VkImage` in our
-`swapChainImages` array. We're going to use that index to pick the right command
-buffer.
+Le dernier paramètre permet de fournir à la fonction une variable dans laquelle elle donnera l'indice de l'image fournie
+dans la liste des images de la swap chain. Cet indice correspond à la `VkImage` dans notre tableau `swapChainImages`.
+Nous utiliserons cet indice pour invoquer le bon command buffer.
 
-## Submitting the command buffer
+## Envoi du command buffer
 
-Queue submission and synchronization is configured through parameters in the
-`VkSubmitInfo` structure.
+L'envoi à la queue et la synchronisation de cette même queue sont configurés à l'aide de paramètres dans la structure
+`VkSubmitInfo` que nous allons remplir.
 
 ```c++
 VkSubmitInfo submitInfo = {};
@@ -162,22 +148,18 @@ submitInfo.pWaitSemaphores = waitSemaphores;
 submitInfo.pWaitDstStageMask = waitStages;
 ```
 
-The first three parameters specify which semaphores to wait on before execution
-begins and in which stage(s) of the pipeline to wait. We want to wait with
-writing colors to the image until it's available, so we're specifying the stage
-of the graphics pipeline that writes to the color attachment. That means that
-theoretically the implementation can already start executing our vertex shader
-and such while the image is not yet available. Each entry in the `waitStages`
-array corresponds to the semaphore with the same index in `pWaitSemaphores`.
+Les trois premiers paramètres (sans compter `sType`) fournissent le sémaphore indiquant si l'opération doit attendre et
+l'étape du rendu à laquelle d'arrêter. Nous voulons attendre juste avant l'écriture des couleurs sur l'image. Par contre
+nous laissons à l'implémentation la possibilité d'exécuter toutes les étapes précédentes d'ici là. Notez que chaque
+étape indiquée dans `waitStages` correspond au sémaphore de même indice fourni dans `waitSemaphores`.
 
 ```c++
 submitInfo.commandBufferCount = 1;
 submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 ```
 
-The next two parameters specify which command buffers to actually submit for
-execution. As mentioned earlier, we should submit the command buffer that binds
-the swap chain image we just acquired as color attachment.
+Les deux paramètres qui suivent indiquent les command buffers à exécuter. Nous devons ici fournir le command buffer
+qui lie l'image de la swap chain à la pipeline comme attachement de couleur.
 
 ```c++
 VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
@@ -185,44 +167,39 @@ submitInfo.signalSemaphoreCount = 1;
 submitInfo.pSignalSemaphores = signalSemaphores;
 ```
 
-The `signalSemaphoreCount` and `pSignalSemaphores` parameters specify which
-semaphores to signal once the command buffer(s) have finished execution. In our
-case we're using the `renderFinishedSemaphore` for that purpose.
+Les paramètres `signalSemaphoreCount` et `pSignalSemaphores` indiquent les sémaphores auxquels indiquer que les command
+buffers ont terminé leur exécution. Dans notre cas nous utiliserons notre `renderFinishedSemaphore`.
 
 ```c++
 if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
-    throw std::runtime_error("failed to submit draw command buffer!");
+    throw std::runtime_error("échec lors de l'envoi d'un command buffer!");
 }
 ```
 
-We can now submit the command buffer to the graphics queue using
-`vkQueueSubmit`. The function takes an array of `VkSubmitInfo` structures as
-argument for efficiency when the workload is much larger. The last parameter
-references an optional fence that will be signaled when the command buffers
-finish execution. We're using semaphores for synchronization, so we'll just pass
-a `VK_NULL_HANDLE`.
+Nous pouvons maintenant envoyer notre command buffer à la queue des graphismes en utilisant `vkQueueSubmit`. Cette
+fonction prend en argument un tableau de structures de type `VkSubmitInfo` pour une question d'efficacité. Le dernier
+paramètre permet de fournir une fence optionnelle. Celle-ci sera prévenue de la fin de l'exécution des command
+buffers. Nous n'en utilisons pas donc passerons `VK_NULL_HANDLE`.
 
 ## Subpass dependencies
 
-Remember that the subpasses in a render pass automatically take care of image
-layout transitions. These transitions are controlled by *subpass dependencies*,
-which specify memory and execution dependencies between subpasses. We have only
-a single subpass right now, but the operations right before and right after this
-subpass also count as implicit "subpasses".
+Les subpasses s'occupent automatiquement de la transition de l'organisation des images. Ces transitions sont contrôlées
+par des _subpass dependencies_. Celles-ci fournissent la mémoire et l'exécution entre les subpasses. Nous n'avons certes
+qu'une seule subpasse pour le moment, mais les opérations avant et après cette subpasse comptent aussi comme des
+"subpasses" implicites.
 
-There are two built-in dependencies that take care of the transition at the
-start of the render pass and at the end of the render pass, but the former does
-not occur at the right time. It assumes that the transition occurs at the start
-of the pipeline, but we haven't acquired the image yet at that point! There are
-two ways to deal with this problem. We could change the `waitStages` for the
-`imageAvailableSemaphore` to `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` to ensure that
-the render passes don't begin until the image is available, or we can make the
-render pass wait for the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` stage.
-I've decided to go with the second option here, because it's a good excuse to
-have a look at subpass dependencies and how they work.
+Il existe deux dépendances préexistantes capables de gérer les transitions au début et à la fin de la passe de rendu. Le
+problème est que cette première dépendance ne s'exécute pas au bon moment. Elle part du principe que la transition de
+l'organisation de l'image doit être réalisée au début de la passe, mais dans notre programme l'image n'est pas encore
+acquise à ce moment! Il existe deux manières de régler ce problème. Nous pourrions changer `waitStages` pour
+`imageAvailableSemaphore` à `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` pour être sûrs que la pipeline ne commence pas avant
+que l'image ne soit acquise, mais nous perdrions en performance car les shaders travaillant sur les vertices n'ont pas
+besoin de l'image. Nous allons donc plutôt faire attendre la passe de rendu à l'étape
+`VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` et faire la transition à ce moment. Cela nous donne de plus une bonne
+excuse pour s'intéresser au fonctionnement des subpass dependencies.
 
-Subpass dependencies are specified in `VkSubpassDependency` structs. Go to the
-`createRenderPass` function and add one:
+Celles-ci sont décrites dans une structure de type `VkSubpassDependency`. Créez en une dans la fonction
+`createRenderPass` :
 
 ```c++
 VkSubpassDependency dependency = {};
@@ -230,46 +207,44 @@ dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 dependency.dstSubpass = 0;
 ```
 
-The first two fields specify the indices of the dependency and the dependent
-subpass. The special value `VK_SUBPASS_EXTERNAL` refers to the implicit subpass
-before or after the render pass depending on whether it is specified in
-`srcSubpass` or `dstSubpass`. The index `0` refers to our subpass, which is the
-first and only one. The `dstSubpass` must always be higher than `srcSubpass` to
-prevent cycles in the dependency graph.
+Les deux premiers champs permettent de fournir l'indice de la subpasse d'origine et de la subpasse d'arrivée. La valeur
+particulière `VK_SUBPASS_EXTERNAL` réfère à la subpass implicite soit avant soit après la passe de rendu, selon que
+cette valeur est indiquée dans respectivement `srcSubpass` ou `dstSubpass`. L'indice `0` correspond à notre 
+seule et unique subpasse. La valeur fournie à `dstSubpass` doit toujours être supérieure à `srcSubpass` car sinon une
+boucle infinie peut apparaître.
 
 ```c++
 dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 dependency.srcAccessMask = 0;
 ```
 
-The next two fields specify the operations to wait on and the stages in which
-these operations occur. We need to wait for the swap chain to finish reading
-from the image before we can access it. This can be accomplished by waiting on
-the color attachment output stage itself.
+Les deux paramètres suivants spécifient les opérations à attendre et les étapes durant lesquelles les opérations à
+attendre doivent être considérées. Nous voulons attendre la fin de l'extraction de l'image avant d'y accéder, hors
+ceci est déjà configuré pour être synchronisé avec l'étape d'écriture sur l'attachement. C'est pourquoi nous n'avons
+qu'à attendre à cette étape.
 
 ```c++
 dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 ```
 
-The operations that should wait on this are in the color attachment stage and
-involve the reading and writing of the color attachment. These settings will
-prevent the transition from happening until it's actually necessary (and
-allowed): when we want to start writing colors to it.
+Nous indiquons ici que les opérations qui doivent attendre pendant l'étape liée à l'attachement de couleur sont celles
+ayant trait à la lecture et à l'écriture. Ces paramètres permettent de faire attendre la transition jusqu'à ce qu'elle
+soit possible, ce qui correspond au moment où la passe accède à cet attachement puisqu'elle est elle-même configurée
+pour attendre ce moment.
 
 ```c++
 renderPassInfo.dependencyCount = 1;
 renderPassInfo.pDependencies = &dependency;
 ```
 
-The `VkRenderPassCreateInfo` struct has two fields to specify an array of
+Nous fournissons ici à la structure ayant trait à la passe de rendu un tableau de configurations pour les subpass
 dependencies.
 
-## Presentation
+## Présentation
 
-The last step of drawing a frame is submitting the result back to the swap chain
-to have it eventually show up on the screen. Presentation is configured through
-a `VkPresentInfoKHR` structure at the end of the `drawFrame` function.
+La dernière étape d'affichage consiste à envoyer le résultat à la swap chain. La présentation est configurée avec une
+structure de type `VkPresentInfoKHR`, et nous ferons cela à la fin de la fonction `drawFrame`.
 
 ```c++
 VkPresentInfoKHR presentInfo = {};
@@ -279,8 +254,7 @@ presentInfo.waitSemaphoreCount = 1;
 presentInfo.pWaitSemaphores = signalSemaphores;
 ```
 
-The first two parameters specify which semaphores to wait on before presentation
-can happen, just like `VkSubmitInfo`.
+Les deux premiers paramètres permettent d'indiquer les sémaphores devant signaler que la présentation peut se dérouler.
 
 ```c++
 VkSwapchainKHR swapChains[] = {swapChain};
@@ -289,46 +263,42 @@ presentInfo.pSwapchains = swapChains;
 presentInfo.pImageIndices = &imageIndex;
 ```
 
-The next two parameters specify the swap chains to present images to and the
-index of the image for each swap chain. This will almost always be a single one.
+Les deux paramètres suivants fournissent la swap chain qui présentera les images et l'indice de l'image pour chacune des
+swap chain.
 
 ```c++
-presentInfo.pResults = nullptr; // Optional
+presentInfo.pResults = nullptr; // Optionnel
 ```
 
-There is one last optional parameter called `pResults`. It allows you to specify
-an array of `VkResult` values to check for every individual swap chain if
-presentation was successful. It's not necessary if you're only using a single
-swap chain, because you can simply use the return value of the present function.
+Ce dernier paramètre est optionnel. Il vous permet de fournir un tableau de `VkResult` que vous pourrez consulter pour
+vérifier que toutes les swap chain ont bien présenté leur image sans problème. Cela n'est pas nécessaire dans notre
+cas, car n'utilisant qu'une seule swap chain nous pouvons simplement regarder la valeur de retour de la fonction de
+présentation.
 
 ```c++
 vkQueuePresentKHR(presentQueue, &presentInfo);
 ```
 
-The `vkQueuePresentKHR` function submits the request to present an image to the
-swap chain. We'll add error handling for both `vkAcquireNextImageKHR` and
-`vkQueuePresentKHR` in the next chapter, because their failure does not
-necessarily mean that the program should terminate, unlike the functions we've
-seen so far.
+La fonction `vkQueuePresentKHR` émet la requête de présentation d'une image par la swap chain. Nous ajouterons la
+gestion des erreurs pour `vkAcquireNextImageKHR` et `vkQueuePresentKHR` dans le prochain chapitre car une erreur à ces
+étapes n'implique pas forcément que le programme doit se terminer.
 
-If you did everything correctly up to this point, then you should now see
-something resembling the following when you run your program:
+Si vous avez fait tout ça correctement vous devriez avoir quelque chose comme cela à l'écran quand vous lancez votre
+programme :
 
 ![](/images/triangle.png)
 
-Yay! Unfortunately, you'll see that when validation layers are enabled, the
-program crashes as soon as you close it. The messages printed to the terminal
-from `debugCallback` tell us why:
+YES! Malheuresement si vous essayez de quitter proprement le programme il crashe. Vous obtenez un message comme
+celui-ci :
 
 ![](/images/semaphore_in_use.png)
 
-Remember that all of the operations in `drawFrame` are asynchronous. That means
-that when we exit the loop in `mainLoop`, drawing and presentation operations
-may still be going on. Cleaning up resources while that is happening is a bad
-idea.
+N'oubliez pas que puisque les opérations dans `drawFrame` sont asynchrones il est quasiment certain que lorsque vous
+quittez le programme, celui-ci exécute encore des instructions et cela implique que vous essayez de libérer des
+ressources en train d'être utilisées. Ce qui est rarement une bonne idée, surtout avec du bas niveau comme Vulkan.
 
-To fix that problem, we should wait for the logical device to finish operations
-before exiting `mainLoop` and destroying the window:
+Pour régler ce problème nous devons attendre que le logical device finisse l'opération qu'il est en train de
+réaliser avant de quitter `mainLoop` et de détruire la fenêtre :
 
 ```c++
 void mainLoop() {
@@ -341,17 +311,20 @@ void mainLoop() {
 }
 ```
 
-You can also wait for operations in a specific command queue to be finished with
-`vkQueueWaitIdle`. These functions can be used as a very rudimentary way to
-perform synchronization. You'll see that the program now exits without problems
-when closing the window.
+Vous pouvez également attendre la fin d'une opération quelconque depuis une queue spécifique à l'aide de la fonction
+`vkQueueWaitIdle`. Ces fonction peuvent par ailleurs être utilisées pour réaliser une synchronisation très basique. Le
+programme devrait maintenant se terminer sans problème quand vous fermez la fenêtre.
 
-## Frames in flight
+## Frames en vol
 
-If you run your application with validation layers enabled and you monitor the
-memory usage of your application, you may notice that it is slowly growing. The reason for this is that the application is rapidly submitting work in the `drawFrame` function, but doesn't actually check if any of it finishes. If the CPU is submitting work faster than the GPU can keep up with then the queue will slowly fill up with work. Worse, even, is that we are reusing the `imageAvailableSemaphore` and `renderFinishedSemaphore` for multiple frames at the same time.
+Si vous lancez l'application avec les validation layers et que vous analysez l'utilisation de la mémoire vous allez
+vous rendre compte qu'elle augmente, lentement mais sûrement. Si le CPU envoie plus de commandes que le GPU ne peut en
+exécuter, ce qui est le cas car nous envoyons nos command buffer de manière totalement débridée, la queue de graphismes
+va progressivement se remplir du travail à effectuer. Pire encore, nous utilisons `imageAvailableSemaphore` et
+`renderFinishedSemaphore` pour plusieurs frames en même temps.
 
-The easy way to solve this is to wait for work to finish right after submitting it, for example by using `vkQueueWaitIdle`:
+Le plus simple est d'attendre que le logical device n'aie plus de travail à effectuer avant de lui en envoyer de
+nouveau, par exemple à l'aide de `vkQueueIdle` :
 
 ```c++
 void drawFrame() {
@@ -363,22 +336,26 @@ void drawFrame() {
 }
 ```
 
-However, we are likely not optimally using the GPU in this way, because the whole graphics pipeline is only used for one frame at a time right now. The stages that the current frame has already progressed through are idle and could already be used for a next frame. We will now extend our application to allow for multiple frames to be *in-flight* while still bounding the amount of work that piles up.
+Cependant cette méthode n'est clairement pas optimale pour le GPU car la pipeline peut en général gérer plusieurs images
+à la fois grâce aux architectures massivement parallèles. Les étapes que l'image a déjà passées (par exemple le vertex
+shader quand l'image en est au fragment shader) peuvent tout à fait être utilisées pour l'image suivante. Nous allons
+améliorer notre programme pour qu'il puisse supporter plusieurs images _en vol_ (ou _in flight_) tout en limitant la
+quantité de commandes dans la queue.
 
-Start by adding a constant at the top of the program that defines how many frames should be processed concurrently:
+Commencez par ajouter une constante en haut du programme qui définit le nombre de frames à traiter concurentiellement :
 
 ```c++
 const int MAX_FRAMES_IN_FLIGHT = 2;
 ```
 
-Each frame should have its own set of semaphores:
+Chaque frame aura ses propres sémaphores :
 
 ```c++
 std::vector<VkSemaphore> imageAvailableSemaphores;
 std::vector<VkSemaphore> renderFinishedSemaphores;
 ```
 
-The `createSemaphores` function should be changed to create all of these:
+La fonction `createSemaphores` doit être améliorée pour gérer la création de tout ceux-là :
 
 ```c++
 void createSemaphores() {
@@ -392,12 +369,12 @@ void createSemaphores() {
         if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
             vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS) {
 
-            throw std::runtime_error("failed to create semaphores for a frame!");
+            throw std::runtime_error("échec lors de la création des sémaphores d'une frame!");
         }
 }
 ```
 
-Similarly, they should also all be cleaned up:
+Ils doivent également être libérés à la fin du programme :
 
 ```c++
 void cleanup() {
@@ -410,13 +387,13 @@ void cleanup() {
 }
 ```
 
-To use the right pair of semaphores every time, we need to keep track of the current frame. We will use a frame index for that purpose:
+Pour utiliser la bonne paire de sémaphores à chaque fois nous devons garder sous la main l'indice de la frame en cours.
 
 ```c++
 size_t currentFrame = 0;
 ```
 
-The `drawFrame` function can now be modified to use the right objects:
+La fonction `drawFrame` peut maintenant être modifiée pour utiliser les bons objets :
 
 ```c++
 void drawFrame() {
@@ -434,7 +411,7 @@ void drawFrame() {
 }
 ```
 
-Of course, we shouldn't forget to advance to the next frame every time:
+Nous ne devons bien sûr pas oublier d'avancer à la frame suivante à chaque fois :
 
 ```c++
 void drawFrame() {
@@ -444,11 +421,19 @@ void drawFrame() {
 }
 ```
 
-By using the modulo (%) operator, we ensure that the frame index loops around after every `MAX_FRAMES_IN_FLIGHT` enqueued frames.
+En utilisant l'opérateur de modulo `%` nous pouvons nous assurer que l'indice boucle à chaque fois que
+`MAX_FRAMES_IN_FLIGHT` est atteint.
 
-Although we've not set up the required objects to facilitate processing of multiple frames simultaneously, we still don't actually prevent more than `MAX_FRAMES_IN_FLIGHT` from being submitted. Right now there is only GPU-GPU synchronization and no CPU-GPU synchronization going on to keep track of how the work is going. We may be using the frame #0 objects while frame #0 is still in-flight!
+Bien que nous n'ayons pas mis en place les objets facilitant le traitement de plusieurs frames simultanéments, encore
+maintenant le GPU traite plus de `MAX_FRAMES_IN_FLIGHT` à la fois. Nous n'avons en effet qu'une synchronisation GPU-GPU
+mais pas de synchronisation CPU-GPU. Nous n'avons pas de moyen de savoir que le travail sur telle ou telle frame est
+fini, ce qui a pour conséquence que nous pouvons nous retrouver à utiliser une frame alors qu'elle est encore en
+traitement.
 
-To perform CPU-GPU synchronization, Vulkan offers a second type of synchronization primitive called *fences*. Fences are similar to semaphores in the sense that they can be signaled and waited for, but this time we actually wait for them in our own code. We'll first create a fence for each frame:
+Pour la synchronisation CPU-GPU nous allons utiliser l'autre moyen fourni par Vulkan que nous avons déjà évoqué : les
+_fences_. Au lieu d'informer une certaine opération que tel signal devra être attendu avant de continuer, ce que les
+sémaphores permettent, les fences permettent au programme d'attendre l'exécution complète d'une opération. Nous allons
+créer une fence pour chaque frame :
 
 ```c++
 std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -457,7 +442,8 @@ std::vector<VkFence> inFlightFences;
 size_t currentFrame = 0;
 ```
 
-I've decided to create the fences together with the semaphores and renamed `createSemaphores` to `createSyncObjects`:
+J'ai choisi de créer les fences avec les sémaphores et de renommer la fonction `createSemaphores` en
+`createSyncObjects` :
 
 ```c++
 void createSyncObjects() {
@@ -476,13 +462,13 @@ void createSyncObjects() {
             vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
 
-            throw std::runtime_error("failed to create synchronization objects for a frame!");
+            throw std::runtime_error("échec lors de la création des objets de synchronisation pour une frame!");
         }
     }
 }
 ```
 
-The creation of fences (`VkFence`) is very similar to the creation of semaphores. Also make sure to clean up the fences:
+La création d'une `VkFence` est très similaire à la création d'un sémaphore. N'oubliez pas de libérer les fences :
 
 ```c++
 void cleanup() {
@@ -496,20 +482,23 @@ void cleanup() {
 }
 ```
 
-We will now change `drawFrame` to use the fences for synchronization. The `vkQueueSubmit` call includes an optional parameter to pass a fence that should be signaled when the command buffer finishes executing. We can use this to signal that a frame has finished.
+Nous voulons maintenant que `drawFrame` utilise les fences pour la synchronisation. L'appel à `vkQueueSubmit` inclut un
+paramètre optionnel qui permet de passer une fence. Celle-ci sera informée de la fin de l'exécution du command buffer.
+Nous pouvons interpréter ce signal comme la fin du rendu sur la frame.
 
 ```c++
 void drawFrame() {
     ...
 
     if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
-        throw std::runtime_error("failed to submit draw command buffer!");
+        throw std::runtime_error("échec lors de l'envoi d'un command buffer!");
     }
     ...
 }
 ```
 
-Now the only thing remaining is to change the beginning of `drawFrame` to wait for the frame to be finished:
+La dernière chose qui nous reste à faire est de changer le début de `drawFrame` pour que la fonction attende le rendu de
+la frame précédente :
 
 ```c++
 void drawFrame() {
@@ -520,13 +509,22 @@ void drawFrame() {
 }
 ```
 
-The `vkWaitForFences` function takes an array of fences and waits for either any or all of them to be signaled before returning. The `VK_TRUE` we pass here indicates that we want to wait for all fences, but in the case of a single one it obviously doesn't matter. Just like `vkAcquireNextImageKHR` this function also takes a timeout. Unlike the semaphores, we manually need to restore the fence to the unsignaled state by resetting it with the `vkResetFences` call.
+La fonction `vkWaitForFences` prend en argument un tableau de fences. Elle attend soit qu'une seule fence soit que
+toutes les fences déclarent être signalées avant de retourner. Le choix du mode d'attente se fait selon la valeur du
+quatrième paramètre. Avec `VK_TRUE` nous demandons d'attendre toutes les fences, même si cela ne fait bien sûr pas de
+différence vu que nous n'avons qu'une seule fence. Comme la fonction `vkAcquireNextImageKHR` cette fonction prend une
+durée en argument, que nous ignorons. Nous devons ensuite réinitialiser les fences manuellement à l'aide d'un appel à
+la fonction `vkResetFences`.
 
-If you run the program now, you'll notice something something strange. The application no longer seems to be rendering anything. With validation layers enabled, you'll see the following message:
+Si vous lancez le programme maintenant vous allez constater un comportement étrange. Plus rien ne se passe. Encore 
+une fois regardez ce que les validation layers vous fournissent comme informations :
 
 ![](/images/unsubmitted_fence.png)
 
-That means that we're waiting for a fence that has not been submitted. The problem here is that, by default, fences are created in the unsignaled state. That means that `vkWaitForFences` will wait forever if we haven't used the fence before. To solve that, we can change the fence creation to initialize it in the signaled state as if we had rendered an initial frame that finished:
+Nous attendons qu'une fence soit signalée alors qu'elle n'a jamais été envoyée à aucune fonction. En effet les fences
+sont par défaut crées dans le mode non signalé. Comme nous appelons `vkWaitForFences` avant `vkQueueSubmit` notre
+première fence va créer une pause infinie. Pour empêcher cela nous devons initialiser les fences dans le mode signalé,
+et ce dès leur création :
 
 ```c++
 void createSyncObjects() {
@@ -540,24 +538,23 @@ void createSyncObjects() {
 }
 ```
 
-The program should now work correctly and the memory leak should be gone! We've now implemented all the needed synchronization to ensure that there are no more than two frames of work enqueued. Note that it is fine for other parts of the code, like the final cleanup, to rely on more rough synchronization like `vkDeviceWaitIdle`. You should decide on which approach to use based on performance requirements.
+Le programme devrait maintenant fonctionner normalement et la perte de mémoire ne devrait plus exister! Et nous avons 
+maintenant implémenté tout ce qu'il faut pour s'assurer que nous n'avons jamais plus de deux frames en vol!
 
-To learn more about synchronization through examples, have a look at [this extensive overview](https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples#swapchain-image-acquire-and-present) by Khronos.
+Pour en apprendre plus sur la synchronisation rendez vous sur
+[ces exemples complets](https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples#swapchain-image-acquire-and-present)
+by Khronos.
 
 ## Conclusion
 
-A little over 900 lines of code later, we've finally gotten to the stage of seeing
-something pop up on the screen! Bootstrapping a Vulkan program is definitely a
-lot of work, but the take-away message is that Vulkan gives you an immense
-amount of control through its explicitness. I recommend you to take some time
-now to reread the code and build a mental model of the purpose of all of the
-Vulkan objects in the program and how they relate to each other. We'll be
-building on top of that knowledge to extend the functionality of the program
-from this point on.
+Un peu plus de 900 lignes plus tard nous avons enfin atteint le niveau où nous voyons des résultats à l'écran!!
+Créer un programme avec Vulkan est clairement un gros travail, mais grâce au contrôle que cet API vous offre vous
+pouvez obtenir des performances énormes. Je ne peux que vous recommander de relire tout ce code et de vous assurer que
+vous visualisez bien tout les éléments mis en jeu. Nous allons maintenant construire sur ces acquis pour étendre les
+fonctionnalités de ce programme.
 
-In the next chapter we'll deal with one more small thing that is required for a
-well-behaved Vulkan program.
+Dans le prochain chapitre nous allons voir une autre petite chose nécessaire à tout bon programme Vulkan.
 
-[C++ code](/code/15_hello_triangle.cpp) /
+[Code C++](/code/15_hello_triangle.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
