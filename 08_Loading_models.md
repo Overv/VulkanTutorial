@@ -38,7 +38,7 @@ TINYOBJ_INCLUDE_PATH = /home/user/libraries/tinyobjloader
 
 ...
 
-CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(TINYOBJ_INCLUDE_PATH)
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(TINYOBJ_INCLUDE_PATH)
 ```
 
 ## Sample mesh
