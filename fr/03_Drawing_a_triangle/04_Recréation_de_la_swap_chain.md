@@ -1,16 +1,14 @@
 ## Introduction
 
-The application we have now successfully draws a triangle, but there are some
-circumstances that it isn't handling properly yet. It is possible for the window
-surface to change such that the swap chain is no longer compatible with it. One
-of the reasons that could cause this to happen is the size of the window
-changing. We have to catch these events and recreate the swap chain.
+Notre application nous permet maintenant d'afficher correctement un triangle, mais certains cas de figures ne sont pas
+correctement gérés pour le moment. Il est possible que la surface d'affichage soit redimensionnée et que la swap chain
+ne soit plus compatible. Nous devons faire en sorte d'être informés de tels changements pour pouvoir recréer la swap
+chain.
 
-## Recreating the swap chain
+## Recréer la swap chain
 
-Create a new `recreateSwapChain` function that calls `createSwapChain` and all
-of the creation functions for the objects that depend on the swap chain or the
-window size.
+Créez la fonction `recreateSwapChain` qui appelle `createSwapChain` et toutes les fonctions de création d'objets
+dépendants de la swap chain ou de la taille de la fenêtre.
 
 ```c++
 void recreateSwapChain() {
@@ -25,22 +23,17 @@ void recreateSwapChain() {
 }
 ```
 
-We first call `vkDeviceWaitIdle`, because just like in the last chapter, we
-shouldn't touch resources that may still be in use. Obviously, the first thing
-we'll have to do is recreate the swap chain itself. The image views need to be
-recreated because they are based directly on the swap chain images. The render
-pass needs to be recreated because it depends on the format of the swap chain
-images. It is rare for the swap chain image format to change during an operation
-like a window resize, but it should still be handled. Viewport and scissor
-rectangle size is specified during graphics pipeline creation, so the pipeline
-also needs to be rebuilt. It is possible to avoid this by using dynamic state
-for the viewports and scissor rectangles. Finally, the framebuffers and command
-buffers also directly depend on the swap chain images.
+Nous appelons d'abord `vkDeviceIdle` car nous ne devons surtout pas toucher à des ressources en cours d'utilisation. La
+première chose à faire est bien sûr de recréer la swap chain. Les image views doivent être recrées également car 
+elles dépendent des images de la swap chain. La passe de rendu doit être recrée car elle dépend du format des images de
+la swap chain. Il est rare que le format des images de la swap chain soit altéré mais il n'est pas officiellement
+garanti qu'il reste le même, donc nous gérerons ce cas là. La pipeline dépend de la taille des images pour la
+configuration des rectangles de viewport et de ciseau, donc nous devons recréer la pipeline graphique. Il est possible
+d'éviter cela en faisant de la taille de ces rectangles des états dynamiques. Finalement les framebuffers et les command
+buffers dépendent des images de la swap chain.
 
-To make sure that the old versions of these objects are cleaned up before
-recreating them, we should move some of the cleanup code to a separate function
-that we can call from the `recreateSwapChain` function. Let's call it
-`cleanupSwapChain`:
+Pour être certain que les anciens objets sont bien détruits avant d'en créer de nouveaux, nous devrions créer une
+fonction dédiée à cela et que nous appellerons depuis `recreateSwapChain`. Créez donc `cleanupSwapChain` :
 
 ```c++
 void cleanupSwapChain() {
@@ -61,8 +54,7 @@ void recreateSwapChain() {
 }
 ```
 
-we'll move the cleanup code of all objects that are recreated as part of a swap
-chain refresh from `cleanup` to `cleanupSwapChain`:
+Nous allons déplacer le code de suppression depuis `cleanup` jusqu'à `cleanupSwapChain` :
 
 ```c++
 void cleanupSwapChain() {
@@ -109,12 +101,13 @@ void cleanup() {
 }
 ```
 
-We could recreate the command pool from scratch, but that is rather wasteful.
-Instead I've opted to clean up the existing command buffers with the
-`vkFreeCommandBuffers` function. This way we can reuse the existing pool to
-allocate the new command buffers.
+Nous pourrions recréer la command pool à partir de rien mais c'est du gachis. J'ai préféré libérer les command buffers
+existants à l'aide de la fonction `vkFreeCommandBuffers`. Nous pouvons de cette manière réutiliser la même command pool
+mais changer les command buffers.
 
-To handle window resizes properly, we also need to query the current size of the framebuffer to make sure that the swap chain images have the (new) right size. To do that change the `chooseSwapExtent` function to take the actual size into account:
+Pour bien gérer le redimensionnement de la fenêtre nous devons récupérer la taille actuelle du framebuffer qui lui est
+associée pour s'assurer que les images de la swap chain ont bien la nouvelle taille. Pour cela changez
+`chooseSwapExtent` afin que cette fonction prenne en compte la nouvelle taille réelle :
 
 ```c++
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
@@ -134,24 +127,21 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-That's all it takes to recreate the swap chain! However, the disadvantage of
-this approach is that we need to stop all rendering before creating the new swap
-chain. It is possible to create a new swap chain while drawing commands on an
-image from the old swap chain are still in-flight. You need to pass the previous
-swap chain to the `oldSwapChain` field in the `VkSwapchainCreateInfoKHR` struct
-and destroy the old swap chain as soon as you've finished using it.
+C'est tout ce que nous avons à faire pour recréer la swap chain! Le problème cependant est que nous devons arrêter
+complètement l'affichage pendant la recréation alors que nous pourrions éviter que les frames en vol soient détruites. 
+Pour cela vous devez passer l'ancienne swap chain en paramètre à `oldSwapChain` dans la structure
+`VkSwapchainCreateInfoKHR` et détruire cette ancienne swap chain dès que vous ne l'utilisez plus.
 
-## Suboptimal or out-of-date swap chain
+## Swap chain non-optimales ou dépassées
 
-Now we just need to figure out when swap chain recreation is necessary and call
-our new `recreateSwapChain` function. Luckily, Vulkan will usually just tell us that the swap chain is no longer adequate during presentation. The `vkAcquireNextImageKHR` and
-`vkQueuePresentKHR` functions can return the following special values to
-indicate this.
+Nous devons maintenant déterminer quand recréer la swap chain et donc quand appeler `recreateSwapChain`. Heuresement
+pour nous Vulkan nous indiquera quand la swap chain n'est plus adéquate au moment de la présentation. Les fonctions
+`vkAcquireNextImageKHR` et `vkQueuePresentKHR` peuvent pour cela retourner les valeurs suivantes :
 
-* `VK_ERROR_OUT_OF_DATE_KHR`: The swap chain has become incompatible with the
-surface and can no longer be used for rendering. Usually happens after a window resize.
-* `VK_SUBOPTIMAL_KHR`: The swap chain can still be used to successfully present
-to the surface, but the surface properties are no longer matched exactly.
+* `VK_ERROR_OUT_OF_DATE_KHR` : la swap chain n'est plus compatible avec la surface de fenêtre et ne peut plus être
+utilisée pour l'affichage, ce qui arrive en général avec un rendimensionnement de la fenêtre
+* `VK_SUBOPTIMAL_KHR` : la swap chain peut toujours être utilisée pour présenter des images avec succès, mais les
+caractéristiques de la surface de fenêtre ne correspondent plus à celles de la swap chain
 
 ```c++
 VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
@@ -160,30 +150,29 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     recreateSwapChain();
     return;
 } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-    throw std::runtime_error("failed to acquire swap chain image!");
+    throw std::runtime_error("échec lors de la présentation d'une image à la swap chain!");
 }
 ```
 
-If the swap chain turns out to be out of date when attempting to acquire an
-image, then it is no longer possible to present to it. Therefore we should
-immediately recreate the swap chain and try again in the next `drawFrame` call.
+Si la swap chain se trouve être dépassée quand nous essayons d'acquérir une nouvelle image il ne nous est plus possible
+de présenter un quelconque résultat. Nous devons de ce fait aussitôt recréer la swap chain et tenter la présentation
+avec la frame suivante.
 
-However, if we abort drawing at this point then the fence will be never have
-been submitted with `vkQueueSubmit` and it'll be in an unexpected state when we
-try to wait for it later on. We could recreate the fences as part of swap chain
-recreation, but it's easier to move the `vkResetFences` call:
+Cepedant si nous interrompons le rendu à ce moment alors la fence synchronisant la présentation ne sera jamais envoyée
+à `vkQueueSubmit` et elle nous fera attendre éternellement la boucle suivante. Nous pourrions recréer les fences avec
+la swap chain, mais il est plus simple de déplacer l'appel à `vkResetFence` :
 
 ```c++
 vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
-    throw std::runtime_error("failed to submit draw command buffer!");
+    throw std::runtime_error("échec lors de l'envoi d'un command buffer!");
 }
 ```
 
-You could also decide to do that if the swap chain is suboptimal, but I've
-chosen to proceed anyway in that case because we've already acquired an image.
-Both `VK_SUCCESS` and `VK_SUBOPTIMAL_KHR` are considered "success" return codes.
+Vous pouvez aussi décider de recréer la swap chain si sa configuration n'est plus optimale, mais j'ai choisi de ne pas
+le faire ici car nous avons de toute façon déjà acquis l'image. Ainsi `VK_SUCCES` et `VK_SUBOPTIMAL_KHR` sont considérés
+comme des indicateurs de succès.
 
 ```c++
 result = vkQueuePresentKHR(presentQueue, &presentInfo);
@@ -191,19 +180,20 @@ result = vkQueuePresentKHR(presentQueue, &presentInfo);
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
     recreateSwapChain();
 } else if (result != VK_SUCCESS) {
-    throw std::runtime_error("failed to present swap chain image!");
+    throw std::runtime_error("échec lors de la présentation d'une image!");
 }
 
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 ```
 
-The `vkQueuePresentKHR` function returns the same values with the same meaning.
-In this case we will also recreate the swap chain if it is suboptimal, because
-we want the best possible result.
+La fonction `vkQueuePresentKHR` retourne les mêmes valeurs avec la même signification. Dans ce cas nous recréeons la
+swap chain si elle n'est plus optimale car nous voulons les meilleurs résultats possibles.
 
-## Handling resizes explicitly
+## Explicitement gérer les redimensionnements
 
-Although many drivers and platforms trigger `VK_ERROR_OUT_OF_DATE_KHR` automatically after a window resize, it is not guaranteed to happen. That's why we'll add some extra code to also handle resizes explicitly. First add a new member variable that flags that a resize has happened:
+Bien que la plupart des drivers émettent automatiquement le code `VK_ERROR_OUT_OF_DATE_KHR` après qu'une fenêtre est
+redimensionnée, cela n'est pas garanti par le standard. Par conséquent nous devons explictement gérer ces cas de
+figure. Ajoutez une nouvelle variable qui indiquera que la fenêtre a été redimensionnée :
 
 ```c++
 std::vector<VkFence> inFlightFences;
@@ -212,7 +202,7 @@ size_t currentFrame = 0;
 bool framebufferResized = false;
 ```
 
-The `drawFrame` function should then be modified to also check for this flag:
+La fonction `drawFrame` doit ensuite être modifiée pour prendre en compte cette nouvelle variable :
 
 ```c++
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
@@ -223,7 +213,8 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebu
 }
 ```
 
-Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
+Pour détecter les redimensionnements de la fenêtre nous n'avons qu'à mettre en place `glfwSetFrameBufferSizeCallback`
+qui nous informera d'un changement de la taille du framebuffer associé à la fenêtre :
 
 ```c++
 void initWindow() {
@@ -240,9 +231,12 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 }
 ```
 
-The reason that we're creating a `static` function as a callback is because GLFW does not know how to properly call a member function with the right `this` pointer to our `HelloTriangleApplication` instance.
+Nous devons utiliser une fonction statique car GLFW ne sait pas correctement appeler une fonction membre d'une avec 
+`this`.
 
-However, we do get a reference to the `GLFWwindow` in the callback and there is another GLFW function that allows you to store an arbitrary pointer inside of it: `glfwSetWindowUserPointer`:
+Nous récupérons une référence à la `GLFWwindow` dans la fonction de rappel que nous fournissons. De plus nous pouvons
+paramétrer un pointeur de notre choix qui sera accessible à toutes nos fonctions de rappel. Nous pouvons y mettre la 
+classe elle-même.
 
 ```c++
 window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
@@ -250,7 +244,7 @@ glfwSetWindowUserPointer(window, this);
 glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 ```
 
-This value can now be retrieved from within the callback with `glfwGetWindowUserPointer` to properly set the flag:
+De cette manière nous pouvons changer la valeur de la variable servant d'indicateur des redimensionnements :
 
 ```c++
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
@@ -259,11 +253,13 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 }
 ```
 
-Now try to run the program and resize the window to see if the framebuffer is indeed resized properly with the window.
+Lancez maintenant le programme et changez la taille de la fenêtre pour voir si tout se passe comme prévu.
 
-## Handling minimization
+## Gestion de la réduction de la fenêtre
 
-There is another case where a swap chain may become out of data and that is a special kind of window resizing: window minimization. This case is special because it will result in a frame buffer size of `0`. In this tutorial we will handle that by pausing until the window is in the foreground again by extending the `recreateSwapChain` function:
+Il existe un autre cas important où la swap chain peut devenir invalide : si la fenêtre est réduite. Ce cas est
+particulier car il résulte en un framebuffer de taille `0`. Dans ce tutoriel nous mettrons en pause le programme
+jusqu'à ce que la fenêtre soit remise en avant-plan. À ce moment-là nous recréerons la swap chain.
 
 ```c++
 void recreateSwapChain() {
@@ -279,10 +275,9 @@ void recreateSwapChain() {
 }
 ```
 
-Congratulations, you've now finished your very first well-behaved Vulkan
-program! In the next chapter we're going to get rid of the hardcoded vertices in
-the vertex shader and actually use a vertex buffer.
+Félicitations, vous avez codé un programme propre avec Vulkan! Dans le prochain chapitre nous allons supprimer les 
+vertices du vertex shader et mettre en place un vertex buffer.
 
-[C++ code](/code/16_swap_chain_recreation.cpp) /
+[Code C++](/code/16_swap_chain_recreation.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
