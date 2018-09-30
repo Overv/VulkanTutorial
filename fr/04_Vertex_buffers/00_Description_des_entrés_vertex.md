@@ -1,16 +1,14 @@
 ## Introduction
 
-In the next few chapters, we're going to replace the hardcoded vertex data in
-the vertex shader with a vertex buffer in memory. We'll start with the easiest
-approach of creating a CPU visible buffer and using `memcpy` to copy the vertex
-data into it directly, and after that we'll see how to use a staging buffer to
-copy the vertex data to high performance memory.
+Dans les quatres prochains chapitres nous allons remplacer les vertices inscrites dans le vertex shader par un vertex
+buffer stocké dans la mémoire de la carte graphique. Nous commencerons par une manière simple de procéder en créeant un
+buffer manipulable depuis le CPU et en y copiant des données avec `memcpy`. Puis nous verrons comment avantageusement
+utiliser un _staging buffer_ pour accéder à de la mémoire de haute performance.
 
 ## Vertex shader
 
-First change the vertex shader to no longer include the vertex data in the
-shader code itself. The vertex shader takes input from a vertex buffer using the
-`in` keyword.
+Premièrement, changeons le vertex shader pour ne plus avoir les données dans son code. Ce shader prendra en entrée des
+données utilisées par des variables. Nous indiquons cela en les annotant du mot-clé `in`.
 
 ```glsl
 #version 450
@@ -31,36 +29,34 @@ void main() {
 }
 ```
 
-The `inPosition` and `inColor` variables are *vertex attributes*. They're
-properties that are specified per-vertex in the vertex buffer, just like we
-manually specified a position and color per vertex using the two arrays. Make
-sure to recompile the vertex shader!
+Les variables `inPosition` et `inColor` sont des _vertex attributes_. Ce sont des propriétés spécifiques du vertex à
+l'origine de l'invocation du shader. Ces données peuvent être de différentes natures, des couleurs aux coordonnées en
+passant par des coordonnées de texture. Recompilez ensuite le vertex shader.
 
-Just like `fragColor`, the `layout(location = x)` annotations assign indices to
-the inputs that we can later use to reference them. It is important to know that
-some types, like `dvec3` 64 bit vectors, use multiple *slots*. That means that
-the index after it must be at least 2 higher:
+Tout comme pour `fragColor`, les annotations de type `layout(location=x)` assignent un indice à l'entrée. Cet indice 
+est utilisé depuis le code C++ pour les reconnaître. Il est important de savoir que certains types - comme les vecteurs
+de flottants de double précision (64 bits) - prennent deux emplacements. Voici un exemple d'une telle situation, où il
+est nécessaire de prévoir un écart entre deux entrés :
 
 ```glsl
 layout(location = 0) in dvec3 inPosition;
 layout(location = 2) in vec3 inColor;
 ```
 
-You can find more info about the layout qualifier in the [OpenGL wiki](https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)).
+Vous pouvez trouver plus d'information sur les qualificateurs d'organisation sur
+[le wiki](https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)).
 
-## Vertex data
+## Vertices
 
-We're moving the vertex data from the shader code to an array in the code of our
-program. Start by including the GLM library, which provides us with linear
-algebra related types like vectors and matrices. We're going to use these types
-to specify the position and color vectors.
+Nous déplaçons les données des vertices depuis le code du shader jusqu'au code C++. Commencez par inclure la librairie
+GLM, afin d'utiliser deds vecteurs et des matrices. Nous allons utiliser ces types pour les vecteurs de position et de
+couleur.
 
 ```c++
 #include <glm/glm.hpp>
 ```
 
-Create a new structure called `Vertex` with the two attributes that we're going
-to use in the vertex shader inside it:
+Créez une nouvelle structure appelée `Vertex`. Elle possède deux attributs que nous utiliserons pour le vertex shader :
 
 ```c++
 struct Vertex {
@@ -69,8 +65,7 @@ struct Vertex {
 };
 ```
 
-GLM conveniently provides us with C++ types that exactly match the vector types
-used in the shader language.
+GLM nous fournit des types très pratiques simulant les types utilisés par GLSL.
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -80,18 +75,17 @@ const std::vector<Vertex> vertices = {
 };
 ```
 
-Now use the `Vertex` structure to specify an array of vertex data. We're using
-exactly the same position and color values as before, but now they're combined
-into one array of vertices. This is known as *interleaving* vertex attributes.
+Nous utilisons ensuite un tableau de structures pour représenter un ensemble de vertices. Nous utilisons les mêmes
+couleurs et les mêmes positions qu'avant, mais elles sont maintenant combinées en un seul tableau d'objets.
 
-## Binding descriptions
+## Lier les descriptions
 
-The next step is to tell Vulkan how to pass this data format to the vertex
-shader once it's been uploaded into GPU memory. There are two types of
-structures needed to convey this information.
+La prochaine étape consiste à informer Vulkan de la manière de passer ces données au shader une fois qu'elles sont
+stockées dans le GPU. Nous verrons plus tard comment les y stocker. Il y a deux types de structures que nous allons
+devoir utiliser.
 
-The first structure is `VkVertexInputBindingDescription` and we'll add a member
-function to the `Vertex` struct to populate it with the right data.
+Pour la première, appelée `VkVertexInputBindingDescription`, nous allons ajouter une fonction à `Vertex` qui renverra
+une instance de cette structure.
 
 ```c++
 struct Vertex {
@@ -106,9 +100,8 @@ struct Vertex {
 };
 ```
 
-A vertex binding describes at which rate to load data from memory throughout the
-vertices. It specifies the number of bytes between data entries and whether to
-move to the next data entry after each vertex or after each instance.
+Un *vertex binding* décrit la lecture des données stockées en mémoire. Elle fournit le nombre d'octets entre les jeux de
+données et la manière de passer d'un ensemble de données (par exemple une coordonnée) au suivant.
 
 ```c++
 VkVertexInputBindingDescription bindingDescription = {};
@@ -117,23 +110,21 @@ bindingDescription.stride = sizeof(Vertex);
 bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 ```
 
-All of our per-vertex data is packed together in one array, so we're only going
-to have one binding. The `binding` parameter specifies the index of the binding
-in the array of bindings. The `stride` parameter specifies the number of bytes
-from one entry to the next, and the `inputRate` parameter can have one of the
-following values:
+Nos données sont compactées en un seul tableau, nous n'aurons besoin que d'un seul vertex binding. Le membre `binding`
+indique l'indice du vertex binding dans le tableau des bindings. Le paramètre `stride` fournit le nombre d'octets
+séparant les débuts de deux ensembles de données, c'est à dire l'écart entre les données devant ếtre fournies à une
+invocation de vertex shader et celles devant être fournies à la suivante. Enfin `inputRate` peut prendre les valeurs
+suivantes :
 
-* `VK_VERTEX_INPUT_RATE_VERTEX`: Move to the next data entry after each vertex
-* `VK_VERTEX_INPUT_RATE_INSTANCE`: Move to the next data entry after each
-instance
+* `VK_VERTEX_INPUT_RATE_VERTEX`: Passer au jeu de données suivante après chaque vertex
+* `VK_VERTEX_INPUT_RATE_INSTANCE`: Passer au jeu de données suivantes après chaque instance
 
-We're not going to use instanced rendering, so we'll stick to per-vertex data.
+Nous n'utilisons pas d'_instanced rendering_ donc nous utiliserons la première valeur disponible.
 
-## Attribute descriptions
+## Description des attributs
 
-The second structure that describes how to handle vertex input is
-`VkVertexInputAttributeDescription`. We're going to add another helper function
-to `Vertex` to fill in these structs.
+La seconde structure dont nous avons besoin est `VkVertexInputAttributeDescription`. Nous allons également en créer deux
+instances depuis une fonction membre de `Vertex` :
 
 ```c++
 #include <array>
@@ -147,11 +138,9 @@ static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions
 }
 ```
 
-As the function prototype indicates, there are going to be two of these
-structures. An attribute description struct describes how to extract a vertex
-attribute from a chunk of vertex data originating from a binding description. We
-have two attributes, position and color, so we need two attribute description
-structs.
+Comme le prototype le laisse entendre, nous allons avoir besoin de deux de ces structures. Elles décrivent chacunes
+l'extraction d'un paquet de données provenant d'un vertex binding. Nous avons deux attributs, la couleur et la position,
+c'est pourquoi nous avons besoin de deux structures.
 
 ```c++
 attributeDescriptions[0].binding = 0;
@@ -160,39 +149,35 @@ attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
 attributeDescriptions[0].offset = offsetof(Vertex, pos);
 ```
 
-The `binding` parameter tells Vulkan from which binding the per-vertex data
-comes. The `location` parameter references the `location` directive of the
-input in the vertex shader. The input in the vertex shader with location `0` is
-the position, which has two 32-bit float components.
+Le paramètre `binding` informe Vulkan de la provenance des données vertex par vertex, en lui fournissant le vertex
+binding qui les a extraites. Le paramètre `location` correspond à la valeur donnée à la directive `location` dans le
+code du vertex shader. Dans notre cas l'entrée `0` correspond à la position du vertex stockée dans un vertex de floats
+de 32 bits.
 
-The `format` parameter describes the type of data for the attribute. A bit
-confusingly, the formats are specified using the same enumeration as color
-formats. The following shader types and formats are commonly used together:
+Le paramètre `format` permet donc de décrire le type de donnée de l'attribut. Étonnement les formats doivent être
+indiqués avec des valeurs énumérées dont les noms semblent correspondre à des gradients de couleur :
 
-* `float`: `VK_FORMAT_R32_SFLOAT`
-* `vec2`: `VK_FORMAT_R32G32_SFLOAT`
-* `vec3`: `VK_FORMAT_R32G32B32_SFLOAT`
-* `vec4`: `VK_FORMAT_R32G32B32A32_SFLOAT`
+* `float` : `VK_FORMAT_R32_SFLOAT`
+* `vec2` : `VK_FORMAT_R32G32_SFLOAT`
+* `vec3` : `VK_FORMAT_R32G32B32_SFLOAT`
+* `vec4` : `VK_FORMAT_R32G32B32A32_SFLOAT`
 
-As you can see, you should use the format where the amount of color channels
-matches the number of components in the shader data type. It is allowed to use
-more channels than the number of components in the shader, but they will be
-silently discarded. If the number of channels is lower than the number of
-components, then the BGA components will use default values of `(0, 0, 1)`. The
-color type (`SFLOAT`, `UINT`, `SINT`) and bit width should also match the type
-of the shader input. See the following examples:
+Comme vous pouvez vous en douter il faudra utiliser le format dont le nombre de composants de couleurs correspond au
+nombre de données à transmettre. Il est autorisé d'utiliser plus de données que ce qui est prévu dans le shader, et ces
+données surnuméraires seront silencieusement ignorées. Si par contre il n'y a pas assez de valeurs les valeurs suivantes
+seront utilisées par défaut pour les valeurs manquantes : 0, 0 et 1 pour les deuxièmes, troisièmes et quatrièmes 
+composantes. Il n'y a pas de valeur par défaut pour le premier membre car ce cas n'est pas possible. Les types 
+(`SFLOAT`, `UINT` et `SINT`) et le nombre de bits doivent par contre correspondre parfaitement à ce qui est indiqué dans
+le shader. Voici quelques exemples :
 
-* `ivec2`: `VK_FORMAT_R32G32_SINT`, a 2-component vector of 32-bit signed
-integers
-* `uvec4`: `VK_FORMAT_R32G32B32A32_UINT`, a 4-component vector of 32-bit
-unsigned integers
-* `double`: `VK_FORMAT_R64_SFLOAT`, a double-precision (64-bit) float
+* `ivec2` correspond à `VK_FORMAT_R32G32_SINT` et est un vecteur à deux composantes d'entiers signés de 32 bits
+* `uvec4` correspond à `VK_FORMAT_R32G32B32A32_UINT` et est un vecteur à quatre composantes d'entiers non signés de 32
+bits
+* `double` correspond à `VK_FORMAT_R64_SFLOAT` et est un float à précision double (donc de 64 bits)
 
-The `format` parameter implicitly defines the byte size of attribute data and
-the `offset` parameter specifies the number of bytes since the start of the
-per-vertex data to read from. The binding is loading one `Vertex` at a time and
-the position attribute (`pos`) is at an offset of `0` bytes from the beginning
-of this struct. This is automatically calculated using the `offsetof` macro.
+Le paramètre `format` définit implicitement la taille en octets des données tandis que le paramètre `offset` définit le
+nombre d'octets à lire depuis le début des données vertex par vertex. Notre binding charge le contenu d'un seul `Vertex`
+à chaque fois, et l'`offset` sera calculé par la macro `offsetof`.
 
 ```c++
 attributeDescriptions[1].binding = 0;
@@ -201,13 +186,14 @@ attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 attributeDescriptions[1].offset = offsetof(Vertex, color);
 ```
 
-The color attribute is described in much the same way.
+L'attribut de couleur est décrit de la même façon. Essayez de le remplir avant de regarder la solution dans le code
+fourni.
 
-## Pipeline vertex input
+## Entrée des vertices dans la pipeline
 
-We now need to set up the graphics pipeline to accept vertex data in this format
-by referencing the structures in `createGraphicsPipeline`. Find the
-`vertexInputInfo` struct and modify it to reference the two descriptions:
+Nous devons maintenant mettre en place la réception par la pipeline graphique des données de vertices. Nous allons
+modifier une structures dans `createGraphicsPipeline`. Trouvez `vertexInputInfo` et ajoutez-y les références aux deux
+structures de description que nous venons de créer :
 
 ```c++
 auto bindingDescription = Vertex::getBindingDescription();
@@ -219,12 +205,10 @@ vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
 vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 ```
 
-The pipeline is now ready to accept vertex data in the format of the `vertices`
-container and pass it on to our vertex shader. If you run the program now with
-validation layers enabled, you'll see that it complains that there is no vertex
-buffer bound to the binding. The next step is to create a vertex buffer and move
-the vertex data to it so the GPU is able to access it.
+La pipeline peut maintenant accepter les données des vertices dans le format que nous utilisons et les fournir au vertex
+shader. Si  vous lancez le programme vous verrez que les validation layers rapportent qu'aucun vertex buffer n'est mis
+en place. Nous allons donc créer un vertex buffer et y placer les données pour que le GPU puisse les utiliser.
 
-[C++ code](/code/17_vertex_input.cpp) /
+[Code C++](/code/17_vertex_input.cpp) /
 [Vertex shader](/code/17_shader_vertexbuffer.vert) /
 [Fragment shader](/code/17_shader_vertexbuffer.frag)
