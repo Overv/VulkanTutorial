@@ -347,7 +347,7 @@ window. You'll see that the following messages are printed to the command prompt
 Oops, it has already spotted a bug in our program! The
 `VkDebugUtilsMessengerEXT` object needs to be cleaned up with a call to
 `vkDestroyDebugUtilsMessengerEXT`. Similarly to `vkCreateDebugUtilsMessengerEXT`
-the function needs to be explicitly loaded. Note that it is normal for this message to be printed multiple times. This happens because multiple validation layers check for for the deletion of the debug messenger.
+the function needs to be explicitly loaded. Note that it is normal for this message to be printed multiple times. This happens because multiple validation layers check for the deletion of the debug messenger.
 
 Create another proxy function right
 below `CreateDebugUtilsMessengerEXT`:
