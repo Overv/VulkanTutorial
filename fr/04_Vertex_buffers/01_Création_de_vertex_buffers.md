@@ -1,17 +1,13 @@
 ## Introduction
 
-Buffers in Vulkan are regions of memory used for storing arbitrary data that can
-be read by the graphics card. They can be used to store vertex data, which we'll
-do in this chapter, but they can also be used for many other purposes that we'll
-explore in future chapters. Unlike the Vulkan objects we've been dealing with so
-far, buffers do not automatically allocate memory for themselves. The work from
-the previous chapters has shown that the Vulkan API puts the programmer in
-control of almost everything and memory management is one of those things.
+Les buffers sont pour Vulkan des emplacements mémoire qui peuvent permettre de stocker des données quelconques sur la
+carte graphique. Nous pouvons en particulier y placer les données représentant les vertices, et ce que nous allons
+faire dans ce chapitre. Nous verrons plus tard d'autres utilisation répandues. Au contraire des autres objets que nous
+avons rencontré les buffers n'allouent pas de mémoire. Il nous faudra gérer la mémoire nous-mêmes.
 
-## Buffer creation
+## Création d'un buffer
 
-Create a new function `createVertexBuffer` and call it from `initVulkan` right
-before `createCommandBuffers`.
+Créez la fonction `createVertexBuffer` et appelez-la depuis `initVulkan` juste avant `createCommandBuffers`.
 
 ```c++
 void initVulkan() {
@@ -38,7 +34,7 @@ void createVertexBuffer() {
 }
 ```
 
-Creating a buffer requires us to fill a `VkBufferCreateInfo` structure.
+Pour créer un buffer nous allons devoir remplir une structure de type `VkBufferCreateInfo`.
 
 ```c++
 VkBufferCreateInfo bufferInfo = {};
@@ -46,32 +42,30 @@ bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 bufferInfo.size = sizeof(vertices[0]) * vertices.size();
 ```
 
-The first field of the struct is `size`, which specifies the size of the buffer
-in bytes. Calculating the byte size of the vertex data is straightforward with
-`sizeof`.
+Le premier champ de cette structure s'appelle `size`. Il spécifie la taille du buffer en octets. Nous pouvons utiliser
+`sizeof` pour déterminer la taille de notre tableau de valeur.
 
 ```c++
 bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 ```
 
-The second field is `usage`, which indicates for which purposes the data in the
-buffer is going to be used. It is possible to specify multiple purposes using a
-bitwise or. Our use case will be a vertex buffer, we'll look at other types of
-usage in future chapters.
+Le deuxième champ, appelé `usage`, permet d'informer Vulkan de la manière dont nous utiliserons le buffer. Nous pouvons
+indiquer plusieurs valeurs représentant les utilisations possibles. Dans notre cas nous ne mettons que la valeur qui
+correspond à un vertex buffer.
 
 ```c++
 bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 ```
 
-Just like the images in the swap chain, buffers can also be owned by a specific
-queue family or be shared between multiple at the same time. The buffer will
-only be used from the graphics queue, so we can stick to exclusive access.
+De la même manière que les images de la swap chain, les buffers peuvent soit être possédés par une queue family, ou bien
+être partagés entre plusieurs queue families. Notre buffer ne sera utilisé que par la queue des graphismes, nous
+pouvons donc rester en mode exclusif.
 
-The `flags` parameter is used to configure sparse buffer memory, which is not
-relevant right now. We'll leave it at the default value of `0`.
+Le paramètre `flags` permet de configurer le buffer tel qu'il puisse être constitué de plusieurs emplacements distincts
+dans la mémoire. Nous n'utiliserons pas cette fonctionnalité, laissez `flags` à `0`.
 
-We can now create the buffer with `vkCreateBuffer`. Define a class member to
-hold the buffer handle and call it `vertexBuffer`.
+Nous pouvons maintenant créer le buffer en appelant `vkCreateBuffer`. Définissez un membre donnée pour stocker ce
+buffer :
 
 ```c++
 VkBuffer vertexBuffer;
@@ -86,14 +80,13 @@ void createVertexBuffer() {
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create vertex buffer!");
+        throw std::runtime_error("echec lors de la creation d'un vertex buffer!");
     }
 }
 ```
 
-The buffer should be available for use in rendering commands until the end of
-the program and it does not depend on the swap chain, so we'll clean it up in
-the original `cleanup` function:
+Le buffer doit être disponible pour toutes les opérations de rendu, nous ne pouvons donc le détruire qu'à la fin du
+programme, et ce dans `cleanup` car il ne dépend pas de la swap chain.
 
 ```c++
 void cleanup() {
@@ -105,32 +98,27 @@ void cleanup() {
 }
 ```
 
-## Memory requirements
+## Fonctionnalités nécessaires de la mémoire
 
-The buffer has been created, but it doesn't actually have any memory assigned to
-it yet. The first step of allocating memory for the buffer is to query its
-memory requirements using the aptly named `vkGetBufferMemoryRequirements`
-function.
+Le buffer a été créé mais il n'est lié à aucune forme de mémoire. La première étape de l'allocation de mémoire consiste
+à récupérer les foncitonnalités dont le buffer a besoin à l'aide de la fonction `vkGetBufferMemoryRequirements`.
 
 ```c++
 VkMemoryRequirements memRequirements;
 vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
 ```
 
-The `VkMemoryRequirements` struct has three fields:
+La structure que la fonction nous remplit possède trois membres :
 
-* `size`: The size of the required amount of memory in bytes, may differ from
-`bufferInfo.size`.
-* `alignment`: The offset in bytes where the buffer begins in the allocated
-region of memory, depends on `bufferInfo.usage` and `bufferInfo.flags`.
-* `memoryTypeBits`: Bit field of the memory types that are suitable for the
-buffer.
+* `size` : le nombre d'octets dont le buffer a besoin, ce qui peut différer de ce que nous avons écrit en préparant le
+buffer
+* `alignment` : le décalage en octets entre le début de la mémoire allouée pour lui et le début des données du buffer,
+ce qui est déterminé par les valeurs que nous avons fournies dans `usage` et `flags`
+* `memoryTypeBits` : champs de bits combinant les types de mémoire qui conviennent au buffer
 
-Graphics cards can offer different types of memory to allocate from. Each type
-of memory varies in terms of allowed operations and performance characteristics.
-We need to combine the requirements of the buffer and our own application
-requirements to find the right type of memory to use. Let's create a new
-function `findMemoryType` for this purpose.
+Les cartes graphiques offrent plusieurs types de mémoire. Ils diffèrenent en performance et en opérations disponibles.
+Nous devons considérer ce dont le buffer a besoin en même temps que ce dont nous avons besoin pour sélectionner le
+meilleur type de mémoire possible. Créons une fonction `findMemoryType` pour y isoler cette logique.
 
 ```c++
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -138,22 +126,21 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 }
 ```
 
-First we need to query info about the available types of memory using
-`vkGetPhysicalDeviceMemoryProperties`.
+Nous allons commencer cette fonction en récupérant les différents types de mémoire que la carte graphique peut nous
+offrir.
 
 ```c++
 VkPhysicalDeviceMemoryProperties memProperties;
 vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 ```
 
-The `VkPhysicalDeviceMemoryProperties` structure has two arrays `memoryTypes`
-and `memoryHeaps`. Memory heaps are distinct memory resources like dedicated
-VRAM and swap space in RAM for when VRAM runs out. The different types of memory
-exist within these heaps. Right now we'll only concern ourselves with the type
-of memory and not the heap it comes from, but you can imagine that this can
-affect performance.
+La structure `VkPhysicalDeviceMemoryProperties` comprend deux tableaux appelés `memoryHeaps` et `memoryTypes`. Une pile
+de mémoire (memory heap en anglais) correspond aux types physiques de mémoire. Par exemple la VRAM est une pile, de même
+que la RAM utilisée comme zone de swap si la VRAM est pleine en est une autre. Tous les autres types de mémoire stockés
+dans `memoryTypes` sont répartis dans ces piles. Nous n'allons pas utiliser la pile comme facteur de choix, mais vous
+pouvez imaginer l'impact sur la performance que cette distinction peut avoir.
 
-Let's first find a memory type that is suitable for the buffer itself:
+Trouvons d'abord un type de mémoire correspondant au buffer :
 
 ```c++
 for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -162,24 +149,20 @@ for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     }
 }
 
-throw std::runtime_error("failed to find suitable memory type!");
+throw std::runtime_error("aucun type de memoire ne satisfait le buffer!");
 ```
 
-The `typeFilter` parameter will be used to specify the bit field of memory types
-that are suitable. That means that we can find the index of a suitable memory
-type by simply iterating over them and checking if the corresponding bit is set
-to `1`.
+La paramètre `typeFilter` nous permettra d'indiquer les types de mémoire nécessaires au buffer lors de l'appel à la
+fonction. Ce champ de bit voit son n-ième bit mis à `1` si le n-ième type de mémoire disponible lui convient. Ainsi
+nous pouvons itérer sur les bits de `typeFilter` pour trouver les types de mémoire qui lui correspondent.
 
-However, we're not just interested in a memory type that is suitable for the
-vertex buffer. We also need to be able to write our vertex data to that memory.
-The `memoryTypes` array consists of `VkMemoryType` structs that specify the heap
-and properties of each type of memory. The properties define special features
-of the memory, like being able to map it so we can write to it from the CPU.
-This property is indicated with `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT`, but we
-also need to use the `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` property. We'll see
-why when we map the memory.
+Cependant cette vérification ne nous est pas suffisante. Nous devons vérifier que la mémoire est accesible depuis le CPU
+afin de pouvoir y écrire les données des vertices. Nous devons pour cela vérifier que le champ de bits `properyFlags`
+comprend au moins `VK_MEMORY_PROPERTY_HOSY_VISIBLE_BIT`, de même que `VK_MEMORY_PROPERTY_HOSY_COHERENT_BIT`. Nous
+verrons pourquoi cette deuxième valeur est nécessaire quand nous lierons de la mémoire au buffer.
 
-We can now modify the loop to also check for the support of this property:
+Nous placerons ces deux valeurs dans le paramètre `properties`. Nous pouvons changer la boucle pour qu'elle prenne en
+compte le champ de bits :
 
 ```c++
 for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -189,16 +172,15 @@ for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 }
 ```
 
-We may have more than one desirable property, so we should check if the result
-of the bitwise AND is not just non-zero, but equal to the desired properties bit
-field. If there is a memory type suitable for the buffer that also has all of
-the properties we need, then we return its index, otherwise we throw an
-exception.
+Le ET bit à bit fournit une valeur non nulle si et seulement si au moins l'une des propriétés est supportée. Nous ne
+pouvons nous satisfaire de cela, c'est pourquoi il est nécessaire de comparer le résultat au champ de bits complet. Si
+ce résultat nous convient, nous pouvons retourner l'indice de la mémoire et utiliser cet emplacement. Si aucune mémoire
+ne convient nous levons une exception.
 
-## Memory allocation
+## Allocation de mémoire
 
-We now have a way to determine the right memory type, so we can actually
-allocate the memory by filling in the `VkMemoryAllocateInfo` structure.
+Maintenant que nous pouvons déterminer un type de mémoire nous convenant, nous pouvons y allouer de la mémoire. Nous
+devons pour cela remplir la structure `VkMemoryAllocateInfo`.
 
 ```c++
 VkMemoryAllocateInfo allocInfo = {};
@@ -207,10 +189,8 @@ allocInfo.allocationSize = memRequirements.size;
 allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 ```
 
-Memory allocation is now as simple as specifying the size and type, both of
-which are derived from the memory requirements of the vertex buffer and the
-desired property. Create a class member to store the handle to the memory and
-allocate it with `vkAllocateMemory`.
+Pour allouer de la mémoire il nous suffit d'indiquer une taille et un type, ce que nous avons déjà déterminé. Créez un
+membre donnée pour contenir la référence à l'espace mémoire et allouez-le à l'aide de `vkAllocateMemory`.
 
 ```c++
 VkBuffer vertexBuffer;
@@ -219,26 +199,25 @@ VkDeviceMemory vertexBufferMemory;
 ...
 
 if (vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS) {
-    throw std::runtime_error("failed to allocate vertex buffer memory!");
+    throw std::runtime_error("echec lors d'une allocation de memoire!");
 }
 ```
 
-If memory allocation was successful, then we can now associate this memory with
-the buffer using `vkBindBufferMemory`:
+Si l'allocation a réussi, nous pouvons associer cette mémoire au buffer avec la fonction `vkBindBufferMemory` :
 
 ```c++
 vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
 ```
 
-The first three parameters are self-explanatory and the fourth parameter is the
-offset within the region of memory. Since this memory is allocated specifically
-for this the vertex buffer, the offset is simply `0`. If the offset is non-zero,
-then it is required to be divisible by `memRequirements.alignment`.
+Les trois premiers paramètres sont évidents. Le quatrième indique le décalage entre le début de la mémoire et le début
+du buffer. Nous avons alloué cette mémoire spécialement pour ce buffer, nous pouvons donc mettre `0`. Si vous décidez
+d'allouer un grand espace mémoire pour y mettre plusieurs buffers, sachez qu'il faut que ce nombre soit divisible par
+`memRequirements.alignement`.
 
-Of course, just like dynamic memory allocation in C++, the memory should be
-freed at some point. Memory that is bound to a buffer object may be freed once
-the buffer is no longer used, so let's free it after the buffer has been
-destroyed:
+Il est évident que cette allocation dynamique de mémoire nécessite que nous libérions l'emplacement nous-mêmes. Comme la
+mémoire est liée au buffer, et que le buffer sera nécessaire à toutes les opérations de rendu, nous ne devons la libérer
+qu'à la fin du programme.
+
 
 ```c++
 void cleanup() {
@@ -248,24 +227,22 @@ void cleanup() {
     vkFreeMemory(device, vertexBufferMemory, nullptr);
 ```
 
-## Filling the vertex buffer
+## Remplissage du vertex buffer
 
-It is now time to copy the vertex data to the buffer. This is done by [mapping
-the buffer memory](https://en.wikipedia.org/wiki/Memory-mapped_I/O) into CPU
-accessible memory with `vkMapMemory`.
+Il est maintenant temps de placer les données des vertices dans le buffer. Nous allons
+[mapper la mémoire](https://en.wikipedia.org/wiki/Memory-mapped_I/O) dans un emplacement accessible par le CPU à l'aide
+de la fonction `vkMapMemory`.
 
 ```c++
 void* data;
 vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
 ```
 
-This function allows us to access a region of the specified memory resource
-defined by an offset and size. The offset and size here are `0` and
-`bufferInfo.size`, respectively. It is also possible to specify the special
-value `VK_WHOLE_SIZE` to map all of the memory. The second to last parameter can
-be used to specify flags, but there aren't any available yet in the current API.
-It must be set to the value `0`. The last parameter specifies the output for the
-pointer to the mapped memory.
+Cette fonction nous permet d'accéder à une région spécifique d'une ressource. Nous devons pour cela indiquer un décalage
+et une taille. Nous mettons ici respectivement `0` et `bufferInfo.size`. Il est également possible de fournir la valeur
+`VK_WHOLE_SIZE` pour mapper d'un coup toute la ressource. L'avant-dernier paramètre est un champ de bits pour l'instant
+non implémenté par Vulkan. Il est impératif de la laisser à `0`. Enfin, le dernier paramètre permet de fournir un
+pointeur vers la mémoire ainsi mappée.
 
 ```c++
 void* data;
@@ -274,26 +251,22 @@ vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
 vkUnmapMemory(device, vertexBufferMemory);
 ```
 
-You can now simply `memcpy` the vertex data to the mapped memory and unmap it
-again using `vkUnmapMemory`. Unfortunately the driver may not immediately copy
-the data into the buffer memory, for example because of caching. It is also
-possible that writes to the buffer are not visible in the mapped memory yet.
-There are two ways to deal with that problem:
+Vous pouvez maintenant utiliser `memcpy` pour copier les vertices dans la mémoire, puis démapper le buffer à l'aide de
+`vkUnmapMemory`. Malheuresement le driver peut décider de cacher les données avant de les copier dans le buffer. Il est
+aussi possible que les données soient copiées mais que ce changement ne soit pas visible immédiatement. Il y a deux
+manières de régler ce problème :
 
-* Use a memory heap that is host coherent, indicated with
-`VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
-* Call `vkFlushMappedMemoryRanges` to after writing to the mapped memory, and
-call `vkInvalidateMappedMemoryRanges` before reading from the mapped memory
+* Utiliser une pile de mémoire cohérente avec la RAM, ce qui est indiqué par `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
+* Appeler `vkFlushMappedMemoryRanges` après avoir copié les données, puis appeler `vkInvalidateMappedMemory` avant
+d'accéder à la mémoire
 
-We went for the first approach, which ensures that the mapped memory always
-matches the contents of the allocated memory. Do keep in mind that this may lead
-to slightly worse performance than explicit flushing, but we'll see why that
-doesn't matter in the next chapter.
+Nous utiliserons la première approche qui nous assure une cohérence permanente. Cette méthode est moins performante que
+le flushing explicite, mais nous verrons dès le prochain chapitre que cela n'a aucune importance.
 
-## Binding the vertex buffer
+## Lier le vertex buffer
 
-All that remains now is binding the vertex buffer during rendering operations.
-We're going to extend the `createCommandBuffers` function to do that.
+Il ne nous reste qu'à lier le vertex buffer pour les opérations de rendu. Nous allons pour cela compléter la fonction
+`createCommandBuffers`.
 
 ```c++
 vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
@@ -305,20 +278,17 @@ vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 ```
 
-The `vkCmdBindVertexBuffers` function is used to bind vertex buffers to
-bindings, like the one we set up in the previous chapter. The first two
-parameters, besides the command buffer, specify the offset and number of
-bindings we're going to specify vertex buffers for. The last two parameters
-specify the array of vertex buffers to bind and the byte offsets to start
-reading vertex data from. You should also change the call to `vkCmdDraw` to pass
-the number of vertices in the buffer as opposed to the hardcoded number `3`.
+La fonction `vkCmbBindVertexBuffers` lie des vertex buffers aux bindings. Le deuxième et le troisième paramètre
+indiquent un décalage et le nombre de bindings auquel ce buffer correspond. L'avant-dernier paramètre est le tableau de
+vertex buffers à lier, et le dernier est un tableau de décalages en octets entre le début d'un buffer et le début des
+données. Il est d'ailleurs préférable d'appeler `vkCmdDraw` avec la taille du tableau de vertices plutôt qu'avec un
+nombre écrit à la main.
 
-Now run the program and you should see the familiar triangle again:
+Lancez maintenant le programme; vous devriez voir le triangle habituel apparaître à l'écran.
 
 ![](/images/triangle.png)
 
-Try changing the color of the top vertex to white by modifying the `vertices`
-array:
+Essayez de colorer le vertex du haut en blanc et relancez le programme :
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -328,13 +298,11 @@ const std::vector<Vertex> vertices = {
 };
 ```
 
-Run the program again and you should see the following:
-
 ![](/images/triangle_white.png)
 
-In the next chapter we'll look at a different way to copy vertex data to a
-vertex buffer that results in better performance, but takes some more work.
+Dans le prochain chapitre nous verrons une autre manière de copier les données dans un buffer. Elle est plus performante
+mais nécessite plus de travail.
 
-[C++ code](/code/18_vertex_buffer.cpp) /
+[Code C++](/code/18_vertex_buffer.cpp) /
 [Vertex shader](/code/17_shader_vertexbuffer.vert) /
 [Fragment shader](/code/17_shader_vertexbuffer.frag)
