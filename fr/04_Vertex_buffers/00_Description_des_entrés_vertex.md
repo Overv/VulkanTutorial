@@ -176,8 +176,8 @@ bits
 * `double` correspond à `VK_FORMAT_R64_SFLOAT` et est un float à précision double (donc de 64 bits)
 
 Le paramètre `format` définit implicitement la taille en octets des données tandis que le paramètre `offset` définit le
-nombre d'octets à lire depuis le début des données vertex par vertex. Notre binding charge le contenu d'un seul `Vertex`
-à chaque fois, et l'`offset` sera calculé par la macro `offsetof`.
+nombre d'octets à lire depuis le début des données vertex par vertex. Notre binding charge le contenu d'un `Vertex`
+à la fois, et l'`offset` sera calculé par la macro `offsetof`.
 
 ```c++
 attributeDescriptions[1].binding = 0;
