@@ -1,29 +1,21 @@
 ## Introduction
 
-The 3D meshes you'll be rendering in a real world application will often share
-vertices between multiple triangles. This already happens even with something
-simple like drawing a rectangle:
+Les modèles 3D que vous serez susceptibles d'utiliser dans des applications réelles partagerons le plus souvent des
+vertices communs à plusieurs triangles. Cela est d'ailleurs le cas avec un simple rectangle :
 
 ![](/images/vertex_vs_index.svg)
 
-Drawing a rectangle takes two triangles, which means that we need a vertex
-buffer with 6 vertices. The problem is that the data of two vertices needs to be
-duplicated resulting in 50% redundancy. It only gets worse with more complex
-meshes, where vertices are reused in an average number of 3 triangles. The
-solution to this problem is to use an *index buffer*.
+Un rectangle est composé de triangles, ce qui signifie que nous aurions besoin d'un vertex buffer avec 6 vertices. Mais
+nous dupliquerions alors des vertices, aboutissant à un gachis de mémoire. Dans des modèles plus complexes, les vertices
+sont en moyenne en contact avec 3 triangles, ce qui serait encore pire. La solution consiste à utiliser un index buffer.
 
-An index buffer is essentially an array of pointers into the vertex buffer. It
-allows you to reorder the vertex data, and reuse existing data for multiple
-vertices. The illustration above demonstrates what the index buffer would look
-like for the rectangle if we have a vertex buffer containing each of the four
-unique vertices. The first three indices define the upper-right triangle and the
-last three indices define the vertices for the bottom-left triangle.
+Un index buffer est essentiellement un tableau de références vers le vertex buffer. Il vous permet de réordonner ou de
+dupliquer les données de ce buffer. L'image ci-dessus démontre l'utilité de cette méthode.
 
-## Index buffer creation
+## Création d'un index buffer
 
-In this chapter we're going to modify the vertex data and add index data to
-draw a rectangle like the one in the illustration. Modify the vertex data to
-represent the four corners:
+Dans ce chapitre, nous allons ajouter les données nécessaires à l'affichage d'un rectangle. Nous allons ainsi rajouter
+une coordonnée dans le vertex buffer et créer un index buffer. Voici les vertices au complet :
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -34,10 +26,9 @@ const std::vector<Vertex> vertices = {
 };
 ```
 
-The top-left corner is red, top-right is green, bottom-right is blue and the
-bottom-left is white. We'll add a new array `indices` to represent the contents
-of the index buffer. It should match the indices in the illustration to draw the
-upper-right triangle and bottom-left triangle.
+Le coin en haut à gauche est rouge, celui en haut à droite est vert, celui en bas à droite est bleu et celui en bas à
+gauche est blanc. Nous allons maintenant créer le tableau `indices` pour représenter l'index buffer. Son contenu
+correspond à ce qui est présenté dans l'illustration.
 
 ```c++
 const std::vector<uint16_t> indices = {
@@ -45,13 +36,11 @@ const std::vector<uint16_t> indices = {
 };
 ```
 
-It is possible to use either `uint16_t` or `uint32_t` for your index buffer
-depending on the number of entries in `vertices`. We can stick to `uint16_t` for
-now because we're using less than 65535 unique vertices.
+Il est possible d'utiliser `uint16_t` ou `uint32_t` pour les valeurs de l'index buffer, en fonction du nombre d'éléments
+dans `vertices`. Nous pouvons nous contenter de `uint16_t` car nous n'utilisons pas plus de 65535 vertices différents.
 
-Just like the vertex data, the indices need to be uploaded into a `VkBuffer` for
-the GPU to be able to access them. Define two new class members to hold the
-resources for the index buffer:
+Comme les données des vertices, nous devons placer les indices dans un `VkBuffer` pour que le GPU puisse y avoir accès.
+Créez deux membres donnée pour référencer les ressources du futur index buffer :
 
 ```c++
 VkBuffer vertexBuffer;
@@ -60,8 +49,7 @@ VkBuffer indexBuffer;
 VkDeviceMemory indexBufferMemory;
 ```
 
-The `createIndexBuffer` function that we'll add now is almost identical to
-`createVertexBuffer`:
+La fonction `createIndexBuffer` est quasiment identique à `createVertexBuffer` :
 
 ```c++
 void initVulkan() {
@@ -92,16 +80,11 @@ void createIndexBuffer() {
 }
 ```
 
-There are only two notable differences. The `bufferSize` is now equal to the
-number of indices times the size of the index type, either `uint16_t` or
-`uint32_t`. The usage of the `indexBuffer` should be
-`VK_BUFFER_USAGE_INDEX_BUFFER_BIT` instead of
-`VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`, which makes sense. Other than that, the
-process is exactly the same. We create a staging buffer to copy the contents of
-`indices` to and then copy it to the final device local index buffer.
+Il n'y a que deux différences : `bufferSize` correspond à la taille du tableau multiplié par `sizeof(uint16_t)`, et
+`VK_BUFFER_USAGE_VERTEX_BUFFER_BIT` est remplacé par `VK_BUFFER_USAGE_INDEX_BUFFER_BIT`. À part ça tout est
+identique : nous créons un buffer intermédiaire puis le copions dans le buffer final local au GPU.
 
-The index buffer should be cleaned up at the end of the program, just like the
-vertex buffer:
+L'index buffer doit être libéré à la fin du programme depuis `cleanup`.
 
 ```c++
 void cleanup() {
@@ -117,14 +100,12 @@ void cleanup() {
 }
 ```
 
-## Using an index buffer
+## Utilisation d'un index buffer
 
-Using an index buffer for drawing involves two changes to
-`createCommandBuffers`. We first need to bind the index buffer, just like we did
-for the vertex buffer. The difference is that you can only have a single index
-buffer. It's unfortunately not possible to use different indices for each vertex
-attribute, so we do still have to completely duplicate vertex data even if just
-one attribute varies.
+Pour utiliser l'index buffer lors des opérations de rendu nous devons modifier un petit peu `createCommandBuffers`. Tout
+d'abord il nous faut lier l'index buffer. La différence est qu'il n'est pas possible d'avoir plusieurs index buffers. De
+plus il n'est pas possible de subdiviser les vertices en leurs coordonnées, ce qui implique que la modification d'une
+seule coordonnée nécessite de dupliquer tout le vertex.
 
 ```c++
 vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
@@ -132,48 +113,39 @@ vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 ```
 
-An index buffer is bound with `vkCmdBindIndexBuffer` which has the index buffer,
-a byte offset into it, and the type of index data as parameters. As mentioned
-before, the possible types are `VK_INDEX_TYPE_UINT16` and
-`VK_INDEX_TYPE_UINT32`.
+Un index buffer est lié par la fonction `vkCmdBindIndexBuffer`. Elle prend en paramètres le buffer, le décalage dans ce
+buffer et le type de donnée. Pour nous ce dernier sera `VK_INDEX_TYPE_UINT16`.
 
-Just binding an index buffer doesn't change anything yet, we also need to change
-the drawing command to tell Vulkan to use the index buffer. Remove the
-`vkCmdDraw` line and replace it with `vkCmdDrawIndexed`:
+Simplement lier le vertex buffer ne change en fait rien. Il nous faut aussi mettre à jour les commandes d'affichage
+pour indiquer à Vulkan comment utiliser le buffer. Supprimez l'appel à `vkCmdDraw`, et remplacez-le par
+`vkCmdDrawIndexed` :
 
 ```c++
 vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
-A call to this function is very similar to `vkCmdDraw`. The first two parameters
-specify the number of indices and the number of instances. We're not using
-instancing, so just specify `1` instance. The number of indices represents the
-number of vertices that will be passed to the vertex buffer. The next parameter
-specifies an offset into the index buffer, using a value of `1` would cause the
-graphics card to start reading at the second index. The second to last parameter
-specifies an offset to add to the indices in the index buffer. The final
-parameter specifies an offset for instancing, which we're not using.
+Le deuxième paramètre indique le nombre d'indices. Le troisième est le nombre d'instances à invoquer (ici `1` car nous 
+n'utilisons par cette technique). Le paramètre suivant est un décalage dans l'index buffer, sachant qu'ici il ne
+fonctionne pas en octets mais en indices. L'avant-dernier paramètre permet de fournir une valeur qui sera ajoutée à tous
+les indices juste avant de les faire correspondre aux vertices. Enfin, le dernier paramètre est un décalage pour le
+rendu instancié.
 
-Now run your program and you should see the following:
+Lancez le programme et vous devriez avoir ceci :
 
 ![](/images/indexed_rectangle.png)
 
-You now know how to save memory by reusing vertices with index buffers. This
-will become especially important in a future chapter where we're going to load
-complex 3D models.
+Vous savez maintenant économiser la mémoire en réutilisant les vertices à l'aide d'un index buffer. Cela deviendra
+crucial pour les chapitres suivants dans lesquels vous allez apprendre à charger des modèles complexes.
 
-The previous chapter already mentioned that you should allocate multiple
-resources like buffers from a single memory allocation, but in fact you should
-go a step further. [Driver developers recommend](https://developer.nvidia.com/vulkan-memory-management)
-that you also store multiple buffers, like the vertex and index buffer, into a
-single `VkBuffer` and use offsets in commands like `vkCmdBindVertexBuffers`. The
-advantage is that your data is more cache friendly in that case, because it's
-closer together. It is even possible to reuse the same chunk of memory for
-multiple resources if they are not used during the same render operations,
-provided that their data is refreshed, of course. This is known as *aliasing*
-and some Vulkan functions have explicit flags to specify that you want to do
-this.
+Il a déjà été dit que tous le plus de buffers possibles devraient être stockés dans un seul emplacement mémoire. Il
+faudrait dans l'idéal allez encore plus loin :
+[les développeurs des drivers recommandent](https://developer.nvidia.com/vulkan-memory-management) également que vous
+placiez plusieurs buffers dans un seul et même `VkBuffer`, et que vous utilisiez des décalages pour les différencier
+dans les fonctions comme `vkCmdBindVertexBuffers`. Cela simplifie la mise des données dans des caches car elles sont
+regroupées en un bloc. Il devient même possible d'utiliser la même mémoire pour plusieurs ressources si elles ne sont
+pas utilisées en même temps et si elles sont proprement mises à jour. Cette pratique s'appelle d'ailleurs *aliasing*, et
+certaines fonctions Vulkan possèdent un paramètre qui permet au développeur d'indiquer s'il veut utiliser la technique.
 
-[C++ code](/code/20_index_buffer.cpp) /
+[Code C++](/code/20_index_buffer.cpp) /
 [Vertex shader](/code/17_shader_vertexbuffer.vert) /
 [Fragment shader](/code/17_shader_vertexbuffer.frag)
