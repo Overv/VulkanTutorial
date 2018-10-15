@@ -1,34 +1,27 @@
 ## Introduction
 
-We're now able to pass arbitrary attributes to the vertex shader for each
-vertex, but what about global variables? We're going to move on to 3D graphics
-from this chapter on and that requires a model-view-projection matrix. We could
-include it as vertex data, but that's a waste of memory and it would require us
-to update the vertex buffer whenever the transformation changes. The
-transformation could easily change every single frame.
+Nous pouvons maintenant passer des données à chaque groupe d'invocation de vertex shaders. Mais qu'en est-il des
+variables globales? Nous allons enfin passer à la 3D, et nous avons besoin d'une matrice model-view-projection. Nous
+pourrions la transmettre avec les vertices, mais cela serait un gachis de mémoire et, de plus, nous devrions mettre à
+jour le vertex buffer à chaque frame, alors qu'il est très bien dans se mémoire à hautes performances.
 
-The right way to tackle this in Vulkan is to use *resource descriptors*. A
-descriptor is a way for shaders to freely access resources like buffers and
-images. We're going to set up a buffer that contains the transformation matrices
-and have the vertex shader access them through a descriptor. Usage of
-descriptors consists of three parts:
+La solution fournie par Vulkan consiste à utiliser des *descripteurs de ressource* (ou *resource descriptors*). Un
+descripteur permet à des shaders d'accéder librement à des ressources telles que les buffers ou les images. Nous allons
+créer un buffer qui contiendra les matrices de transformation. Nous ferons en sorte que le vertex shader puisse y
+accéder. Il y a trois parties à l'utilisation d'un descripteur de ressource :
 
-* Specify a descriptor layout during pipeline creation
-* Allocate a descriptor set from a descriptor pool
-* Bind the descriptor set during rendering
+* Spécifier l'organisation des descripteurs durant la création de la pipeline
+* Allouer un set de descripteurs depuis une pool de descritpeurs
+* Lier le descripteur pour les opérations de rendu
 
-The *descriptor layout* specifies the types of resources that are going to be
-accessed by the pipeline, just like a render pass specifies the types of
-attachments that will be accessed. A *descriptor set* specifies the actual
-buffer or image resources that will be bound to the descriptors, just like a
-framebuffer specifies the actual image views to bind to render pass attachments.
-The descriptor set is then bound for the drawing commands just like the vertex
-buffers and framebuffer.
+L'*organisation du descripteur* indique le type de ressources qui seront accedées par la pipeline. Cela ressemble sur
+le principe à indiquer les attachements accédés. Un *set de descripteurs* spécifie le buffer ou l'image qui sera lié à
+ce descripteur, de la même manière qu'un framebuffer doit indiquer les ressources qui le composent.
 
-There are many types of descriptors, but in this chapter we'll work with uniform
-buffer objects (UBO). We'll look at other types of descriptors in future
-chapters, but the basic process is the same. Let's say we have the data we want
-the vertex shader to have in a C struct like this:
+Il existe plusieurs types de descripteurs, mais dans ce chapitre nous ne verrons que les *uniform buffer objects* (UBO).
+Nous en verrons d'autres plus tard, et leur utilisation sera très similaire. Rentrons dans le vif du sujet et supposons
+maintenant que nous voulons que toutes les invocations du vertex shader que nous avons mis en place accèdent tous à la
+structure C suivante :
 
 ```c++
 struct UniformBufferObject {
@@ -38,8 +31,8 @@ struct UniformBufferObject {
 };
 ```
 
-Then we can copy the data to a `VkBuffer` and access it through a uniform buffer
-object descriptor from the vertex shader like this:
+Nous devons la copier dans un `VkBuffer` pour pouvoir y accéder à l'aide d'un descripteur UBO depuis le vertex shader.
+De son côté le vertex shader y fait référence ainsi :
 
 ```glsl
 layout(binding = 0) uniform UniformBufferObject {
@@ -54,15 +47,14 @@ void main() {
 }
 ```
 
-We're going to update the model, view and projection matrices every frame to
-make the rectangle from the previous chapter spin around in 3D.
+Nous allons mettre à jour les matrices model, view et projection à chaque frame pour que le rectangle tourne sur
+lui-même et donne un effet 3D à la scène.
 
 ## Vertex shader
 
-Modify the vertex shader to include the uniform buffer object like it was
-specified above. I will assume that you are familiar with MVP transformations.
-If you're not, see [the resource](http://opengl.datenwolf.net/gltut/html/index.html)
-mentioned in the first chapter.
+Modifiez le vertex shader pour qu'il inclue l'UBO comme dans l'exemple ci-dessous. Je pars du principe que vous
+connaissez les transformations MVP. Si ce n'est pourtant pas le cas, vous pouvez vous rendre sur
+[ce site](http://opengl.datenwolf.net/gltut/html/index.html) déjà mentionné dans le premier chapitre.
 
 ```glsl
 #version 450
@@ -89,20 +81,16 @@ void main() {
 }
 ```
 
-Note that the order of the `uniform`, `in` and `out` declarations doesn't
-matter. The `binding` directive is similar to the `location` directive for
-attributes. We're going to reference this binding in the descriptor layout. The
-line with `gl_Position` is changed to use the transformations to compute the
-final position in clip coordinates. Unlike the 2D triangles, the last component
-of the clip coordinates may not be `1`, which will result in a division when
-converted to the final normalized device coordinates on the screen. This is used
-in perspective projection as the *perspective division* and is essential for
-making closer objects look larger than objects that are further away.
+L'ordre des variables `in`, `out` et `uniform` n'a aucune importance. La directive `binding` est assez semblable à
+`location` ; elle permet de fournir l'indice du binding. Nous allons le référencer dans l'organisation du descripteur.
+Notez le changement dans la ligne calculant `gl_Position`, qui prend maintenant en compte la matrice MVP. La dernière
+composante du vecteur ne sera plus à `0`, car elle sert à diviser les autres coordonnées en fonction de leur distance à
+la caméra pour créer un effet de profondeur.
 
-## Descriptor set layout
+## Organisation du set de descripteurs
 
-The next step is to define the UBO on the C++ side and to tell Vulkan about this
-descriptor in the vertex shader.
+La prochaine étape consiste à définir l'UBO du côté du C++. Nous devons aussi informer Vulkan que nous voulons
+l'utiliser dans le vertex shader.
 
 ```c++
 struct UniformBufferObject {
@@ -112,15 +100,14 @@ struct UniformBufferObject {
 };
 ```
 
-We can exactly match the definition in the shader using data types in GLM. The
-data in the matrices is binary compatible with the way the shader expects it, so
-we can later just `memcpy` a `UniformBufferObject` to a `VkBuffer`.
+Nous pouvons faire correspondre parfaitement la déclaration en C++ avec celle dans le shader grâce à GLM. De plus les
+martrices sont stockées d'une manière compatible bit à bit avec l'interprétation de ces données par les shaders. Nous
+pouvons ainsi utiliser `memcpy` sur une structure `UniformBufferObject` vers un `VkBuffer`.
 
-We need to provide details about every descriptor binding used in the shaders
-for pipeline creation, just like we had to do for every vertex attribute and its
-`location` index. We'll set up a new function to define all of this information
-called `createDescriptorSetLayout`. It should be called right before pipeline
-creation, because we're going to need it there.
+Nous devons fournir des informations sur chacun des descriptors utilisés par les shaders lors de la création de la
+pipeline, similairement aux entrées du vertex shader. Nous allons créer une fonction pour gérer toute cette information,
+et donc pour créer le set de descripteurs. Elle s'appelera `createDescriptorSetLayout` et sera appelée juste avant la
+finalisation de la création de la pipeline.
 
 ```c++
 void initVulkan() {
@@ -137,8 +124,7 @@ void createDescriptorSetLayout() {
 }
 ```
 
-Every binding needs to be described through a `VkDescriptorSetLayoutBinding`
-struct.
+Chaque `binding` doit être décrit à l'aide d'une structure de type `VkDescriptorSetLayoutBinding`.
 
 ```c++
 void createDescriptorSetLayout() {
@@ -149,41 +135,37 @@ void createDescriptorSetLayout() {
 }
 ```
 
-The first two fields specify the `binding` used in the shader and the type of
-descriptor, which is a uniform buffer object. It is possible for the shader
-variable to represent an array of uniform buffer objects, and `descriptorCount`
-specifies the number of values in the array. This could be used to specify a
-transformation for each of the bones in a skeleton for skeletal animation, for
-example. Our MVP transformation is in a single uniform buffer object, so we're
-using a `descriptorCount` of `1`.
+Les deux premiers champs permettent de fournir la valeur indiquée dans le shader avec `binding` et le type de
+descripteur auquel il correspond. Il est possible que la variable côté shader soit un tableau d'UBO, et dans ce cas
+il faut indiquer le nombre d'éléments qu'il contient dans le membre `descriptorCount`. Cette possibilité pourrait être
+utilisée pour transmettre d'un coup toutes les transformations spécifiques aux différents éléments d'une structure
+hiérarchique. Nous n'utilisons pas cette possiblité et indiquons donc `1`.
 
 ```c++
 uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 ```
 
-We also need to specify in which shader stages the descriptor is going to be
-referenced. The `stageFlags` field can be a combination of `VkShaderStageFlagBits` values
-or the value `VK_SHADER_STAGE_ALL_GRAPHICS`. In our case, we're only referencing
-the descriptor from the vertex shader.
+Nous devons aussi informer Vulkan sur les étapes shaders qui accèderont à cette ressource. Le champ de bits `stageFlags`
+permet de combiner toutes les étapes shader concernées. Vous pouvez aussi fournir la valeur
+`VK_SHADER_STAGE_ALL_GRAPHICS`. Nous mettons uniquement `VK_SHADER_STAGE_VERTEX_BIT`.
 
 ```c++
-uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+uboLayoutBinding.pImmutableSamplers = nullptr; // Optionnel
 ```
 
-The `pImmutableSamplers` field is only relevant for image sampling related
-descriptors, which we'll look at later. You can leave this to its default value.
+Le champ `pImmutableSamplers` n'a de sens que pour les descripteurs liés aux samplers d'images. Nous nous attaquerons à
+ce sujet plus tard. Vous pouvez le mettre à `nullptr`.
 
-All of the descriptor bindings are combined into a single
-`VkDescriptorSetLayout` object. Define a new class member above
-`pipelineLayout`:
+Tous les `binding` des descripteurs sont ensuite combinés en un seul objet `VkDescriptorSetLayout`. Créez pour cela un
+nouveau membre donnée :
 
 ```c++
 VkDescriptorSetLayout descriptorSetLayout;
 VkPipelineLayout pipelineLayout;
 ```
 
-We can then create it using `vkCreateDescriptorSetLayout`. This function accepts
-a simple `VkDescriptorSetLayoutCreateInfo` with the array of bindings:
+Nous pouvons créer cet objet à l'aide de la fonction `vkCreateDescriptorSetLayout`. Cette fonction prend en argument une
+structure du type `VkDescriptorSetLayoutCreateInfo` qui contient un tableau fait des structures décrivant les bindings :
 
 ```c++
 VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -192,14 +174,12 @@ layoutInfo.bindingCount = 1;
 layoutInfo.pBindings = &uboLayoutBinding;
 
 if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create descriptor set layout!");
+    throw std::runtime_error("echec lors de la creation d'un set de descripteurs!");
 }
 ```
 
-We need to specify the descriptor set layout during pipeline creation to tell
-Vulkan which descriptors the shaders will be using. Descriptor set layouts are
-specified in the pipeline layout object. Modify the `VkPipelineLayoutCreateInfo`
-to reference the layout object:
+Nous devons fournir cette structure à Vulkan durant la création de la pipeline graphique. Ils sont transmis par la
+structure `VkPipelineLayoutCreateInfo`. Modifiez ainsi la création de cette structure :
 
 ```c++
 VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -208,13 +188,11 @@ pipelineLayoutInfo.setLayoutCount = 1;
 pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 ```
 
-You may be wondering why it's possible to specify multiple descriptor set
-layouts here, because a single one already includes all of the bindings. We'll
-get back to that in the next chapter, where we'll look into descriptor pools and
-descriptor sets.
+Vous vous demandez peut-être pourquoi il est possible de spécifier plusieurs set de descripteurs dans cette structure,
+dans la mesure où un seul inclut tous les `bindings` d'une pipeline. Nous y reviendrons dans le chapitre suivant, quand
+nous nous intéresserons aux pools de descriptors.
 
-The descriptor layout should stick around while we may create new graphics
-pipelines i.e. until the program ends:
+L'objet que nous avons créé ne doit être détruit que lorsque le programme se termine.
 
 ```c++
 void cleanup() {
@@ -228,15 +206,15 @@ void cleanup() {
 
 ## Uniform buffer
 
-In the next chapter we'll specify the buffer that contains the UBO data for the
-shader, but we need to create this buffer first. We're going to copy new data to
-the uniform buffer every frame, so it doesn't really make any sense to have a
-staging buffer. It would just add extra overhead in this case and likely degrade
-performance instead of improving it.
+Dans le prochain chapitre nous référencerons le buffer qui contient les données de l'UBO. Mais nous devons bien sûr
+d'abord créer ce buffer. Comme nous allons accéder et modifier les données du buffer à chaque frame, il est assez
+inutile d'utiliser un buffer intermédiaire. Ce serait même en fait contre-productif en terme de performance.
 
-We should have multiple buffers, because multiple frames may be in flight at the same time and we don't want to update the buffer in preparation of the next frame while a previous one is still reading from it! We could either have a uniform buffer per frame or per swap chain image. However, since we need to refer to the uniform buffer from the command buffer that we have per swap chain image, it makes the most sense to also have a uniform buffer per swap chain image.
+Comme des frames peuvent être "in flight" pendant que nous essayons de modifier le contenu du buffer, nous allons avoir
+besoin de plusieurs buffers. Nous pouvons soit en avoir un par frame, soit un par image de la swap chain. Comme nous
+avons un command buffer par image nous allons utiliser cette seconde méthode.
 
-To that end, add new class members for `uniformBuffers`, and `uniformBuffersMemory`:
+Pour cela créez les membres données `uniformBuffers` et `uniformBuffersMemory` :
 
 ```c++
 VkBuffer indexBuffer;
@@ -246,8 +224,8 @@ std::vector<VkBuffer> uniformBuffers;
 std::vector<VkDeviceMemory> uniformBuffersMemory;
 ```
 
-Similarly, create a new function `createUniformBuffers` that is called after
-`createIndexBuffer` and allocates the buffers:
+Créez ensuite une nouvelle fonction appelée `createUniformBuffers` et appelez-la après `createIndexBuffers`. Elle
+allouera les buffers :
 
 ```c++
 void initVulkan() {
@@ -272,10 +250,8 @@ void createUniformBuffer() {
 }
 ```
 
-We're going to write a separate function that updates the uniform buffer with a
-new transformation every frame, so there will be no `vkMapMemory` here. The
-uniform data will be used for all draw calls, so the buffer containing it should
-only be destroyed at the end:
+Nous allons créer une autre fonction qui mettra à jour le buffer et appliquera à son contenu une transformation à chaque
+frame. Nous n'utiliserons donc pas `vkMapMemory` ici. Le buffer doit être détruit à la fin du programme :
 
 ```c++
 void cleanup() {
@@ -292,9 +268,10 @@ void cleanup() {
 }
 ```
 
-## Updating uniform data
+## Mise à jour des données uniform
 
-Create a new function `updateUniformBuffer` and add a call to it from the `drawFrame` function right after we know which swap chain image we're going to acquire:
+Créez la fonction `updateUniformBuffer` et appelez-la dans `drawFrame` juste après que nous avons déterminé l'image de
+la swap chain que nous devons acquérir :
 
 ```c++
 void drawFrame() {
@@ -320,9 +297,8 @@ void updateUniformBuffer(uint32_t currentImage) {
 }
 ```
 
-This function will generate a new transformation every frame to make the
-geometry spin around. We need to include two new headers to implement this
-functionality:
+Cette fonction génèrera une rotation à chaque frame pour que la géométrie tourne sur elle-même. Pour ces fonctionnalités
+mathématiques nous devons inclure deux en-têtes :
 
 ```c++
 #define GLM_FORCE_RADIANS
@@ -332,15 +308,12 @@ functionality:
 #include <chrono>
 ```
 
-The `glm/gtc/matrix_transform.hpp` header exposes functions that can be used to
-generate model transformations like `glm::rotate`, view transformations like
-`glm::lookAt` and projection transformations like `glm::perspective`. The
-`GLM_FORCE_RADIANS` definition is necessary to make sure that functions like
-`glm::rotate` use radians as arguments, to avoid any possible confusion.
+Le header `<glm/gtc/matrix_transform.hpp>` expose des fonctions comme `glm::rotate`, `glm:lookAt` ou `glm::perspective`,
+dont nous avons besoin pour implémenter la 3D. La macro `GLM_FORCE_RADIANS` permet d'éviter toute confusion sur la
+représentation des angles.
 
-The `chrono` standard library header exposes functions to do precise
-timekeeping. We'll use this to make sure that the geometry rotates 90 degrees
-per second regardless of frame rate.
+Pour que la rotation s'exécute à une vitesse indépendante du FPS, nous allons utiliser les fonctionnalités de mesure
+précise contenues dans `<chrono>`.
 
 ```c++
 void updateUniformBuffer(uint32_t currentImage) {
@@ -351,53 +324,45 @@ void updateUniformBuffer(uint32_t currentImage) {
 }
 ```
 
-The `updateUniformBuffer` function will start out with some logic to calculate
-the time in seconds since rendering has started with floating point accuracy.
+Nous commençons donc par inclure la logique de calcul du temps écoulé, mesuré en secondes et stocké dans un `float`.
 
-We will now define the model, view and projection transformations in the
-uniform buffer object. The model rotation will be a simple rotation around the
-Z-axis using the `time` variable:
+Nous allons ensuite définir les matrices model, view et projection stockées dans l'UBO. La rotation sera implémentée
+comme une simple rotation autour de l'axe Z en fonction de la variable `time` :
 
 ```c++
 UniformBufferObject ubo = {};
 ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 ```
 
-The `glm::rotate` function takes an existing transformation, rotation angle and
-rotation axis as parameters. The `glm::mat4(1.0f)` constructor returns an
-identity matrix. Using a rotation angle of `time * glm::radians(90.0f)`
-accomplishes the purpose of rotation 90 degrees per second.
+La fonction `glm::rotate` accepte en argument une matrice déjà existante, un angle de rotation et un axe de rotation. Le
+constructeur `glm::mat4(1.0)` crée une matrice d'identité. Avec la multiplication `time * glm::radians(90.0f)` la
+géométrie tournera de 90 degrés par seconde.
 
 ```c++
 ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 ```
 
-For the view transformation I've decided to look at the geometry from above at a
-45 degree angle. The `glm::lookAt` function takes the eye position, center
-position and up axis as parameters.
+Pour la matrice view, j'ai décidé de la générer de telle sorte que nous regardions le rectangle par dessus avec une
+inclinaison de 45 degrés. La fonction `glm::lookAt` prend en arguments la position de l'oeil, la cible du regard et
+l'axe servant de référence pour le haut.
 
 ```c++
 ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
 ```
 
-I've chosen to use a perspective projection with a 45 degree vertical
-field-of-view. The other parameters are the aspect ratio, near and far
-view planes. It is important to use the current swap chain extent to calculate
-the aspect ratio to take into account the new width and height of the window
-after a resize.
+J'ai opté pour un champ de vision de 45 degrés. Les autres paramètres de `glm::perspective` sont le ratio et les plans
+near et far. Il est important d'utiliser l'étendue actuelle de la swap chain pour calculer le ratio, afin d'utiliser les
+valeurs qui prennent en compte les redimensionnements.
 
 ```c++
 ubo.proj[1][1] *= -1;
 ```
 
-GLM was originally designed for OpenGL, where the Y coordinate of the clip
-coordinates is inverted. The easiest way to compensate for that is to flip the
-sign on the scaling factor of the Y axis in the projection matrix. If you don't
-do this, then the image will be rendered upside down.
+GLM a été conçue pour OpenGL, qui utilise les coordonnées de clip et de l'axe Y à l'envers. La manière la plus simple de
+compenser cela consiste à changer le signe de l'axe Y dans la matrice de projection.
 
-All of the transformations are defined now, so we can copy the data in the
-uniform buffer object to the current uniform buffer. This happens in exactly the same
-way as we did for vertex buffers, except without a staging buffer:
+Maintenant que toutes les transformations sont définies nous pouvons copier les données dans le buffer uniform actuel.
+Nous utilisons le même procédé que pour le vertex buffer, hormis le buffer intermédiaire.
 
 ```c++
 void* data;
@@ -406,14 +371,12 @@ vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data
 vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 ```
 
-Using a UBO this way is not the most efficient way to pass frequently changing
-values to the shader. A more efficient way to pass a small buffer of data to
-shaders are *push constants*. We may look at these in a future chapter.
+Utiliser un UBO de cette manière n'est pas le plus efficace pour transmettre des données fréquemment mises à jour. Une
+meilleure pratique consiste à utiliser les *push constants*, que nous aborderons peut-être dans un futur chapitre.
 
-In the next chapter we'll look at descriptor sets, which will actually bind the
-`VkBuffer`s to the uniform buffer descriptors so that the shader can access this
-transformation data.
+Dans un avenir plus proche nous allons lier les sets de descirptors au `VkBuffer` contenant les données des matrices,
+afin que le vertex shader puisse y avoir accès.
 
-[C++ code](/code/21_descriptor_layout.cpp) /
+[Code C++](/code/21_descriptor_layout.cpp) /
 [Vertex shader](/code/21_shader_ubo.vert) /
 [Fragment shader](/code/21_shader_ubo.frag)
