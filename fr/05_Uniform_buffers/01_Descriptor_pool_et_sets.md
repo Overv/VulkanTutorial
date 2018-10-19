@@ -1,16 +1,13 @@
 ## Introduction
 
-The descriptor layout from the previous chapter describes the type of
-descriptors that can be bound. In this chapter we're going to create
-a descriptor set for each `VkBuffer` resource to bind it to the
-uniform buffer descriptor.
+L'objet `VkDescriptorSetLayout` que nous avons créé au chapitre précédent décrit les descripteurs que nous devons lier
+pour les opérations de rendu. Dans ce chapitre nous allons créer les véritables sets de descripteurs, un pour chaque
+`VkBuffer`, afin que nous puissions chacun les lier au descripteur UBO.
 
-## Descriptor pool
+## Pool de descripteurs
 
-Descriptor sets can't be created directly, they must be allocated from a pool
-like command buffers. The equivalent for descriptor sets is unsurprisingly
-called a *descriptor pool*. We'll write a new function `createDescriptorPool`
-to set it up.
+Les sets de descipteurs ne peuvent pas être crées directement. Il faut les allouer depuis une pool, comme les command
+buffers. Nous allons créer la fonction `createDescriptorPool` pour générer une pool de descripteurs.
 
 ```c++
 void initVulkan() {
@@ -27,8 +24,8 @@ void createDescriptorPool() {
 }
 ```
 
-We first need to describe which descriptor types our descriptor sets are going
-to contain and how many of them, using `VkDescriptorPoolSize` structures.
+Nous devons d'abord indiquer les types de descripteurs et combien sont compris dans les sets. Nous utilisons pour cela
+une structure du type `VkDescriptorPoolSize` :
 
 ```c++
 VkDescriptorPoolSize poolSize = {};
@@ -36,8 +33,8 @@ poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 poolSize.descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 ```
 
-We will allocate one of these descriptors for every frame. This
-pool size structure is referenced by the main `VkDescriptorPoolCreateInfo`:
+Nous allons allouer un descripteur par frame. Cette structure doit maintenant être référencée dans la structure
+principale `VkDescriptorPoolCreateInfo`.
 
 ```c++
 VkDescriptorPoolCreateInfo poolInfo = {};
@@ -46,19 +43,16 @@ poolInfo.poolSizeCount = 1;
 poolInfo.pPoolSizes = &poolSize;
 ```
 
-Aside from the maximum number of individual descriptors that are available, we
-also need to specify the maximum number of descriptor sets that may be
-allocated:
+Nous devons aussi spécifier le nombre maximum de sets de descriptors que nous sommes susceptibles d'allouer.
 
 ```c++
 poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());;
 ```
 
-The structure has an optional flag similar to command pools that determines if
-individual descriptor sets can be freed or not:
-`VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`. We're not going to touch
-the descriptor set after creating it, so we don't need this flag. You can leave
-`flags` to its default value of `0`.
+La stucture possède un membre optionnel également présent pour les command pools. Il permet d'indiquer que les
+sets peuvent être libérés indépendemment les uns des autres avec la valeur
+`VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`. Comme nous ne voulons pas toucher aux descripteurs pendant que le
+programme s'exécute, nous n'avons pas besoin de l'utiliser. Indiquez `0` pour ce champ.
 
 ```c++
 VkDescriptorPool descriptorPool;
@@ -66,13 +60,12 @@ VkDescriptorPool descriptorPool;
 ...
 
 if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create descriptor pool!");
+    throw std::runtime_error("echec lors de la creation de la pool de descripteurs!");
 }
 ```
 
-Add a new class member to store the handle of the descriptor pool and call
-`vkCreateDescriptorPool` to create it. The descriptor pool should be destroyed
-only at the end of the program, much like the other drawing related resources:
+Créez un nouveau membre donnée pour référencer la pool, puis appelez `vkCreateDescriptorPool`. La pool doit alors être
+détruite à la fin du programme, comme la plupart des ressources liées au rendu.
 
 ```c++
 void cleanup() {
@@ -84,10 +77,9 @@ void cleanup() {
 }
 ```
 
-## Descriptor set
+## Set de descriptors
 
-We can now allocate the descriptor sets themselves. Add a `createDescriptorSets`
-function for that purpose:
+Nous pouvons maintenant allouer les sets de descipteurs. Créez pour cela la fonction `createDescriptorSets` :
 
 ```c++
 void initVulkan() {
@@ -104,9 +96,9 @@ void createDescriptorSets() {
 }
 ```
 
-A descriptor set allocation is described with a `VkDescriptorSetAllocateInfo`
-struct. You need to specify the descriptor pool to allocate from, the number of
-descriptor sets to allocate, and the descriptor layout to base them on:
+L'allocation de cette ressource passe par la création d'une structure de type `VkDescriptorSetAllocateInfo`. Vous devez
+bien sûr y indiquer la pool d'où les allouer, de même que le nombre de sets à créer et l'organisation qu'ils doivent
+suivre.
 
 ```c++
 std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), descriptorSetLayout);
@@ -117,10 +109,11 @@ allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImages.size());
 allocInfo.pSetLayouts = layouts.data();
 ```
 
-In our case we will create one descriptor set for each swap chain image, all with the same layout. Unfortunately we do need all the copies of the layout because the next function expects an array matching the number of sets.
+Dans notre cas nous allons créer autant de sets qu'il y a d'images dans la swap chain. Ils auront tous la même
+organisation. Malheuresement nous devons copier la structure plusieurs fois car la fonction que nous allons utiliser
+prend en argument un tableau, dont le contenu doit correspondre indice à indice aux objets à créer.
 
-Add a class member to hold the descriptor set handles and allocate them with
-`vkAllocateDescriptorSets`:
+Ajoutez un membre donnée pour garder une référence aux sets, et allouez-les avec `vkAllocateDescriptorSets` :
 
 ```c++
 VkDescriptorPool descriptorPool;
@@ -130,17 +123,16 @@ std::vector<VkDescriptorSet> descriptorSets;
 
 descriptorSets.resize(swapChainImages.size());
 if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSets[0]) != VK_SUCCESS) {
-    throw std::runtime_error("failed to allocate descriptor sets!");
+    throw std::runtime_error("echec lors de l'allocation d'un set de descripteurs!");
 }
 ```
 
-You don't need to explicitly clean up descriptor sets, because they will be
-automatically freed when the descriptor pool is destroyed. The call to
-`vkAllocateDescriptorSets` will allocate descriptor sets, each with one uniform
-buffer descriptor.
+Il n'est pas nécessaire de détruire les sets de descripteurs explicitement, car leur libération est induite par la
+destruction de la pool. L'appel à `vkAllocateDescriptorSets` alloue donc tous les sets, chacun possédant un descripteur
+de buffer uniform.
 
-The descriptor sets have been allocated now, but the descriptors within still need
-to be configured. We'll now add a loop to populate every descriptor:
+Nous avons créé les sets mais nous n'avons pas paramétré les descripteurs. Nous allons maintenant créer une boucle pour
+rectifier ce problème :
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -148,10 +140,8 @@ for (size_t i = 0; i < swapChainImages.size(); i++) {
 }
 ```
 
-Descriptors that refer to buffers, like our uniform buffer
-descriptor, are configured with a `VkDescriptorBufferInfo` struct. This
-structure specifies the buffer and the region within it that contains the data
-for the descriptor.
+Les descripteurs référant à un buffer doivent être configurés avec une structure de type `VkDescriptorBufferInfo`. Elle
+indique le buffer contenant les données, et où les données y sont stockées.
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -162,8 +152,9 @@ for (size_t i = 0; i < swapChainImages.size(); i++) {
 }
 ```
 
-If you're overwriting the whole buffer, like we are in this case, then it is is also possible to use the `VK_WHOLE_SIZE` value for the range. The configuration of descriptors is updated using the `vkUpdateDescriptorSets`
-function, which takes an array of `VkWriteDescriptorSet` structs as parameter.
+Nous allons utiliser tout le buffer, donc nous pourrions indiquer `VK_WHOLE_SIZE`. La configuration des
+descripteurs est maintenant mise à jour avec la fonction `vkUpdateDescriptorSets`. Elle prend un tableau de
+`VkWriteDescriptorSet` en paramètre.
 
 ```c++
 VkWriteDescriptorSet descriptorWrite = {};
@@ -173,99 +164,88 @@ descriptorWrite.dstBinding = 0;
 descriptorWrite.dstArrayElement = 0;
 ```
 
-The first two fields specify the descriptor set to update and the binding. We
-gave our uniform buffer binding index `0`. Remember that descriptors can be
-arrays, so we also need to specify the first index in the array that we want to
-update. We're not using an array, so the index is simply `0`.
+Les deux premiers champs spécifient le set à mettre à jour et l'indice du binding auquel il correspond. Nous avons donné
+à notre unique descripteur l'indice `0`. Souvenez-vous que les descripteurs peuvent être des tableaux ; nous devons donc
+aussi indiquer le premier élément du tableau que nous voulons modifier. Nous n'en n'avons qu'un.
 
 ```c++
 descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 descriptorWrite.descriptorCount = 1;
 ```
 
-We need to specify the type of descriptor again. It's possible to update
-multiple descriptors at once in an array, starting at index `dstArrayElement`.
-The `descriptorCount` field specifies how many array elements you want to
-update.
+Nous devons encore indiquer le type du descripteur. Il est possible de mettre à jour plusieurs descripteurs d'un même
+type en même temps. La fonction commence à `dstArrayElement` et s'étend sur `descriptorCount` descripteurs.
 
 ```c++
 descriptorWrite.pBufferInfo = &bufferInfo;
-descriptorWrite.pImageInfo = nullptr; // Optional
-descriptorWrite.pTexelBufferView = nullptr; // Optional
+descriptorWrite.pImageInfo = nullptr; // Optionnel
+descriptorWrite.pTexelBufferView = nullptr; // Optionnel
 ```
 
-The last field references an array with `descriptorCount` structs that actually
-configure the descriptors. It depends on the type of descriptor which one of the
-three you actually need to use. The `pBufferInfo` field is used for descriptors
-that refer to buffer data, `pImageInfo` is used for descriptors that refer to
-image data, and `pTexelBufferView` is used for descriptors that refer to buffer
-views. Our descriptor is based on buffers, so we're using `pBufferInfo`.
+Le dernier champ que nous allons utiliser est `pBufferInfo`. Il permet de fournir `descriptorCount` structures qui
+configureront les descripteurs. Les autres champs correspondent aux structures qui peuvent configurer des descripteurs
+d'autres types. Ainsi il y aura `pImageInfo` pour les descripteurs liés aux images, et `pTexelBufferInfo` pour les
+descripteurs liés aux vues sur un buffer.
 
 ```c++
 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 ```
 
-The updates are applied using `vkUpdateDescriptorSets`. It accepts two kinds of
-arrays as parameters: an array of `VkWriteDescriptorSet` and an array of
-`VkCopyDescriptorSet`. The latter can be used to copy descriptors to each other,
-as its name implies.
+Les mises à jour sont appliquées quand nous appellons `vkUpdateDescriptorSets`. La fonction accepte deux tableaux, un de
+`VkWriteDesciptorSets` et un de `VkCopyDescriptorSet`. Le second permet de copier des descripteurs.
 
-## Using descriptor sets
+## Utiliser des sets de descripteurs
 
-We now need to update the `createCommandBuffers` function to actually bind the
-right descriptor set for each swap chain image to the descriptors in the shader with `cmdBindDescriptorSets`. This needs to be done before the `vkCmdDrawIndexed` call:
+Nous devons maintenant étendre `createCommandBuffers` pour qu'elle lie les sets de descripteurs aux descripteurs des
+shaders avec la commande `cmdBindDescriptorSets`. Il faut invoquer cette commande dans la configuration des buffers de
+commande avant l'appel à `vkCmdDrawIndexed`.
 
 ```c++
 vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
 vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
-Unlike vertex and index buffers, descriptor sets are not unique to graphics
-pipelines. Therefore we need to specify if we want to bind descriptor sets to
-the graphics or compute pipeline. The next parameter is the layout that the
-descriptors are based on. The next three parameters specify the index of the
-first descriptor set, the number of sets to bind, and the array of sets to bind.
-We'll get back to this in a moment. The last two parameters specify an array of
-offsets that are used for dynamic descriptors. We'll look at these in a future
-chapter.
+Au contraire des buffers de vertices et d'indices, les sets de descripteurs ne sont pas spécifiques aux pipelines
+graphiques. Nous devons donc spécifier que nous travaillons sur une pipeline graphique et non pas une pipeline de
+calcul. Le troisième paramètre correspond à l'organisation des descripteurs. Viennent ensuite l'indice du premier
+descripteur, la quantité à évaluer et bien sûr le set d'où ils proviennent. Nous y reviendrons. Les deux derniers
+paramètres sont des décalages utilisés pour les descripteurs dynamiques. Nous y reviendrons aussi dans un futur
+chapitre.
 
-If you run your program now, then you'll notice that unfortunately nothing is
-visible. The problem is that because of the Y-flip we did in the projection
-matrix, the vertices are now being drawn in clockwise order instead of
-counter-clockwise order. This causes backface culling to kick in and prevents
-any geometry from being drawn. Go to the `createGraphicsPipeline` function and
-modify the `frontFace` in `VkPipelineRasterizationStateCreateInfo` to correct
-this:
+Si vous lanciez le programme vous verrez que rien ne s'affiche. Le problème est que l'inversion de la coordonnée Y dans
+la matrice induit l'évaluation des vertices dans le sens des aiguilles d'une montre, alors que nous voudrions le
+contraire. En effet, les systèmes actuels utilisent ce sens de rotation pour détermnier la face de devant. Le face de
+derrière est ensuite simplement ignorée. C'est pourquoi notre géométrie n'est pas rendue. C'est le *backface culling*.
+Changez le champ `frontface` de la structure `VkPipelineRasterizationStateCreateInfo` dans la fonction
+`createGraphicsPipeline` de la manière suivante :
 
 ```c++
 rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 ```
 
-Run your program again and you should now see the following:
+Maintenant vous devriez voir ceci en lançant votre programme :
 
 ![](/images/spinning_quad.png)
 
-The rectangle has changed into a square because the projection matrix now
-corrects for aspect ratio. The `updateUniformBuffer` takes care of screen
-resizing, so we don't need to recreate the descriptor set in
+Le rectangle est maintenant un carré car la matrice de projection corrige son aspect. La fonction `updateUniformBuffer`
+traite les redimensionnements d'écran, il n'est donc pas nécessaire de recréer les descripteurs dans
 `recreateSwapChain`.
 
-## Multiple descriptor sets
+## Plusieurs sets de descripteurs
 
-As some of the structures and function calls hinted at, it is actually possible
-to bind multiple descriptor sets simultaneously. You need to specify a descriptor layout for
-each descriptor set when creating the pipeline layout. Shaders can then
-reference specific descriptor sets like this:
+Comme on a pu le voir dans les en-têtes de certaines fonctions, il est possible de lier plusieurs sets de descripteurs
+en même temps. Vous devez fournir une organisation pour chacun des sets pendant la mise en place de l'organisation de la
+pipeline. Les shaders peuvent alors accéder aux descripteurs de la manière suivante :
 
 ```c++
 layout(set = 0, binding = 0) uniform UniformBufferObject { ... }
 ```
 
-You can use this feature to put descriptors that vary per-object and descriptors
-that are shared into separate descriptor sets. In that case you avoid rebinding
-most of the descriptors across draw calls which is potentially more efficient.
+Vous pouvez utiliser cette possibilité pour placer dans différents sets les descripteurs dépendant d'objets et les
+descripteurs partagés. De cette manière vous éviter de relier une partie des descripteurs, ce qui peut être plus
+performant.
 
-[C++ code](/code/22_descriptor_sets.cpp) /
+[Code C++](/code/22_descriptor_sets.cpp) /
 [Vertex shader](/code/21_shader_ubo.vert) /
 [Fragment shader](/code/21_shader_ubo.frag)
