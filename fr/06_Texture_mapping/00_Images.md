@@ -1,74 +1,60 @@
 ## Introduction
 
-The geometry has been colored using per-vertex colors so far, which is a rather
-limited approach. In this part of the tutorial we're going to implement texture
-mapping to make the geometry look more interesting. This will also allow us to
-load and draw basic 3D models in a future chapter.
+Jusqu'à présent nous avons écrit les couleurs avec chaque vertex, pratique peu efficace. Nous allons maintenant
+implémenter l'échantillonnage des textures, afin que la géométrie soit plus belle. Nous pourrons ensuite passer à
+l'affichage de modèles 3D dans de futurs chapitres.
 
-Adding a texture to our application will involve the following steps:
+L'ajout d'une texture comprend les étapes suivantes :
 
-* Create an image object backed by device memory
-* Fill it with pixels from an image file
-* Create an image sampler
-* Add a combined image sampler descriptor to sample colors from the texture
+* Créer un objet *image* stocké sur la mémoire de la carte graphique
+* La remplir avec les pixels d'un fichier image
+* Créer un sampler
+* Ajouter un descripteur pour l'échantillonnage de l'image
 
-We've already worked with image objects before, but those were automatically
-created by the swap chain extension. This time we'll have to create one by
-ourselves. Creating an image and filling it with data is similar to vertex
-buffer creation. We'll start by creating a staging resource and filling it with
-pixel data and then we copy this to the final image object that we'll use for
-rendering. Although it is possible to create a staging image for this purpose,
-Vulkan also allows you to copy pixels from a `VkBuffer` to an image and the API
-for this is actually [faster on some hardware](https://developer.nvidia.com/vulkan-memory-management).
-We'll first create this buffer and fill it with pixel values, and then we'll
-create an image to copy the pixels to. Creating an image is not very different
-from creating buffers. It involves querying the memory requirements, allocating
-device memory and binding it, just like we've seen before.
+Nous avons déjà travaillé avec des images, mais nous n'en avons jamais créé. Celles que nous avons manipulées avaient
+été automatiquement crées par la swap chain. Créer une image et la remplir de pixels ressemble à la création d'un vertex
+buffer. Nous allons donc commencer par créer une ressource intermédiaire pour y faire transiter les données que nous
+voulons retrouver dans l'image. Bien qu'il soit possible d'utiliser une image comme intermédiaire, il est aussi autorisé
+de créer un `VkBuffer` comme intermédiaire vers l'image, et cette méthode est
+[plus rapide sur certaines plateformes](https://developer.nvidia.com/vulkan-memory-management). Nous allons donc
+d'abord créer un buffer et y mettre les données relatives aux pixels. Pour l'image nous devrons nous enquérir des
+spécificités de la mémoire, allouer la mémoire nécessaire et y copier les pixels. Cette procédure est très
+similaire à la création de buffers.
 
-However, there is something extra that we'll have to take care of when working
-with images. Images can have different *layouts* that affect how the pixels are
-organized in memory. Due to the way graphics hardware works, simply storing the
-pixels row by row may not lead to the best performance, for example. When
-performing any operation on images, you must make sure that they have the layout
-that is optimal for use in that operation. We've actually already seen some of
-these layouts when we specified the render pass:
+La grande différence - il en fallait une tout de même - réside dans l'organisation des données à l'intérieur même des
+pixels. Leur organisation affecte la manière dont les données brutes de la mémoire sont interprétées. De plus, stocker
+les pixels ligne par ligne n'est pas forcément ce qui se fait de plus efficace, et cela est dû à la manière dont les
+cartes graphiques fonctionnent. Nous devrons donc faire en sorte que les images soient organisées de la meilleure
+manière possible. Nous avons déjà croisé certaines organisation lors de la création de la passe de rendu :
 
-* `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR`: Optimal for presentation
-* `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`: Optimal as attachment for writing
-colors from the fragment shader
-* `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`: Optimal as source in a transfer
-operation, like `vkCmdCopyImageToBuffer`
-* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`: Optimal as destination in a transfer
-operation, like `vkCmdCopyBufferToImage`
-* `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`: Optimal for sampling from a shader
+* `VK_IMAGE_LAYOUT_PRESENT_SCR_KHR` : optimal pour la présentation
+* `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` : optimal pour être l'attachement cible du fragment shader pour les
+couleurs
+* `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` : optimal pour être la source d'un transfert comme `vkCmdCopyImageToBuffer`
+* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` : optimal pour être la cible d'un transfer comme `vkCmdCopyBufferToImage`
+* `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` : optimal pour être échantillonné depuis un shader
 
-One of the most common ways to transition the layout of an image is a *pipeline
-barrier*. Pipeline barriers are primarily used for synchronizing access to
-resources, like making sure that an image was written to before it is read, but
-they can also be used to transition layouts. In this chapter we'll see how
-pipeline barriers are used for this purpose. Barriers can additionally be used
-to transfer queue family ownership when using `VK_SHARING_MODE_EXCLUSIVE`.
+La transition la plus commune entre différentes organisations est la *barrière pipeline*. Celles-ci sont primairement
+utilisées pour synchroniser l'accès à une ressource, mais peuvent aussi permettre la transition. Dans ce chapitre nous
+allons voir la deuxième utilisation. Les barrières peuvent enfin être utilisées pour changer le possesseur d'une famille
+de queues de transferts.
 
-## Image library
+## Librairie d'image
 
-There are many libraries available for loading images, and you can even write
-your own code to load simple formats like BMP and PPM. In this tutorial we'll be
-using the stb_image library from the [stb collection](https://github.com/nothings/stb).
-The advantage of it is that all of the code is in a single file, so it doesn't
-require any tricky build configuration. Download `stb_image.h` and store it in a
-convenient location, like the directory where you saved GLFW and GLM. Add the
-location to your include path.
+De nombreuses librairies de chargement d'images existent ; vous pouvez même écrire la vôtre pour des formats simples
+comme BMP ou PPM. Nous allons utiliser stb_image, part de [la collecetion stb](https://github.com/nothings/stb). Elle
+possède l'avantage d'être contenue dans un seul fichier. Téléchargez donc `stb_image.h` et placez là ou vous voulez, par
+exemple le dossier où sont stockés GLFW et GLM.
 
 **Visual Studio**
 
-Add the directory with `stb_image.h` in it to the `Additional Include
-Directories` paths.
+Ajoutez le dossier comprenant `stb_image.h` dans `Additional Include Directories`.
 
 ![](/images/include_dirs_stb.png)
 
 **Makefile**
 
-Add the directory with `stb_image.h` to the include directories for GCC:
+Ajoutez le dossier comprenant `stb_image.h` aux chamins parcourus par GCC :
 
 ```text
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
@@ -79,18 +65,17 @@ STB_INCLUDE_PATH = /home/user/libraries/stb
 CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH)
 ```
 
-## Loading an image
+## Charger une image
 
-Include the image library like this:
+Incluez la librairie de cette manière :
 
 ```c++
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 ```
 
-The header only defines the prototypes of the functions by default. One code
-file needs to include the header with the `STB_IMAGE_IMPLEMENTATION` definition
-to include the function bodies, otherwise we'll get linking errors.
+Le header simple ne fournit que les prototypes des fonctions. Nous devons demander les implémentations avec la define
+`STB_IMAGE_IMPLEMENTATION` pour ne pas avoir d'erreurs à l'édition des liens.
 
 ```c++
 void initVulkan() {
@@ -108,20 +93,17 @@ void createTextureImage() {
 }
 ```
 
-Create a new function `createTextureImage` where we'll load an image and upload
-it into a Vulkan image object. We're going to use command buffers, so it should
-be called after `createCommandPool`.
+Créez la fonction `createTextureImage`, depuis laquelle nous chargerons une image et la placerons dans l'objet Vulkan.
+Nous allons avoir besoin de command buffers, il faut donc appeler cette fonction après `createCommandPool`.
 
-Create a new directory `textures` next to the `shaders` directory to store
-texture images in. We're going to load an image called `texture.jpg` from that
-directory. I've chosen to use the following
-[CC0 licensed image](https://pixabay.com/en/statue-sculpture-fig-historically-1275469/)
-resized to 512 x 512 pixels, but feel free to pick any image you want. The
-library supports most common image file formats, like JPEG, PNG, BMP and GIF.
+Créez un dossier `textures` au même endroit que `shaders` pour y placer les textures. Nous allons y mettre un fichier
+appelé `texture.jpg` pour l'utiliser dans notre programme. J'ai choisi d'utiliser
+[cette image de license CC0](https://pixbay.com/en/statue-sculpture-fig-historically-1275469) redimensionnée à 512x512,
+mais vous pouvez bien sûr en utiliser une autre. La librairie supporte des formats tels que JPEG, PNG, BMP ou GIF.
 
 ![](/images/texture.jpg)
 
-Loading an image with this library is really easy:
+Charger l'image est très facile :
 
 ```c++
 void createTextureImage() {
@@ -130,40 +112,35 @@ void createTextureImage() {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
+        throw std::runtime_error("erreur lors du chargement d'une image!");
     }
 }
 ```
 
-The `stbi_load` function takes the file path and number of channels to load as
-arguments. The `STBI_rgb_alpha` value forces the image to be loaded with an
-alpha channel, even if it doesn't have one, which is nice for consistency with
-other textures in the future. The middle three parameters are outputs for the
-width, height and actual number of channels in the image. The pointer that is
-returned is the first element in an array of pixel values. The pixels are laid
-out row by row with 4 bytes per pixel in the case of `STBI_rgba_alpha` for a
-total of `texWidth * texHeight * 4` values.
+La fonction `stbi_load` prend en argument le chemin de l'image et les différentes canaux à charger. L'argument
+`STBI_rgb_alpha` force la fonction à créer un canal alpha même si l'image originale n'en possède pas. Cela simplifie le
+travail en homogénéisant les situations. Les trois arguments transmis en addresse servent de résultats pour stocker
+des informations sur l'image. Les pixels sont retournés sous forme du pointeur `stbi_uc *pixels`. Ils sont organisés
+ligne par ligne et ont chacun 4 octets, ce qui représente `texWidth * texHeight * 4` octets au total pour l'image.
 
-## Staging buffer
+## Buffer intermédiaire
 
-We're now going to create a buffer in host visible memory so that we can use
-`vkMapMemory` and copy the pixels to it. Add variables for this temporary buffer
-to the `createTextureImage` function:
+Nous allons maintenant créer un buffer en mémoire accessible pour que nous puissions utiliser `vkMapMemory` et y placer
+les pixels. Ajoutez les variables suivantes à la fonction pour contenir ce buffer temporaire :
 
 ```c++
 VkBuffer stagingBuffer;
 VkDeviceMemory stagingBufferMemory;
 ```
 
-The buffer should be in host visible memory so that we can map it and it should
-be usable as a transfer source so that we can copy it to an image later on:
+Le buffer doit être en mémoire visible pour que nous puissions le mapper, et il doit être utilisable comme source d'un
+transfert vers une image, d'où l'appel suivant :
 
 ```c++
 createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 ```
 
-We can then directly copy the pixel values that we got from the image loading
-library to the buffer:
+Nous pouvons copier tels quels les pixels que nous avons vers le buffer :
 
 ```c++
 void* data;
@@ -172,26 +149,25 @@ vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
 vkUnmapMemory(device, stagingBufferMemory);
 ```
 
-Don't forget to clean up the original pixel array now:
+Il ne faut surtout pas oublier de libérer le tableau de pixels après cette opération :
 
 ```c++
 stbi_image_free(pixels);
 ```
 
-## Texture Image
+## Texture d'image
 
-Although we could set up the shader to access the pixel values in the buffer,
-it's better to use image objects in Vulkan for this purpose. Image objects will
-make it easier and faster to retrieve colors by allowing us to use 2D
-coordinates, for one. Pixels within an image object are known as texels and
-we'll use that name from this point on. Add the following new class members:
+Bien qu'il nous soit possible de paramétrer le shader afin qu'il utiliser le buffer comme source de pixels, il est bien
+plus efficace d'utiliser un objet image. Ils rendent plus pratiques, mais surtout plus rapide, l'accès aux données de
+l'image en nous permettant d'utiliser des coordonnées 2D. Les pixels sont appelés texels dans le contexte du shading, et
+nous utiliserons ce terme à partir de maintenant. Ajoutez les membres données suivants :
 
 ```c++
 VkImage textureImage;
 VkDeviceMemory textureImageMemory;
 ```
 
-The parameters for an image are specified in a `VkImageCreateInfo` struct:
+Les paramètre pour la création d'une image sont indiqués dans une structure de type `VkImageCreateInfo` :
 
 ```c++
 VkImageCreateInfo imageInfo = {};
@@ -204,103 +180,83 @@ imageInfo.mipLevels = 1;
 imageInfo.arrayLayers = 1;
 ```
 
-The image type, specified in the `imageType` field, tells Vulkan with what kind
-of coordinate system the texels in the image are going to be addressed. It is
-possible to create 1D, 2D and 3D images. One dimensional images can be used to
-store an array of data or gradient, two dimensional images are mainly used for
-textures, and three dimensional images can be used to store voxel volumes, for
-example. The `extent` field specifies the dimensions of the image, basically how
-many texels there are on each axis. That's why `depth` must be `1` instead of
-`0`. Our texture will not be an array and we won't be using mipmapping for now.
+Le type d'image contenu dans `imageType` indique à Vulkan le repère dans lesquels les texels sont placés. Il est
+possible de créer des repères 1D, 2D et 3D. Les images 1D peuvent être utilisés comme des tableaux ou des gradients. Les
+images 2D sont majoritairement utilisés comme textures. Les images 3D peuvent être utilisées pour stocker des voxels par
+exemple. Le champ `extent` indique la taille de l'image, en terme de texels par axe. Comme notre texture fonctionne
+comme un plan dans un espace en 3D, nous devons indiquer `1` au champ `depth`. Finalement, notre texture n'est pas un
+tableau, et nous verrons le mipmapping plus tard.
 
 ```c++
 imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
 ```
 
-Vulkan supports many possible image formats, but we should use the same format
-for the texels as the pixels in the buffer, otherwise the copy operation will
-fail.
+Vulkan supporte de nombreux formats, mais nous devons utiliser le même format que les données présentes dans le buffer.
 
 ```c++
 imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 ```
 
-The `tiling` field can have one of two values:
+Le champ `tiling` peut prendre deux valeurs :
 
-* `VK_IMAGE_TILING_LINEAR`: Texels are laid out in row-major order like our
-`pixels` array
-* `VK_IMAGE_TILING_OPTIMAL`: Texels are laid out in an implementation defined
-order for optimal access
+* `VK_IMAGE_TILING_LINEAR` : les texels sont organisés ligne par ligne
+* `VK_IMAGE_TILING_OPTIMAL` : les texels sont organisés de la manière la plus optimale pour l'implémentation
 
-Unlike the layout of an image, the tiling mode cannot be changed at a later
-time. If you want to be able to directly access texels in the memory of the
-image, then you must use `VK_IMAGE_TILING_LINEAR`. We will be using a staging
-buffer instead of a staging image, so this won't be necessary. We will be using
-`VK_IMAGE_TILING_OPTIMAL` for efficient access from the shader.
+Le mode mis dans `tiling` ne peut pas être changé, au contraire de l'organisation de l'image. Par conséquent, si vous
+voulez pouvoir directement accéder aux pixels, comme il faut qu'il soient organisés d'une manière logique, il vous faut
+indiquer `VK_IMAGE_TILING_LINEAR`. Comme nous utilisons un buffer intermédiaire et non une image intermédiaire, nous
+pouvons utiliser le mode le plus efficace.
 
 ```c++
 imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 ```
 
-There are only two possible values for the `initialLayout` of an image:
+Idem, il n'existe que deux valeurs pour `initialLayout` :
 
-* `VK_IMAGE_LAYOUT_UNDEFINED`: Not usable by the GPU and the very first
-transition will discard the texels.
-* `VK_IMAGE_LAYOUT_PREINITIALIZED`: Not usable by the GPU, but the first
-transition will preserve the texels.
+* `VK_IMAGE_LAYOUT_UNDEFINED` : inutilisable par le GPU, son contenu sera éliminé à la première transition
+* `VK_IMAGE_LAYOUT_PREINITIALIZED` : inutilisable par le GPU, mais la première transition conservera les texels
 
-There are few situations where it is necessary for the texels to be preserved
-during the first transition. One example, however, would be if you wanted to use
-an image as a staging image in combination with the `VK_IMAGE_TILING_LINEAR`
-layout. In that case, you'd want to upload the texel data to it and then
-transition the image to be a transfer source without losing the data. In our
-case, however, we're first going to transition the image to be a transfer
-destination and then copy texel data to it from a buffer object, so we don't
-need this property and can safely use `VK_IMAGE_LAYOUT_UNDEFINED`.
+Il n'existe que quelques situations où il est nécessaire de préserver les texels pendant la première transition. L'une
+d'elle consiste à utiliser l'image comme ressource de transition entre le CPU et la mémoire interne de la carte
+graphique, et que vous voulez que l'image conserve la structure décrite par `VK_IMAGE_TILING_LINEAR`. Comme nous allons
+transitionner l'image vers l'état "cible de transfert" avant d'y copier des données, nous pouvons utiliser sans
+problème `VK_IMAGE_LAYOUT_UNDEFINED`.
 
 ```c++
 imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 ```
 
-The `usage` field has the same semantics as the one during buffer creation. The
-image is going to be used as destination for the buffer copy, so it should be
-set up as a transfer destination. We also want to be able to access the image
-from the shader to color our mesh, so the usage should include
-`VK_IMAGE_USAGE_SAMPLED_BIT`.
+Le champ de bits `usage` fonctionne de la même manière que pour la création des buffers. L'image sera destination
+d'un transfert, et sera utilisée par les shaders, d'où les deux indications ci-dessus.
 
 ```c++
 imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 ```
 
-The image will only be used by one queue family: the one that supports graphics
-(and therefore also) transfer operations.
+L'image ne sera utilisée que par une famille de queue : celle des graphiques et des transferts.
 
 ```c++
 imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-imageInfo.flags = 0; // Optional
+imageInfo.flags = 0; // Optionnel
 ```
 
-The `samples` flag is related to multisampling. This is only relevant for images
-that will be used as attachments, so stick to one sample. There are some
-optional flags for images that are related to sparse images. Sparse images are
-images where only certain regions are actually backed by memory. If you were
-using a 3D texture for a voxel terrain, for example, then you could use this to
-avoid allocating memory to store large volumes of "air" values. We won't be
-using it in this tutorial, so leave it to its default value of `0`.
+Le membre `sample` se réfère au multisampling. Il n'a de sens que pour les images utilisées comme attachements d'un
+framebuffer, nous devons donc mettre `1`, traduit par `VK_SAMPLE_COUNT_1_BIT`. Finalement, certaines informations se
+réfèrent aux *images étendues*. Ces image étendues sont des images dont seule une partie est stockée dans la mémoire.
+Voici une exemple d'utilisation : si vous utilisiez une image 3D pour représenter un terrain à l'aide de voxels, vous
+pourriez utiliser cette fonctionnalité pour éviter d'utiliser de la mémoire qui au final ne contiendrait que de l'air.
+Nous ne verrons pas cette fonctionnalité dans ce tutoriel, donnez à `flags` la valeur `0`.
 
 ```c++
 if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create image!");
+    throw std::runtime_error("echec lors de la creation d'une image!");
 }
 ```
 
-The image is created using `vkCreateImage`, which doesn't have any particularly
-noteworthy parameters. It is possible that the `VK_FORMAT_R8G8B8A8_UNORM` format
-is not supported by the graphics hardware. You should have a list of acceptable
-alternatives and go with the best one that is supported. However, support for
-this particular format is so widespread that we'll skip this step. Using
-different formats would also require annoying conversions. We will get back to
-this in the depth buffer chapter, where we'll implement such a system.
+L'image est crée par la fonction `vkCreateImage`, qui ne possède pas d'argument particulièrement intéressant. Il est
+possible que le format `VK_FORMAT_R8G8B8A8_UNORM` ne soit pas supporté par la carte graphique, mais c'est tellement peu
+probable que nous ne verrons pas comment y remédier. En effet utiliser un autre format demanderait de réaliser plusieurs
+conversions compliquées. Nous reviendrons sur ces conversions dans le chapitre sur le buffer de profondeur.
 
 ```c++
 VkMemoryRequirements memRequirements;
@@ -312,21 +268,19 @@ allocInfo.allocationSize = memRequirements.size;
 allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMemory) != VK_SUCCESS) {
-    throw std::runtime_error("failed to allocate image memory!");
+    throw std::runtime_error("echec lors de l'allocation de la memoire pour l'image!");
 }
 
 vkBindImageMemory(device, textureImage, textureImageMemory, 0);
 ```
 
-Allocating memory for an image works in exactly the same way as allocating
-memory for a buffer. Use `vkGetImageMemoryRequirements` instead of
-`vkGetBufferMemoryRequirements`, and use `vkBindImageMemory` instead of
-`vkBindBufferMemory`.
+L'allocation de la mémoire nécessaire à une image fonctionne également de la même façon que pour un buffer. Seuls les
+noms de deux fonctions changent : `vkGetBufferMemoryRequirements` devient `vkGetImageMemoryRequirements` et
+`vkBingBuffer` devient `vkBindImage`.
 
-This function is already getting quite large and there'll be a need to create
-more images in later chapters, so we should abstract image creation into a
-`createImage` function, like we did for buffers. Create the function and move
-the image object creation and memory allocation to it:
+Cette fonction est déjà assez grande, et comme nous aurons besoin d'autres images dans de futurs chapitres, il est
+judicieux de déplacer la logique de création dans une fonction, comme nous l'avons fait pour les buffers. Voici donc
+la fonction `createImage` :
 
 ```c++
 void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -346,7 +300,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create image!");
+        throw std::runtime_error("echec lors de la creation d'une image!");
     }
 
     VkMemoryRequirements memRequirements;
@@ -358,18 +312,17 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate image memory!");
+        throw std::runtime_error("echec lors de l'allocation de la memoire d'une image!");
     }
 
     vkBindImageMemory(device, image, imageMemory, 0);
 }
 ```
 
-I've made the width, height, format, tiling mode, usage, and memory properties
-parameters, because these will all vary between the images we'll be creating
-throughout this tutorial.
+La largeur, la hauteur, le mode de tiling, l'uage et les propriétés de la mémoire sont des paramètres car ils varierons
+toujours entre les différentes images que nous créerons dans ce tutoriel.
 
-The `createTextureImage` function can now be simplified to:
+La fonction `createTextureImage` peut maintenant être réduite à ceci :
 
 ```c++
 void createTextureImage() {
@@ -378,7 +331,7 @@ void createTextureImage() {
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
+        throw std::runtime_error("erreur lors du chargement de l'image!");
     }
 
     VkBuffer stagingBuffer;
@@ -396,11 +349,10 @@ void createTextureImage() {
 }
 ```
 
-## Layout transitions
+## Transitions de l'organisation
 
-The function we're going to write now involves recording and executing a command
-buffer again, so now's a good time to move that logic into a helper function or
-two:
+La fonction que nous allons écrire inclue l'enregistrement et l'exécution de command buffers. Il est donc également
+judicieux de placer la logique dans une autre fonction :
 
 ```c++
 VkCommandBuffer beginSingleTimeCommands() {
@@ -437,8 +389,7 @@ void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 }
 ```
 
-The code for these functions is based on the existing code in `copyBuffer`. You
-can now simplify that function to:
+Le code de ces fonctions est basé sur celui de `copyBuffer`. Vous pouvez maintenant réduire cette fonction à :
 
 ```c++
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
@@ -452,10 +403,9 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 }
 ```
 
-If we were still using buffers, then we could now write a function to record and
-execute `vkCmdCopyBufferToImage` to finish the job, but this command requires
-the image to be in the right layout first. Create a new function to handle
-layout transitions:
+Si nous utilisions de simples buffers nous pourrions nous contenter d'écrire une fonction qui enregistre l'appel à
+`vkCmdCopyBufferToImage`. Mais comme cette fonction utilse une image comme cible nous devons changer l'organisation de
+l'image avant l'appel. Créez une nouvelle fonction pour gérer de manière générique les transitions :
 
 ```c++
 void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
@@ -465,12 +415,9 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 }
 ```
 
-One of the most common ways to perform layout transitions is using an *image
-memory barrier*. A pipeline barrier like that is generally used to synchronize
-access to resources, like ensuring that a write to a buffer completes before
-reading from it, but it can also be used to transition image layouts and
-transfer queue family ownership when `VK_SHARING_MODE_EXCLUSIVE` is used. There
-is an equivalent *buffer memory barrier* to do this for buffers.
+L'une des manières de réaliser une transition consiste à utiliser un *barrière pour mémoire d'image*. Une telle barrière
+de pipeline est en général utilisée pour synchroniser l'accès à une ressource, mais nous avons déjà évoqué ce sujet. Il
+existe au passage un équivalent pour les buffers : une barrière pour mémoire de buffer.
 
 ```c++
 VkImageMemoryBarrier barrier = {};
@@ -479,18 +426,17 @@ barrier.oldLayout = oldLayout;
 barrier.newLayout = newLayout;
 ```
 
-The first two fields specify layout transition. It is possible to use
-`VK_IMAGE_LAYOUT_UNDEFINED` as `oldLayout` if you don't care about the existing
-contents of the image.
+Les deux premiers champs indiquent la transition à réaliser. Il est possible d'utiliser `VK_IMAGE_LAYOUT_UNDEFINED` pour
+`oldLayout` si le contenu de l'image ne vous intéresse pas.
 
 ```c++
 barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 ```
 
-If you are using the barrier to transfer queue family ownership, then these two
-fields should be the indices of the queue families. They must be set to
-`VK_QUEUE_FAMILY_IGNORED` if you don't want to do this (not the default value!).
+Ces deux paramètres sont utilisés pour transmettre la possession d'une queue à une autre. Il faut leur indiquer les
+indices des familles de queues correspondantes. Comme nous ne les utilisons pas, nous devons les mettre à
+`VK_QUEUE_FAMILY_IGNORED`.
 
 ```c++
 barrier.image = image;
@@ -501,21 +447,18 @@ barrier.subresourceRange.baseArrayLayer = 0;
 barrier.subresourceRange.layerCount = 1;
 ```
 
-The `image` and `subresourceRange` specify the image that is affected and the
-specific part of the image. Our image is not an array and does not have mipmapping
-levels, so only one level and layer are specified.
+Les paramètres `image` et `subresourceRange` servent à indiquer l'image, puis la partie de l'image concernées par les
+changements. Comme notre image n'est pas un tableau, et que nous n'avons pas mis en place de mipmapping, les
+paramètres sont tous mis au minimum.
 
 ```c++
 barrier.srcAccessMask = 0; // TODO
 barrier.dstAccessMask = 0; // TODO
 ```
 
-Barriers are primarily used for synchronization purposes, so you must specify
-which types of operations that involve the resource must happen before the
-barrier, and which operations that involve the resource must wait on the
-barrier. We need to do that despite already using `vkQueueWaitIdle` to manually
-synchronize. The right values depend on the old and new layout, so we'll get
-back to this once we've figured out which transitions we're going to use.
+Comme les barrière sont avant tout des objets de synchronisation, nous devons indiquer les opérations utilisant la
+ressource avant et après que l'on spécifie cette barrière. Pour pouvoir remplir les champs ci-dessus nous devons
+déterminer ces opérations, ce que nous ferons plus tard.
 
 ```c++
 vkCmdPipelineBarrier(
@@ -528,36 +471,28 @@ vkCmdPipelineBarrier(
 );
 ```
 
-All types of pipeline barriers are submitted using the same function. The first
-parameter after the command buffer specifies in which pipeline stage the
-operations occur that should happen before the barrier. The second parameter
-specifies the pipeline stage in which operations will wait on the barrier. The
-pipeline stages that you are allowed to specify before and after the barrier
-depend on how you use the resource before and after the barrier. The allowed
-values are listed in [this table](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#synchronization-access-types-supported)
-of the specification. For example, if you're going to read from a uniform after
-the barrier, you would specify a usage of `VK_ACCESS_UNIFORM_READ_BIT` and the
-earliest shader that will read from the uniform as pipeline stage, for example
-`VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT`. It would not make sense to specify
-a non-shader pipeline stage for this type of usage and the validation layers
-will warn you when you specify a pipeline stage that does not match the type of
-usage.
+Tous les types de barrière sont appliqués à l'aide de la même fonction. Le paramètre qui suit le command buffer indique
+une étape de la pipeline. Durant celle-ci seront réalisées les opération devant précéder la barrière. Le paramètre
+d'après indique également une étape de la pipeline. Cette fois les opérations exécutées durant cette étape attendront la
+barrière. Les étapes que vous pouvez fournir comme avant- et après-barrière dépendent de l'utilisation des ressources
+qui y sont utilisées. Les valeurs autorisées sont listées
+[dans ce tableau](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#synchronization-access-types-supported).
+Par exemple, si vous voulez lire des données présentes dans un buffer uniform après la barrière, vous devrez indiquer
+`VK_ACCESS_UNIFORM_READ_BIT` comme usage et si le premier shader à utiliser l'uniform est le fragment shader il vous
+faudra indiquer `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT`. Dans ce cas de figure, spécifier une autre étape qu'une étape
+shader n'aurait aucun sens, et les validation layers vous le feraient remarquer.
 
-The third parameter is either `0` or `VK_DEPENDENCY_BY_REGION_BIT`. The latter
-turns the barrier into a per-region condition. That means that the
-implementation is allowed to already begin reading from the parts of a resource
-that were written so far, for example.
+Le paramètre sur la troisième ligne peut soit être `0` soit être `VK_DEPENDENCY_BY_REGION_BIT`. Dans ce second cas la
+barrière devient une condition spécifique d'une région de la ressource. Cela signifie entre autre que l'implémentation
+peut lire cette région une fois que le transfert y est terminé, sans considération pour les autres régions. Cela permet
+d'augmenter encore les performances en permettant d'utiliser les optimisations des architectures actuelles.
 
-The last three pairs of parameters reference arrays of pipeline barriers of the
-three available types: memory barriers, buffer memory barriers, and image memory
-barriers like the one we're using here. Note that we're not using the `VkFormat`
-parameter yet, but we'll be using that one for special transitions in the depth
-buffer chapter.
+Les trois dernières paires de paramètres sont des tableaux de barrières pour chacun des trois types existants : barrière
+mémorielle, barrière de buffer et barrière d'image.
 
-## Copying buffer to image
+## Copier un buffer dans une image
 
-Before we get back to `createTextureImage`, we're going to write one more helper
-function: `copyBufferToImage`:
+Avant de compléter `vkCreateTextureImage` nous allons écrire une dernière fonction appelée `copyBufferToImage` :
 
 ```c++
 void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
@@ -567,9 +502,8 @@ void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t 
 }
 ```
 
-Just like with buffer copies, you need to specify which part of the buffer is
-going to be copied to which part of the image. This happens through
-`VkBufferImageCopy` structs:
+Comme avec les recopies de buffers, nous devons indiquer les parties du buffer à copier et les parties de l'image où
+écrire. Ces données doivent être placées dans une structure de type `VkBufferImageCopy`.
 
 ```c++
 VkBufferImageCopy region = {};
@@ -590,16 +524,13 @@ region.imageExtent = {
 };
 ```
 
-Most of these fields are self-explanatory. The `bufferOffset` specifies the byte
-offset in the buffer at which the pixel values start. The `bufferRowLength` and
-`bufferImageHeight` fields specify how the pixels are laid out in memory. For
-example, you could have some padding bytes between rows of the image. Specifying
-`0` for both indicates that the pixels are simply tightly packed like they are
-in our case. The `imageSubresource`, `imageOffset` and `imageExtent` fields
-indicate to which part of the image we want to copy the pixels.
+La plupart de ces champs sont évidents. `bufferOffset` indique l'octet à partir duquel les données des pixels commencent
+dans le buffer. L'organisation des pixels doit être indiquée dans les champs `bufferRowLenght` et `bufferImageHeight`.
+Il pourrait en effet avoir un espace entre les lignes de l'image. Comme notre image est en un seul pack, nous devons
+mettre ces paramètres à `0`. Enfin, les membres `imageSubResource`, `imageOffset` et `imageExtent` indiquent les parties
+de l'image qui receveront les données.
 
-Buffer to image copy operations are enqueued using the `vkCmdCopyBufferToImage`
-function:
+Les copies buffer vers image sont envoyées à la queue avec la fonction `vkCmdCopyBufferToImage`.
 
 ```c++
 vkCmdCopyBufferToImage(
@@ -612,57 +543,48 @@ vkCmdCopyBufferToImage(
 );
 ```
 
-The fourth parameter indicates which layout the image is currently using. I'm
-assuming here that the image has already been transitioned to the layout that is
-optimal for copying pixels to. Right now we're only copying one chunk of pixels
-to the whole image, but it's possible to specify an array of `VkBufferImageCopy`
-to perform many different copies from this buffer to the image in one operation.
+Le quatrième paramètre indique l'organisation de l'image au moment de la copie. Normalement l'image doit être dans
+l'organisation optimale pour la réception de données. Nous avons paramétré la copie pour qu'un seul command buffer
+soit à l'origine de la copie successive de tous les pixels. Nous aurions aussi pu créer un tableau de
+`VkBufferImageCopy` pour que le command buffer soit à l'origine de plusieurs copies simultanées.
 
-## Preparing the texture image
+## Préparer l'image texture
 
-We now have all of the tools we need to finish setting up the texture image, so
-we're going back to the `createTextureImage` function. The last thing we did
-there was creating the texture image. The next step is to copy the staging
-buffer to the texture image. This involves two steps:
+Nous avons maintenant tous les outils nécessaires pour compléter la mise en place de l'image texture. Nous pouvons
+retourner à la fonction `createTextureImage`. La dernière chose que nous y avions fait consistait à créer l'image
+texture. Notre prochaine étape est donc d'y placer les pixels en les copiant depuis le buffer intermédiaire. Il y a deux
+étapes pour cela :
 
-* Transition the texture image to `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`
-* Execute the buffer to image copy operation
+* Transitionner l'organisation de l'image vers `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`
+* Exécuter le buffer de copie
 
-This is easy to do with the functions we just created:
+Cela est simple à réaliser avec les fonctions que nous venons de créer :
 
 ```c++
 transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 ```
 
-The image was created with the `VK_IMAGE_LAYOUT_UNDEFINED` layout, so that one
-should be specified as old layout when transitioning `textureImage`. Remember
-that we can do this because we don't care about its contents before performing
-the copy operation.
+Nous avons créé l'image avec une organisation `VK_LAYOUT_UNDEFINED`, car le contenu initial ne nous intéresse pas.
 
-To be able to start sampling from the texture image in the shader, we need one
-last transition to prepare it for shader access:
+Pour ensuite pouvoir échantilloner la texture dans le framgment shader nous devons réaliser une dernière transition, qui
+la préparera à être accédée depuis un shader :
 
 ```c++
 transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 ```
 
-## Transition barrier masks
+## Derniers champs de la barrière de transition
 
-If you run your application with validation layers enabled now, then you'll see that
-it complains about the access masks and pipeline stages in
-`transitionImageLayout` being invalid. We still need to set those based on the
-layouts in the transition.
+Si vous lanciez le programme vous verrez que les validation layers vous indiquent que les champs d'accès et d'étapes
+shader sont invalides. C'est normal, nous ne les avons pas remplis.
 
-There are two transitions we need to handle:
+Nous sommes pour le moment interessés par deux transitions :
 
-* Undefined → transfer destination: transfer writes that don't need to wait on
-anything
-* Transfer destination → shader reading: shader reads should wait on transfer
-writes, specifically the shader reads in the fragment shader, because that's
-where we're going to use the texture
+* Non défini → cible d'un transfert : écritures par transfert qui n'ont pas besoin d'être synchronisées
+* Cible d'un transfert → lecture par un shader : la lecture par le shader doit attendre la fin du transfert
 
-These rules are specified using the following access masks and pipeline stages:
+Ces règles sont indiquées en utilisant les valeurs suivantes pour l'accès et les étapes shader :
 
 ```c++
 VkPipelineStageFlags sourceStage;
@@ -694,51 +616,43 @@ vkCmdPipelineBarrier(
 );
 ```
 
-As you can see in the aforementioned table, transfer writes must occur in the
-pipeline transfer stage. Since the writes don't have to wait on anything, you
-may specify an empty access mask and the earliest possible pipeline stage
-`VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` for the pre-barrier operations. It should be
-noted that `VK_PIPELINE_STAGE_TRANSFER_BIT` is not a *real* stage within the
-graphics and compute pipelines. It is more of a pseudo-stage where transfers
-happen. See [the documentation](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkPipelineStageFlagBits.html)
-for more information and other examples of pseudo-stages.
+Comme vous avez pu le voir dans le tableau mentionné plus haut, l'écriture dans l'image doit se réaliser à l'étape
+pipeline de transfert. Mais cette opération d'écriture ne dépend d'aucune autre opération. Nous pouvons donc fournir
+une condition d'accès nulle et `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` comme opération pré-barrière. Cette valeur correspond
+au début de la pipeline, mais ne représente pas une étape. Elle désigne plutôt le moment où la pipeline se prépare, et
+donc aux transferts. Voyez
+[la documentation](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkPipelineStageFlagBits.html)
+pour de plus amples informations sur les pseudo-étapes.
 
-The image will be written in the same pipeline stage and subsequently read by
-the fragment shader, which is why we specify shader reading access in the
-fragment shader pipeline stage.
+L'image sera écrite puis lue dans la même passe, c'est pourquoi nous devons indiquer que le fragment shader aura accès à
+la mémoire de l'image.
 
-If we need to do more transitions in the future, then we'll extend the function.
-The application should now run successfully, although there are of course no
-visual changes yet.
+Quand nous aurons besoin de plus de transitions, nous compléterons la fonction de transition pour qu'elle les prenne en
+compte. L'application devrait maintenant tourner sans problème, bien qu'il n'y aie aucune différence visible.
 
-One thing to note is that command buffer submission results in implicit
-`VK_ACCESS_HOST_WRITE_BIT` synchronization at the beginning. Since the
-`transitionImageLayout` function executes a command buffer with only a single
-command, you could use this implicit synchronization and set `srcAccessMask` to
-`0` if you ever needed a `VK_ACCESS_HOST_WRITE_BIT` dependency in a layout
-transition. It's up to you if you want to be explicit about it or not, but I'm
-personally not a fan of relying on these OpenGL-like "hidden" operations.
+Un point intéressant est que l'émission du command buffer génère implicitement une synchronisation de type
+`VK_ACCESS_HOST_WRITE_BIT`. Comme la fonction `transitionImageLayout` exécute un command buffer ne comprenant qu'une
+seule commande, il est possbile d'utiliser cette synchronisation. Cela signifie que vous pourriez alors mettre
+`srcAccessMask` à `0` dans le cas d'une transition vers `VK_ACCESS_HOST_WRITE_BIT`. C'est à vous de voir si vous
+voulez être explicites à ce sujet. Personnellement je n'aime pas du tout faire dépendre mon application sur des
+opérations cachées ressemblant beaucoup trop à OpenGL à mon goût.
 
-There is actually a special type of image layout that supports all operations,
-`VK_IMAGE_LAYOUT_GENERAL`. The problem with it, of course, is that it doesn't
-necessarily offer the best performance for any operation. It is required for
-some special cases, like using an image as both input and output, or for reading
-an image after it has left the preinitialized layout.
+Autre chose intéressante à savoir, il existe une organisation qui supporte toutes les opérations. Elle s'appelle
+`VK_IMAGE_LAYOUT_GENERAL`. Le problème est qu'elle est évidemment moins optimisée. Elle est cependant utile dans
+certains cas, comme quand une image doit être utilisée comme cible et comme source, ou pour pouvoir lire l'image juste
+après qu'elle aie quittée l'organisation préinitialisée.
 
-All of the helper functions that submit commands so far have been set up to
-execute synchronously by waiting for the queue to become idle. For practical
-applications it is recommended to combine these operations in a single command
-buffer and execute them asynchronously for higher throughput, especially the
-transitions and copy in the `createTextureImage` function. Try to experiment
-with this by creating a `setupCommandBuffer` that the helper functions record
-commands into, and add a `flushSetupCommands` to execute the commands that have
-been recorded so far. It's best to do this after the texture mapping works to
-check if the texture resources are still set up correctly.
+Enfin, il important de noter que les fonctions que nous avons mises en place exécutent les commandes de manière
+synchronisées et attendent que la queue soit en pause. Pour de véritables applications il est bien sûr recommandé de
+combiner toutes ces opérations dans un seul command buffer pour qu'elles soient exécutées de manière asynchrones. Les
+commandes de transitions et de copie pourraient grandement bénéficier d'une telle pratique. Essayez par exemple de créer
+une fonction `setupCommandBuffer`, puis d'enregistrer les commandes nécessaires depuis les fonctions actuelles.
+Appelez ensuite une autre fonction nommée par exemple `flushSetupCommands` qui exécutera le command buffer. Il sera bon
+de faire ceci après que nous ayons fait fonctionner l'échantillonage de la texture.
 
-## Cleanup
+## Nettoyage
 
-Finish the `createTextureImage` function by cleaning up the staging buffer and
-its memory at the end:
+Complétez la fonction `createImageTexture` en libérant le buffer intermédiaire et en désallouant la mémoire :
 
 ```c++
     transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -748,7 +662,7 @@ its memory at the end:
 }
 ```
 
-The main texture image is used until the end of the program:
+L'image texture est utilisée jusqu'à la fin du programme, nous devons donc la libérer dans `cleanup` :
 
 ```c++
 void cleanup() {
@@ -761,8 +675,8 @@ void cleanup() {
 }
 ```
 
-The image now contains the texture, but we still need a way to access it from
-the graphics pipeline. We'll work on that in the next chapter.
+L'image contient maintenant la texture, mais nous n'avons toujours pas mis en place de quoi y accéder depuis la
+pipeline. Nous y travaillerons dans le prochain chapitre.
 
 [C++ code](/code/23_texture_image.cpp) /
 [Vertex shader](/code/21_shader_ubo.vert) /
