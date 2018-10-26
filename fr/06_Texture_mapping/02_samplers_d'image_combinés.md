@@ -1,21 +1,17 @@
 ## Introduction
 
-We looked at descriptors for the first time in the uniform buffers part of the
-tutorial. In this chapter we will look at a new type of descriptor: *combined
-image sampler*. This descriptor makes it possible for shaders to access an image
-resource through a sampler object like the one we created in the previous
-chapter.
+Nous avons déjà évoqué les descripteurs dans la partie sur les buffers uniforms. Dans ce chapitre nous en verrons un
+nouveau type : les *samplers d'image combinés*. Ceux-ci permettent aux shaders d'accéder au contenu d'images, à travers
+un sampler.
 
-We'll start by modifying the descriptor layout, descriptor pool and descriptor
-set to include such a combined image sampler descriptor. After that, we're going
-to add texture coordinates to `Vertex` and modify the fragment shader to read
-colors from the texture instead of just interpolating the vertex colors.
+Nous allons d'abord modifier l'organisation des descripteurs, la pool de descripteurs et le set de descripteur pour
+qu'ils incluent le sampler d'image combinés. Ensuite nous ajouterons des coordonnées de texture à la structure
+`Vertex` et modifierons le vertex shader et le fragment shader pour qu'il utilisent les couleurs de la texture.
 
-## Updating the descriptors
+## Modifier les descripteurs
 
-Browse to the `createDescriptorSetLayout` function and add a
-`VkDescriptorSetLayoutBinding` for a combined image sampler descriptor. We'll
-simply put it in the binding after the uniform buffer:
+Trouvez la fonction `createDescriptorSetLayout` et créez une instance de `VkDescriptorSetLayoutBinding`. Cette
+structure correspond aux descripteurs d'image combinés. Nous n'y mettons quasiment que l'indice du binding :
 
 ```c++
 VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
@@ -32,17 +28,15 @@ layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 layoutInfo.pBindings = bindings.data();
 ```
 
-Make sure to set the `stageFlags` to indicate that we intend to use the combined
-image sampler descriptor in the fragment shader. That's where the color of the
-fragment is going to be determined. It is possible to use texture sampling in
-the vertex shader, for example to dynamically deform a grid of vertices by a
+Assurez-vous également de bien indiquer le fragment shader dans le champ `stageFlags`. Ce sera à cette étape que la
+couleur sera déterminée. Il est également possible d'utiliser le sampler pour échantilloner une texture dans le vertex
+shader. Cela permet par exemple de déformer dynamiquement une grille de vertices pour réaliser une
 [heightmap](https://en.wikipedia.org/wiki/Heightmap).
 
-If you would run the application with validation layers now, then you'll see
-that it complains that the descriptor pool cannot allocate descriptor sets with
-this layout, because it doesn't have any combined image sampler descriptors. Go
-to the `createDescriptorPool` function and modify it to include a
-`VkDescriptorPoolSize` for this descriptor:
+Si vous lancez l'application, vous verrez que la pool de descripteurs ne peut pas allouer de set avec l'organisation que
+nous avons préparée, car elle ne comprend aucun descripteur de sampler d'image combinés. Il nous faut donc modifier la
+fonction `createDescriptorPool` pour qu'elle inclue une structure `VkDesciptorPoolSize` qui corresponde à ce type de
+descripteur :
 
 ```c++
 std::array<VkDescriptorPoolSize, 2> poolSizes = {};
@@ -58,8 +52,8 @@ poolInfo.pPoolSizes = poolSizes.data();
 poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
 ```
 
-The final step is to bind the actual image and sampler resources to the
-descriptors in the descriptor set. Go to the `createDescriptorSets` function.
+La dernière étape consiste à lier l'image et le sampler aux descripteurs du set de descripteurs. Allez à la fonction
+`createDescriptorSets`.
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -77,10 +71,9 @@ for (size_t i = 0; i < swapChainImages.size(); i++) {
 }
 ```
 
-The resources for a combined image sampler structure must be specified in a
-`VkDescriptorImageInfo` struct, just like the buffer resource for a uniform
-buffer descriptor is specified in a `VkDescriptorBufferInfo` struct. This is
-where the objects from the previous chapter come together.
+Les ressources nécessaires à la structure paramétrant un descripteur d'image combinés doivent être fournies dans
+une structure de type `VkDescriptorImageInfo`. Cela est similaire à la création d'un descripteur pour buffer. Les objets
+que nous avons créés dans les chapitres précédents s'assemblent enfin!
 
 ```c++
 std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
@@ -104,15 +97,13 @@ descriptorWrites[1].pImageInfo = &imageInfo;
 vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 ```
 
-The descriptors must be updated with this image info, just like the buffer. This
-time we're using the `pImageInfo` array instead of `pBufferInfo`. The descriptors
-are now ready to be used by the shaders!
+Les descripteurs doivent être mis à jour avec des informations sur l'image, comme pour les buffers. Cette fois nous
+allons utiliser le tableau `pImageInfo` plutôt que `pBufferInfo`. Les descripteurs sont maintenant prêts à l'emploi!
 
-## Texture coordinates
+## Coordonnées de texture
 
-There is one important ingredient for texture mapping that is still missing, and
-that's the actual coordinates for each vertex. The coordinates determine how the
-image is actually mapped to the geometry.
+Il manque encore un élément au mapping de textures. Ce sont les coordonnées spécifiques aux vertices. Ce sont elles qui
+déterminent les pixels liés à la géométrie.
 
 ```c++
 struct Vertex {
@@ -152,11 +143,10 @@ struct Vertex {
 };
 ```
 
-Modify the `Vertex` struct to include a `vec2` for texture coordinates. Make
-sure to also add a `VkVertexInputAttributeDescription` so that we can use access
-texture coordinates as input in the vertex shader. That is necessary to be able
-to pass them to the fragment shader for interpolation across the surface of the
-square.
+Modifiez la structure `Vertex` pour qu'elle comprenne un `vec2`, qui servira à contenir les coordonnées de texture.
+Ajoutez également un `VkVertexInputAttributeDescription` afin que ces coordonnées puissent être accédées en entrée du
+vertex shader. Il est nécessaire de les passer du vertex shader vers le fragment shader afin que l'interpolation les
+transforment en un gradient.
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -167,16 +157,14 @@ const std::vector<Vertex> vertices = {
 };
 ```
 
-In this tutorial, I will simply fill the square with the texture by using
-coordinates from `0, 0` in the top-left corner to `1, 1` in the bottom-right
-corner. Feel free to experiment with different coordinates. Try using
-coordinates below `0` or above `1` to see the addressing modes in action!
+Dans ce tutoriel nous nous contenterons de mettre une texture sur le carré en utilisant des coordonnées normalisées.
+Nous mettrons le `0, 0` en haut à gauche et le `1, 1` en bas à droite. Essayez de mettre des valeurs sous `0` ou au-delà
+de `1` pour voir l'addressing mode en action!
 
 ## Shaders
 
-The final step is modifying the shaders to sample colors from the texture. We
-first need to modify the vertex shader to pass through the texture coordinates
-to the fragment shader:
+La dernière étape consiste à modifier les shaders pour qu'ils utilisent la texture et non les couleurs. Commençons par
+le vertex shader :
 
 ```glsl
 layout(location = 0) in vec2 inPosition;
@@ -193,9 +181,9 @@ void main() {
 }
 ```
 
-Just like the per vertex colors, the `fragTexCoord` values will be smoothly
-interpolated across the area of the square by the rasterizer. We can visualize
-this by having the fragment shader output the texture coordinates as colors:
+Comme pour les couleurs spécifiques aux vertices, les valeurs `fragTexCoord` seront interpolées dans le carré par
+le rasterizer pour créer un gradient lisse. Le résultat de l'interpolation peut être visualisée en utilisant les
+coordonnées comme couleurs :
 
 ```glsl
 #version 450
@@ -211,26 +199,22 @@ void main() {
 }
 ```
 
-You should see something like the image below. Don't forget to recompile the
-shaders!
+Vous devriez avoir un résultat similaire à l'image suivante. N'oubliez pas de recompiler les shader!
 
 ![](/images/texcoord_visualization.png)
 
-The green channel represents the horizontal coordinates and the red channel the
-vertical coordinates. The black and yellow corners confirm that the texture
-coordinates are correctly interpolated from `0, 0` to `1, 1` across the square.
-Visualizing data using colors is the shader programming equivalent of `printf`
-debugging, for lack of a better option!
+Le vert représente l'horizontale et le rouge la verticale. Les coins noirs et jaunes confirment la normalisation des
+valeurs de `0, 0` à `1, 1`. Utiliser les couleurs pour visualiser les valeurs et débugger est similaire à utiliser
+`printf`. C'est peu pratique mais il n'y a pas vraiment d'autre option!
 
-A combined image sampler descriptor is represented in GLSL by a sampler uniform.
-Add a reference to it in the fragment shader:
+Un descripteur de sampler d'image combinés est représenté dans les shaders par un objet de type `sampler` transmis en
+uniform. Créez donc une variable `texSampler` :
 
 ```glsl
 layout(binding = 1) uniform sampler2D texSampler;
 ```
 
-There are equivalent `sampler1D` and `sampler3D` types for other types of
-images. Make sure to use the correct binding here.
+Il existe des équivalents 1D et 3D pour de telles textures.
 
 ```glsl
 void main() {
@@ -238,16 +222,14 @@ void main() {
 }
 ```
 
-Textures are sampled using the built-in `texture` function. It takes a `sampler`
-and coordinate as arguments. The sampler automatically takes care of the
-filtering and transformations in the background. You should now see the texture
-on the square when you run the application:
+Les textures sont échantillonées à l'aide de la fonction `texture`. Elle prend en argument un objet `sampler` et des
+coordonnées. Le sampler exécute les transformations et le filtrage en arrière-plan. Vous devriez voir la texture sur le
+carré maintenant!
 
 ![](/images/texture_on_square.png)
 
-Try experimenting with the addressing modes by scaling the texture coordinates
-to values higher than `1`. For example, the following fragment shader produces
-the result in the image below when using `VK_SAMPLER_ADDRESS_MODE_REPEAT`:
+Expérimentez avec l'addressing mode en fournissant des valeurs dépassant `1`, et vous verrez la répétition de texture à
+l'oeuvre :
 
 ```glsl
 void main() {
@@ -257,7 +239,7 @@ void main() {
 
 ![](/images/texture_on_square_repeated.png)
 
-You can also manipulate the texture colors using the vertex colors:
+Vous pouvez aussi combiner les couleurs avec celles écrites à la main :
 
 ```glsl
 void main() {
@@ -265,15 +247,14 @@ void main() {
 }
 ```
 
-I've separated the RGB and alpha channels here to not scale the alpha channel.
+J'ai séparé l'alpha du reste pour ne pas altérer la transparence.
 
 ![](/images/texture_on_square_colorized.png)
 
-You now know how to access images in shaders! This is a very powerful technique
-when combined with images that are also written to in framebuffers. You can use
-these images as inputs to implement cool effects like post-processing and camera
-displays within the 3D world.
+Nous pouvons désormais utiliser des textures dans notre programme! Cette technique est extrèmement puissante et permet
+beaucoup plus que juste afficher des couleurs. Vous pouvez même utiliser les images de la swap chain comme texture et y
+appliquer des effets post-processing.
 
-[C++ code](/code/25_texture_mapping.cpp) /
+[Code C++](/code/25_texture_mapping.cpp) /
 [Vertex shader](/code/25_shader_textures.vert) /
 [Fragment shader](/code/25_shader_textures.frag)
