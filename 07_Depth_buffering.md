@@ -35,7 +35,7 @@ struct Vertex {
 Next, update the vertex shader to accept and transform 3D coordinates as input.
 Don't forget to recompile it afterwards!
 
-```c++
+```glsl
 layout(location = 0) in vec3 inPosition;
 
 ...
