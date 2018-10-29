@@ -39,7 +39,11 @@ tutorial:
 This tutorial will not assume knowledge of OpenGL or Direct3D concepts, but it
 does require you to know the basics of 3D computer graphics. It will not explain
 the math behind perspective projection, for example. See [this online book](https://paroj.github.io/gltut/)
-for a great introduction of computer graphics concepts.
+for a great introduction of computer graphics concepts. Some other great computer graphics resources are:
+
+* [Ray tracing in one weekend](https://github.com/petershirley/raytracinginoneweekend)
+* [Physically Based Rendering book](http://www.pbr-book.org/)
+* Vulkan being used in a real engine in the open-source [Quake](https://github.com/Novum/vkQuake) and [DOOM 3](https://github.com/DustinHLand/vkDOOM3)
 
 You can use C instead of C++ if you want, but you will have to use a different
 linear algebra library and you will be on your own in terms of code structuring.
