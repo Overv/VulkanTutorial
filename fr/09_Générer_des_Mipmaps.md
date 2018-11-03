@@ -1,15 +1,23 @@
 ## Introduction
-Our program can now load and render 3D models. In this chapter, we will add one more feature, mipmap generation. Mipmaps are widely used in games and rendering software, and Vulkan gives us complete control over how they are created. 
 
-Mipmaps are precalculated, downscaled versions of an image. Each new image is half the width and height of the previous one.  Mipmaps are used as a form of *Level of Detail* or *LOD.* Objects that are far away from the camera will sample their textures from the smaller mip images. Using smaller images increases the rendering speed and avoids artifacts such as [Moiré patterns](https://en.wikipedia.org/wiki/Moir%C3%A9_pattern). An example of what mipmaps look like:
+Notre programme peut maintenant charger et afficher des modèles 3D. Dans ce chapitre nous allons ajouter une nouvelle
+fonctionnalité : celle de générer et d'utiliser des mipmaps. Elles sont utilisées dans tous les applications 3D. Vulkan
+laisse au programmeur un control quasiment total sur leur génération.
+
+Les mipmaps sont des versions de qualité réduite précalculées. Chacune de ces versions est deux fois moins haute et
+large que l'originale. Les objets plus distants de la caméra peuvent utiliser ces versions pour le sampling de la
+texture. Le rendu est alors plus rapide et plus lisse. Voici un exemple de mipmpas :
 
 ![](/images/mipmaps_example.jpg)
 
-## Image creation
+## Création des images
 
-In Vulkan, each of the mip images is stored in different *mip levels* of a `VkImage`. Mip level 0 is the original image, and the mip levels after level 0 are commonly referred to as the *mip chain.* 
+Avec Vulkan, chaque niveau de mipmap est stocké dans les différents *niveaux de mipmap* de l'image originale. Le niveau
+0 correspond à l'image originale. Les images suivantes sont souvent appelées *mip chain*.
 
-The number of mip levels is specified when the `VkImage` is created. Up until now, we have always set this value to one. We need to calculate the number of mip levels from the dimensions of the image. First, add a class member to store this number:
+Le nombre de niveaux de mipmap doit être fourni lors de la création de l'image. Jusqu'à présent nous avons indiqué la
+valeur `1`. Nous devons ainsi calculer le nombre de mipmaps à générer à partir de la taille de l'image. Créez un membre
+donnée pour contenir cette valeur :
 
 ```c++
 ...
@@ -18,7 +26,7 @@ VkImage textureImage;
 ...
 ```
 
-The value for `mipLevels` can be found once we've loaded the texture in `createTextureImage`:
+La valeur pour `mipLevels` peut être déterminée une fois que nous avons chargé la texture dans `createTextureImage` :
 
 ```c++
 int texWidth, texHeight, texChannels;
@@ -28,9 +36,14 @@ mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHei
 
 ```
 
-This calculates the number of levels in the mip chain. The `max` function selects the largest dimension. The `log2` function calculates how many times that dimension can be divided by 2. The `floor` function handles cases where the largest dimension is not a power of 2.  `1` is added so that the original image has a mip level.
+La troisième ligne ci-dessus calcule le nombre de niveaux de mipmaps. La fonction `max` chosit la plus grande des
+dimensions, bien que dans la pratique les textures seront toujours carrées. Ensuite, `log2` donne le nombre de fois que
+les dimensions peuvent être divisées par deux. La fonction `floor` gère le cas où la dimension n'est pas un multiple
+de deux (ce qui est déconseillé). `1` est finalement rajouté pour que l'image originale soit aussi comptée.
 
-To use this value, we need to change the `createImage`, `createImageView`, and `transitionImageLayout` functions to allow us to specify the number of mip levels. Add a `mipLevels` parameter to the functions:
+Pour utiliser cette valeur nous devons changer les fonctions `createImage`, `createImageView` et
+`transitionImageLayout`. Nous devrons y indiquer le nombre de mipmaps. Ajoutez donc cette donnée en paramètre à toutes
+ces fonctions :
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -52,7 +65,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
     ...
 ```
 
-Update all calls to these functions to use the right values:
+Il nous faut aussi mettre à jour les appels.
 
 ```c++
 createImage(swapChainExtent.width, swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
@@ -72,13 +85,16 @@ transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMA
 transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 ```
 
+## Génération des mipmaps
 
+Notre texture a plusieurs niveaux de mipmaps, mais le buffer intermédiaire ne peut pas gérer cela. Les niveaux
+autres que 0 sont indéfinis. Pour les remplir nous devons générer les mipmaps à partir du seul niveau que nous avons.
+Nous allons faire cela du côté de la carte graphique. Nous allons pour cela utiliser la commande `vkCmdBlitImage`.
+Elle effectue une copie, une mise à l'échelle et un filtrage. Nous allons l'appeler une fois par niveau.
 
-## Generating Mipmaps
-
-Our texture image now has multiple mip levels, but the staging buffer can only be used to fill mip level 0. The other levels are still undefined. To fill these levels we need to generate the data from the single level that we have. We will use the `vkCmdBlitImage` command. This command performs copying, scaling, and filtering operations. We will call this multiple times to *blit* data to each level of our texture image.
-
-`VkCmdBlit` is considered a transfer operation, so we must inform Vulkan that we intend to use the texture image as both the source and destination of a transfer. Add `VK_IMAGE_USAGE_TRANSFER_SRC_BIT` to the texture image's usage flags in `createTextureImage`:
+Cette commande est considérée comme une opération de transfert. Nous devons donc indiquer que la mémoire de l'image sera
+utilisée à la fois comme source et comme destination de la commande. Ajoutez `VK_IMAGE_USAGE_TRANSFER_SRC_BIT` à la
+création de l'image.
 
 ```c++
 ...
@@ -86,21 +102,28 @@ createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_T
 ...
 ```
 
-Like other image operations, `vkCmdBlitImage` depends on the layout of the image it operates on. We could transition the entire image to `VK_IMAGE_LAYOUT_GENERAL`, but this will most likely be slow. For optimal performance, the source image should be in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` and the destination image should be in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`. Vulkan allows us to transition each mip level of an image independently. Each blit will only deal with two mip levels at a time, so we can transition each level into the optimal layout between blits commands.
+Comme pour les autres opérations sur les images, la commande `vkCmdBlitImage` dépend de l'organisation de l'image sur
+laquelle elle opère. Nous pourrions transitionner l'image vers `VK_IMAGE_LAYOUT_GENERAL`, mais les opérations 
+prendraient beaucoup de temps. En fait il est possible de transitionner les niveaux de mipmaps indépendemment les uns
+des autres. Nous pouvons donc mettre l'image initiale à `VK_IMAGE_LAYOUT_TRANSFER_SCR_OPTIMAL` et la chaîne de mipmaps
+à `VK_IMAGE_LAYOUT_DST_OPTIMAL`. Nous pourrons réaliser les transitions à la fin de chaque opération.
 
-`transitionImageLayout` only performs layout transitions on the entire image, so we'll need to write a few more pipeline barrier commands. Remove the existing transition to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` in `createTextureImage`:
+La fonction `transitionImageLayout` ne sait réalise une transition d'organisation que sur l'image entière. Nous allons
+donc devoir écrire quelque commandes liées aux barrières de pipeline. Supprimez la transition vers
+`VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` dans `createTextureImage` :
 
 ```c++
 ...
 transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
     copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-//transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
+//transitionné vers VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL lors de la generation des mipmaps
 ...
 ```
 
-This will leave each level of the texture image in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`. Each level will be transitioned to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` after the blit command reading from it is finished.
+Tous les niveaux de l'image seront ainsi en `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`. Chaque niveau sera ensuite
+transitionné vers `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` après l'exécution de la commande.
 
-We're now going to write the function that generates the mipmaps:
+Nous allons maintenant écrire la fonction qui génèrera les mipmaps.
 
 ```c++
 void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
@@ -120,7 +143,9 @@ void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_
 }
 ```
 
-We're going to make several transitions, so we'll reuse this `VkImageMemoryBarrier`. The fields set above will remain the same for all barriers. `subresourceRange.miplevel`, `oldLayout`, `newLayout`, `srcAccessMask`, and `dstAccessMask` will be changed for each transition.
+Nous allons réaliser plusieurs transitions, et pour cela nous réutiliserons cette structure `VkImageMemoryBarrier`. Les
+champs remplis ci-dessus sont corrects pour toutes les barrières. Ceux qui ne sont pas encore remplis changeront à
+chaque transition.
 
 ```c++
 int32_t mipWidth = texWidth;
@@ -131,7 +156,7 @@ for (uint32_t i = 1; i < mipLevels; i++) {
 }
 ```
 
-This loop will record each of the `VkCmdBlitImage` commands. Note that the loop variable starts at 1, not 0.
+Cette boucle va enregistrer toutes les commandes `VkCmdBlitImage`. Remarquez que la boucle commence à 1, et pas à 0.
 
 ```c++
 barrier.subresourceRange.baseMipLevel = i - 1;
@@ -147,7 +172,9 @@ vkCmdPipelineBarrier(commandBuffer,
     1, &barrier);
 ```
 
-First, we transition level `i - 1` to `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. This transition will wait for level `i - 1` to be filled, either from the previous blit command, or from `vkCmdCopyBufferToImage`. The current blit command will wait on this transition.
+Tout d'abord nous transitionnons le `i-1`ième niveau vers `VK_IMAGE_LAYOUT_TRANSFER_SCR_OPTIMAL`. Cette transition
+attendra que le niveau de mipmap soit prêt, que ce soit par copie depuis le buffer pour l'image originale, ou bien par
+`vkCmdBlitImage`. La commande de génération de la mipmap suivante attendra donc la fin de la précédente.
 
 ```c++
 VkImageBlit blit = {};
@@ -165,7 +192,10 @@ blit.dstSubresource.baseArrayLayer = 0;
 blit.dstSubresource.layerCount = 1;
 ```
 
-Next, we specify the regions that will be used in the blit operation. The source mip level is `i - 1` and the destination mip level is `i`. The two elements of the `srcOffsets` array determine the 3D region that data will be blitted from. `dstOffsets` determines the region that data will be blitted to. The X and Y dimensions of the `dstOffsets[1]` are divided by two since each mip level is half the size of the previous level. The Z dimension of `srcOffsets[1]` and `dstOffsets[1]` must be 1, since a 2D image has a depth of 1.
+Nous devons maintenant indiquer les régions concernées par la commande. Le niveau de mipmap source est `i-1` et le
+niveau destination est `i`. Les deux éléments du tableau `scrOffsets` déterminent en 3D la région source, et
+`dstOffsets` la région cible. Les coordonnées X et Y sont à chaque fois divisées par deux pour réduire la taille des
+mipmaps. La coordonnée Z doit être mise à la profondeur de l'image, c'est à dire 1.
 
 ```c++
 vkCmdBlitImage(commandBuffer,
@@ -175,9 +205,12 @@ vkCmdBlitImage(commandBuffer,
     VK_FILTER_LINEAR);
 ```
 
-Now, we record the blit command. Note that `textureImage` is used for both the `srcImage` and `dstImage` parameter. This is because we're blitting between different levels of the same image. The source mip level was just transitioned to `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` and the destination level is still in `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` from `createTextureImage`.
+Nous enregistrons maintenant les commandes. Remarquez que `textureImage` est utilisé à la fois comme source et comme
+cible, car la commande s'applique à plusieurs niveaux de l'image. Le niveau de mipmap source vient d'être transitionné
+vers `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`, et le niveau cible est resté en destination depuis sa création.
 
-The last parameter allows us to specify a `VkFilter` to use in the blit. We have the same filtering options here that we had when making the `VkSampler`. We use the `VK_FILTER_LINEAR` to enable interpolation.
+Le dernier paramètre permet de fournir un `VkFilter`. Nous voulons le même filtre que pour le sampler, nous pouvons donc
+mettre `VK_FILTER_LINEAR`.
 
 ```c++
 barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
@@ -192,7 +225,8 @@ vkCmdPipelineBarrier(commandBuffer,
     1, &barrier);
 ```
 
-This barrier transitions mip level `i - 1` to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`. This transition waits on the current blit command to finish. All sampling operations will wait on this transition to finish.
+Ensuite, la boucle transtionne le `i-1`ième niveau de mipmap vers l'organisation optimale pour la lecture par shader.
+La transition attendra la fin de la commande. Toutes les opérations de sampling attendront aussi.
 
 ```c++
     ...
@@ -201,7 +235,8 @@ This barrier transitions mip level `i - 1` to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_
 }
 ```
 
-At the end of the loop, we divide the current mip dimensions by two. We check each dimension before the division to ensure that dimension never becomes 0. This handles cases where the image is not square, since one of the mip dimensions would reach 1 before the other dimension. When this happens, that dimension should remain 1 for all remaining levels.
+Les tailles de la mipmap sont ensuite divisées par deux. Nous vérifions quand même que ces dimensions sont bien
+supérieures à 1, ce qui peut arriver dans le cas d'une image qui n'est pas carrée.
 
 ```c++
     barrier.subresourceRange.baseMipLevel = mipLevels - 1;
@@ -220,9 +255,11 @@ At the end of the loop, we divide the current mip dimensions by two. We check ea
 }
 ```
 
-Before we end the command buffer, we insert one more pipeline barrier. This barrier transitions the last mip level from `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`. This wasn't handled by the loop, since the last mip level is never blitted from.
+Avant de terminer avec le command buffer, nous devons ajouter une dernière barrière. Elle transitionne le dernier
+niveau de mipmap vers `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`. Ce cas n'avait pas été géré par la boucle, car elle
+n'a jamais servie de source à une copie.
 
-Finally, add the call to `generateMipmaps` in `createTextureImage`:
+Appelez finallement cette fonction depuis `createTextureImage` :
 
 ```c++
 transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
@@ -232,13 +269,15 @@ transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UN
 generateMipmaps(textureImage, texWidth, texHeight, mipLevels);
 ```
 
-Our texture image's mipmaps are now completely filled.
+Les mipmaps de notre image sont maintenant complètement remplies.
 
-## Linear filtering support
+## Support pour le filtrage linéaire
 
-It is very convenient to use a built-in function like `vkCmdBlitImage` to generate all the mip levels, but unfortunately it is not guaranteed to be supported on all platforms. It requires the texture image format we use to support linear filtering, which can be checked with the `vkGetPhysicalDeviceFormatProperties` function. We will add a check to the `generateMipmaps` function for this.
+La fonction `vkCmdBlitImage` est extrèmement pratique. Malheuresement il n'est pas garanti qu'elle soit disponible. Elle
+nécessite que le format de l'image texture supporte ce type de filtrage, ce que nous pouvons vérifier avec la fonction
+`vkGetPhysicalDeviceFormatProperties`. Nous allons vérifier sa disponiblité dans `generateMipmaps`.
 
-First add an additional parameter that specifies the image format:
+Ajoutez d'abord un paramètre qui indique le format de l'image :
 
 ```c++
 void createTextureImage() {
@@ -253,39 +292,49 @@ void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int3
 }
 ```
 
-In the `generateMipmaps` function, use `vkGetPhysicalDeviceFormatProperties` to request the properties of the texture image format:
+Utilisez `vkGetPhysicalDeviceFormatProperties` dans `generateMipmaps` pour récupérer les propriétés liés au format :
 
 ```c++
 void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
 
-    // Check if image format supports linear blitting
+    // Vérifions si l'image supporte le filtrage linéaire
     VkFormatProperties formatProperties;
     vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
 
     ...
 ```
 
-The `VkFormatProperties` struct has three fields named `linearTilingFeatures`, `optimalTilingFeatures` and `bufferFeatures` that each describe how the format can be used depending on the way it is used. We create a texture image with the optimal tiling format, so we need to check `optimalTilingFeatures`. Support for the linear filtering feature can be checked with the `VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT`:
+La structure `VkFormatProperties` possède les trois champs `linearTilingFeatures`, `optimalTilingFeature` et
+`bufferFeaetures`. Ils décrivent chacun l'utilisation possible d'images de ce format dans certains contextes. Nous avons
+créé l'image avec le format optimal, les informations qui nous concernent sont donc dans `optimalTilingFeatures`. Le
+support pour le filtrage linéaire est ensuite indiqué par `VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT`.
 
 ```c++
 if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
-    throw std::runtime_error("texture image format does not support linear blitting!");
+    throw std::runtime_error("le format de l'image texture ne supporte pas le filtrage lineaire!");
 }
 ```
 
-There are two alternatives in this case. You could implement a function that searches common texture image formats for one that *does* support linear blitting, or you could implement the mipmap generation in software with a library like [stb_image_resize](https://github.com/nothings/stb/blob/master/stb_image_resize.h). Each mip level can then be loaded into the image in the same way that you loaded the original image.
+Il y a deux alternatives si le format ne permet pas l'utilisation de `vkCmdBlitImage`. Vous pouvez créer une fonction
+pour essayer de trouver un format supportant la commande, ou vous pouvez utiliser une librairie pour générer les
+mipmaps comme [stb_image_resize](https://github.com/nothings/stb/blob/master/stb_image_resize.h). Chaque niveau de
+mipmap peut ensuite être chargé de la même manière que vous avez chargé l'image.
 
-It should be noted that it is uncommon in practice to generate the mipmap levels at runtime anyway. Usually they are pregenerated and stored in the texture file alongside the base level to improve loading speed. Implementing resizing in software and loading multiple levels from a file is left as an exercise to the reader.
+Souvenez-vous qu'il est rare de générer les mipmaps pendant l'exécution. Elles sont généralement prégénérées et stockées
+dans le fichier avec l'image de base. Le chargement de mipmaps prégénérées est laissé comme exercice au lecteur.
 
 ## Sampler
 
-While the `VkImage` holds the mipmap data, `VkSampler` controls how that data is read while rendering. Vulkan allows us to specify `minLod`, `maxLod`, `mipLodBias`, and `mipmapMode` ("Lod" means "Level of Detail"). When a texture is sampled, the sampler selects a mip level according to the following pseudocode:
+Un objet `VkImage` contient les données de l'image et un objet `VkSampler` contrôle la lecture des données pendant le
+rendu. Vulkan nous permet de spécifier les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`, où "Lod" signifie
+"level of detail" ou "niveau de détail". Pendant l'échantillonage d'une texture, le sampler sélectionne le niveau de
+mipmap à utiliser suivant ce pseudo-code :
 
 ```c++
-lod = getLodLevelFromScreenSize(); //smaller when the object is close, may be negative
+lod = getLodLevelFromScreenSize(); //plus petit quand l'objet est proche, peut etre negatif
 lod = clamp(lod + mipLodBias, minLod, maxLod);
 
-level = clamp(floor(lod), 0, texture.mipLevels - 1);  //clamped to the number of mip levels in the texture
+level = clamp(floor(lod), 0, texture.mipLevels - 1);  //limité au nombre de niveaux de mipmaps dans le texture
 
 if (mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST) {
     color = sample(level);
@@ -294,9 +343,11 @@ if (mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST) {
 }
 ```
 
-If `samplerInfo.mipmapMode` is `VK_SAMPLER_MIPMAP_MODE_NEAREST`, `lod` selects the mip level to sample from. If the mipmap mode is `VK_SAMPLER_MIPMAP_MODE_LINEAR`, `lod` is used to select two mip levels to be sampled. Those levels are sampled and the results are linearly blended.
+Si `samplerInfo.mipmapMode` est `VK_SAMPLER_MIPMAP_MODE_NEAREST`, la variable `lod` correpond au niveau de mipmap à
+échantillonner. Sinon, si il vaut `VK_SAMPLER_MIPMAP_MODE_LINEAR`, deux niveaux de mipmaps sont samplés, puis interpolés
+linéairement.
 
-The sample operation is also affected by `lod`:
+L'opération d'échantillonnage est aussi affectée par `lod` :
 
 ```c++
 if (lod <= 0) {
@@ -306,47 +357,48 @@ if (lod <= 0) {
 }
 ```
 
-If the object is close to the camera, `magFilter` is used as the filter. If the object is further from the camera, `minFilter` is used. Normally, `lod` is non-negative, and is only 0 when close the camera. `mipLodBias` lets us force Vulkan to use lower `lod` and `level` than it would normally use.
+Si l'objet est proche de la caméra, `magFilter` est utilisé comme filtre. Si l'objet est plus distant, `minFilter` sera
+utilisé. Normalement `lod` est positif, est devient nul au niveau de la caméra. `mipLodBias` permet de forcer Vulkan à
+utiliser un `lod` plus petit et donc un noveau de mipmap plus élevé.
 
-To see the results of this chapter, we need to choose values for our `textureSampler`. We've already set the `minFilter` and `magFilter` to use `VK_FILTER_LINEAR`. We just need to choose values for `minLod`, `maxLod`, `mipLodBias`, and `mipmapMode`.
+Pour voir les résultats de ce chapitre, nous devons choisir les valeurs pour `textureSampler`. Nous avons déjà fourni
+`minFilter` et `magFilter`. Il nous reste les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`.
 
 ```c++
 void createTextureSampler() {
     ...
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.minLod = 0; // Optional
+    samplerInfo.minLod = 0; // Optionnel
     samplerInfo.maxLod = static_cast<float>(mipLevels);
-    samplerInfo.mipLodBias = 0; // Optional
+    samplerInfo.mipLodBias = 0; // Optionnel
     ...
 }
 ```
+Pour utiliser la totalité des niveaux de mipmaps, nous mettons `minLod` à `0` et `maxLod` au nombre de niveaux de
+mipmaps. Nous n'avons aucune raison d'altérer `lod` avec `mipLodBias`, alors nous pouvons le mettre à `0`.
 
-To allow the full range of mip levels to be used, we set `minLod` to 0, and `maxLod` to the number of mip levels. We have no reason to change the `lod` value , so we set `mipLodBias` to 0.
-
-Now run your program and you should see the following:
+Lancez votre programme et vous devriez voir ceci :
 
 ![](/images/mipmaps.png)
 
-It's not a dramatic difference, since our scene is so simple. There are subtle differences if you look closely.
+Notre scène est si simple qu'il n'y a pas de différence majeure. En comparant précisement on peut voir quelques
+différences.
 
 ![](/images/mipmaps_comparison.png)
 
-The most noticeable difference is the writing on the signs. With mipmaps, the writing has been smoothed. Without mipmaps, the writing has harsh edges and gaps from Moiré artifacts.
+La différence la plus évidente est le texte sur le paneau, plus lisse avec les mipmaps.
 
-You can play around with the sampler settings to see how they affect mipmapping. For example, by changing `minLod`, you can force the sampler to not use the lowest mip levels:
+Vous pouvez modifier les paramètres du sampler pour voir l'impact sur le rendu. Par exemple vous pouvez empêcher le
+sampler d'utiliser le plus haut nivau de mipmap en ne lui indiquant pas le niveau le plus bas :
 
 ```c++
 samplerInfo.minLod = static_cast<float>(mipLevels / 2);
 ```
 
-These settings will produce this image:
-
+Ce paramètre produira ce rendu :
 
 ![](/images/highmipmaps.png)
 
-This is how higher mip levels will be used when objects are further away from the camera.
-
-
-[C++ code](/code/28_mipmapping.cpp) /
+[Code C++](/code/28_mipmapping.cpp) /
 [Vertex shader](/code/26_shader_depth.vert) /
 [Fragment shader](/code/26_shader_depth.frag)
