@@ -54,11 +54,11 @@ An instance is created by describing your application and any API extensions you
 will be using. After creating the instance, you can query for Vulkan supported
 hardware and select one or more `VkPhysicalDevice`s to use for operations. You
 can query for properties like VRAM size and device capabilities to select
-desired devices, for example to prefer using dedicated graphics cards. 
+desired devices, for example to prefer using dedicated graphics cards.
 
 ### Step 2 - Logical device and queue families
 
-After selecting the right hardware device to use, you need to create a VkDevice 
+After selecting the right hardware device to use, you need to create a VkDevice
 (logical device), where you describe more specifically which
 VkPhysicalDeviceFeatures you will be using, like multi viewport rendering and
 64 bit floats. You also need to specify which queue families you would like to
@@ -79,8 +79,8 @@ window to present rendered images to. Windows can be created with the native
 platform APIs or libraries like [GLFW](http://www.glfw.org/) and [SDL](https://www.libsdl.org/).
 We will be using GLFW in this tutorial, but more about that in the next chapter.
 
-We need two more components to actually render to a window: a window surface 
-(VkSurfaceKHR) and a swap chain (VkSwapChainKHR). Note the `KHR` postfix, which
+We need two more components to actually render to a window: a window surface
+(VkSurfaceKHR) and a swap chain (VkSwapchainKHR). Note the `KHR` postfix, which
 means that these objects are part of a Vulkan extension. The Vulkan API itself
 is completely platform agnostic, which is why we need to use the standardized
 WSI (Window System Interface) extension to interact with the window manager. The
