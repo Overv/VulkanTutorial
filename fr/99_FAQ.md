@@ -1,25 +1,19 @@
-This page lists solutions to common problems that you may encounter while
-developing Vulkan applications.
+Cette page liste quelques problèmes que vous risquez de rencontrer lors du développement d'une application Vulkan.
 
-* **I get an access violation error in the core validation layer**: Make sure
-that MSI Afterburner / RivaTuner Statistics Server is not running, because it
-has some compatibility problems with Vulkan.
+* **J'obtiens un erreur de violation d'accès dans les validations layers** : assurez-vous que MSI Afterburner /
+RivaTuner Statistics Server ne tournent pas, car ils possèdent des problèmes de compatibilité avec Vulkan.
 
-* **I don't see any messages from the validation layers**: First make sure that
-the validation layers get a chance to print errors by keeping the terminal open
-after your program exits. You can do this from Visual Studio by running your
-program with Ctrl-F5 instead of F5, and on Linux by executing your program from
-a terminal window. If there are still no messages and you are sure that
-validation layers are turned on, then you should ensure that your Vulkan SDK is
-correctly installed by following [these instructions](https://vulkan.lunarg.com/doc/sdk/1.0.61.0/windows/getting_started.html).
+* **Je ne vois aucun message provenant des validation layers** : assurez-vous d'abord que les validation layers peuvent
+écrire leurs message en laissant le terminal ouvert après l'exécution. Avec Visual Studio, lancez le programme avec
+Ctrl-F5. Sous Linux, lancez le programme depuis un terminal. S'il n'y a toujours pas de message, revoyez l'installation
+du SDK [ici](https://vulkan.lunarg.com/doc/sdk/1.0.61.0/windows/getting_started.html).
 
-* **vkCreateSwapchainKHR triggers an error in SteamOverlayVulkanLayer64.dll**:
-This appears to be a compatibility problem in the Steam client beta. There are a
-few possible workarounds:
-    * Opt out of the Steam beta program.
-    * Set the `DISABLE_VK_LAYER_VALVE_steam_overlay_1` environment variable to `1`
-    * Delete the Steam overlay Vulkan layer entry in the registry under `HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers`
+* **vkCreateSwapchainKHR induit une erreur dans SteamOverlayVulkanLayer64.dll** : Il semble qu'il y ait un problème de
+compatibilité avec la version beta du client Steam. Il y a quelques moyens de régler le conflit :
+    * Désinstaller Steam
+    * Mettre la variable d'environnement `DISABLE_VK_LAYER_VALVE_steam_overlay_1` à `1`
+    * Supprimer la layer de Steam dans le répertoire sous `HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers`
 
-Example:
+Exemple pour la variable :
 
 ![](/images/steam_layers_env.png)
