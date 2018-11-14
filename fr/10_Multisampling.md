@@ -1,25 +1,34 @@
 ## Introduction
 
-Our program can now load multiple levels of detail for textures which fixes artifacts when rendering objects far away from the viewer. The image is now a lot smoother, however on closer inspection you will notice jagged saw-like patterns along the edges of drawn geometric shapes. This is especially visible in one of our early programs when we rendered a quad:
+Notre programme peut maintenant générer plusieurs niveaux de détails pour les textures qu'il utilise. Ces images sont
+plus lisses quand vues de loin. Cependant on peut voir des motifs en dent de scie si on regarde les textures de plus
+près. Ceci est particulièrement visible sur le rendu de carrés :
 
 ![](/images/texcoord_visualization.png)
 
-This undesired effect is called "aliasing" and it's a result of a limited numbers of pixels that are available for rendering. Since there are no displays out there with unlimited resolution, it will be always visible to some extent. There's a number of ways to fix this and in this chapter we'll focus on one of the more popular ones: [Multisample anti-aliasing](https://en.wikipedia.org/wiki/Multisample_anti-aliasing) (MSAA).
+Cet effet indésirable s'appelle "aliasing". Il est dû au manque de pixels pour afficher tous les détails de la
+géométrie. Il sera toujours visible, par contre nous pouvons utiliser des techniques pour le réduire considérablement.
+Nous allons ici implémenter le [multisample anti-aliasing](https://en.wikipedia.org/wiki/Multisample_anti-aliasing),
+terme condensé en MSAA.
 
-In ordinary rendering, the pixel color is determined based on a single sample point which in most cases is the center of the target pixel on screen. If part of the drawn line passes through a certain pixel but doesn't cover the sample point, that pixel will be left blank, leading to the jagged "staircase" effect.
+Dans un rendu standard, la couleur d'un pixel est déterminée à partir d'un unique sample, en général le centre du pixel.
+Si un ligne passe partiellement par un pixel sans en toucher le centre, sa contribution à la couleur sera nulle. Nous
+voudrions plutôt qu'il y contribue partiellement.
 
 ![](/images/aliasing.png)
 
-What MSAA does is it uses multiple sample points per pixel (hence the name) to determine its final color. As one might expect, more samples lead to better results, however it is also more computationally expensive.
+Le MSAA consiste à utiliser plusieurs points dans un pixel pour déterminer la couleur d'un pixel. Comme on peut s'y
+attendre, plus de points offrent un meilleur résultat, mais nécessitent plus de ressources.
 
 ![](/images/antialiasing.png)
 
-In our implementation, we will focus on using the maximum available sample count. Depending on your application this may not always be the best approach and it might be better to use less samples for the sake of higher performance if the final result meets your quality demands.
+Nous allons utiliser le maximum de points possible. Si votre application nécessite plus de performances, cette approche
+ne sera pas la meilleure.
 
+## Récupération du nombre maximal de samples
 
-## Getting available sample count
-
-Let's start off by determining how many samples our hardware can use. Most modern GPUs support at least 8 samples but this number is not guaranteed to be the same everywhere. We'll keep track of it by adding a new class member:
+Commençons par déterminer le nombre maximal de samples que la carte graphique supporte. Les GPUs modernes supportent au
+moins 8 points, mais il peut tout de même différer entre modèle. Nous allons stocker ce nombre dans un membre donnée :
 
 ```c++
 ...
@@ -27,7 +36,10 @@ VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 ...
 ```
 
-By default we'll be using only one sample per pixel which is equivalent to no multisampling, in which case the final image will remain unchanged. The exact maximum number of samples can be extracted from `VkPhysicalDeviceProperties` associated with our selected physical device. We're using a depth buffer, so we have to take into account the sample count for both color and depth - the lower number will be the maximum we can support. Add a function that will fetch this information for us:
+Par défaut nous n'utilisons qu'un point, ce qui correspond à ne pas utiliser de multisampling. Le nombre maximal est
+inscrit dans la structure de type `VkPhysicalDeviceProperties` associée au GPU. Comme nous utilisons un buffer de
+profondeur, nous devons prendre en compte le nombre de samples pour la couleur et pour la profondeur. Le plus petit des
+deux sera le nombre que nous utiliserons. Créez une fonction dans laquelle les informations seront récupérées :
 
 ```c++
 VkSampleCountFlagBits getMaxUsableSampleCount() {
@@ -46,7 +58,8 @@ VkSampleCountFlagBits getMaxUsableSampleCount() {
 }
 ```
 
-We will now use this function to set the `msaaSamples` variable during the physical device selection process. For this, we have to slightly modify the `pickPhysicalDevice` function:
+Nous allons maintenant utiliser cette fonction pour donner une valeur à `msaaSamples` pendant la sélection du GPU. Nous
+devons modifier la fonction `pickPhysicalDevice` :
 
 ```c++
 void pickPhysicalDevice() {
@@ -62,9 +75,13 @@ void pickPhysicalDevice() {
 }
 ```
 
-## Setting up a render target
+## Mettre en place une cible de rendu
 
-In MSAA, each pixel is sampled in an offscreen buffer which is then rendered to the screen. This new buffer is slightly different from regular images we've been rendering to - they have to be able to store more than one sample per pixel. Once a multisampled buffer is created, it has to be resolved to the default framebuffer (which stores only a single sample per pixel). This is why we have to create an additional render target and modify our current drawing process. We only need one render target since only one drawing operation is active at a time, just like with the depth buffer. Add the following class members:
+Le MSAA consiste à écrire chaque pixel dans un buffer indépendant de l'affichage, dont le contenu est ensuite rendu en
+le résolvant à un framebuffer standard. Cette étape est nécessaire car le premier buffer est une image particulière :
+elle doit supporter plus d'un sample par pixel. Il ne peut pas être utilisé comme framebuffer dans la swap chain. Nous
+allons donc devoir changer notre rendu. Nous n'aurons besoin que d'une cible de rendu, car seule une opération de rendu
+ne peut intervenir à un instant donné. Créez les membres données suivants :
 
 ```c++
 ...
@@ -74,7 +91,8 @@ VkImageView colorImageView;
 ...
 ```
 
-This new image will have to store the desired number of samples per pixel, so we need to pass this number to `VkImageCreateInfo` during the image creation process. Modify the `createImage` function by adding a `numSamples` parameter:
+Cette image doit supporter le nombre de samples déterminé auparavant, nous devons donc le lui fournir durant sa
+création. Ajoutez un paramètre `numSamples` à la fonction `createImage` :
 
 ```c++
 void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
@@ -83,7 +101,7 @@ void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCo
     ...
 ```
 
-For now, update all calls to this function using `VK_SAMPLE_COUNT_1_BIT` - we will be replacing this with proper values as we progress with implementation:
+Mettez à jour tous les appels avec `VK_SAMPLE_COUNT_1_BIT`. Nous changerons cette valeur pour la nouvelle image.
 
 ```c++
 createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
@@ -91,7 +109,9 @@ createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_
 createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ```
 
-We will now create a multisampled color buffer. Add a `createColorResources` function and note that we're using `msaaSamples` here as a function parameter to `createImage`. We're also using only one mip level, since this is enforced by the Vulkan specification in case of images with more than one sample per pixel. Also, this color buffer doesn't need mipmaps since it's not going to be used as a texture:
+Nous allons maintenant créer un buffer de couleur à plusieurs samples. Créez la fonction `createColorResources`, et
+passez `msaaSamples` à `createImage` depuis cette fonction. Nous n'utilisons également qu'un niveau de mipmap, ce qui
+est nécessaire pour conformer à la spécification de Vulkan. Mais de toute façon cette image n'a pas besoin de mipmaps.
 
 ```c++
 void createColorResources() {
@@ -104,7 +124,7 @@ void createColorResources() {
 }
 ```
 
-For consistency, call the function right before `createDepthResources`:
+Pour être cohérent appelez cette fonction juste avant `createDepthResource`.
 
 ```c++
 void initVulkan() {
@@ -115,7 +135,8 @@ void initVulkan() {
 }
 ```
 
-You may notice that the newly created color image uses a transition path from `VK_IMAGE_LAYOUT_UNDEFINED` to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` which is a new case for us to handle. Let's update `transitionImageLayout` function to take this into account:
+Remarquez la transition de `VK_IMAGE_LAYOUT_UNDEFINED` vers `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`, que nous devons
+gérer d'une nouvelle façon. Mettons à jour la fonction `transitionImageLayout` :
 
 ```c++
 void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
@@ -127,13 +148,14 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
         destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     }
     else {
-        throw std::invalid_argument("unsupported layout transition!");
+        throw std::invalid_argument("transitiond'organisation non supportee!");
     }
     ...
 }
 ```
 
-Now that we have a multisampled color buffer in place it's time to take care of depth. Modify `createDepthResources` and update the number of samples used by the depth buffer:
+Nous avons maintenant un buffer de couleurs qui utilise le multisampling. Occupons-nous maintenant de la profondeur.
+Modifiez `createDepthResources` et changez le nombre de samples utilisé :
 
 ```c++
 void createDepthResources() {
@@ -143,7 +165,7 @@ void createDepthResources() {
 }
 ```
 
-We have now created a couple of new Vulkan resources, so let's not forget to release them when necessary:
+Comme nous avons créé quelques ressources, nous devons les libérer :
 
 ```c++
 void cleanupSwapChain() {
@@ -154,7 +176,7 @@ void cleanupSwapChain() {
 }
 ```
 
-And update the `recreateSwapChain` so that the new color image can be recreated in the correct resolution when the window is resized:
+Mettez également à jour `recreateSwapChain` pour prendre en charge les recréations de l'image couleur.
 
 ```c++
 void recreateSwapChain() {
@@ -166,11 +188,13 @@ void recreateSwapChain() {
 }
 ```
 
-We made it past the initial MSAA setup, now we need to start using this new resource in our graphics pipeline, framebuffer, render pass and see the results!
+Nous avons fini le paramétrage initial du MSAA. Nous devons maintenant utiliser ces ressources dans la pipeline, le
+framebuffer et la passe de rendu!
 
-## Adding new attachments
+## Ajouter de nouveaux attachements
 
-Let's take care of the render pass first. Modify `createRenderPass` and update color and depth attachment creation info structs:
+Gérons d'abord la passe de rendu. Modifiez `createRenderPass` et changez-y la création des attachements de couleur et de
+profondeur.
 
 ```c++
 void createRenderPass() {
@@ -182,7 +206,10 @@ void createRenderPass() {
     ...
 ```
 
-You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` to `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`. That's because multisampled images cannot be presented directly. We first need to resolve them to a regular image. This requirement does not apply to the depth buffer, since it won't be presented at any point. Therefore we will have to add only one new attachment for color which is a so-called resolve attachment:
+Nous avons changé l'organisation finale à `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`, car les images qui utilisent le
+multisampling ne peuvent être présentées directement. Nous devons la convertir en une image plus classique. Nous
+n'aurons pas à convertir le buffer de profondeur, dans la mesure où il ne sera jamais présenté. Nous avons donc besoin
+d'un nouvel attachement pour la couleur, dans lequel les pixels seront résolus.
 
 ```c++
     ...
@@ -198,7 +225,8 @@ You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT
     ...
 ```
 
-The render pass now has to be instructed to resolve multisampled color image into regular attachment. Create a new attachment reference that will point to the color buffer which will serve as the resolve target:
+La passe de rendu doit maintenant être configurée pour résoudre l'attachement multisamplé en un attachement simple.
+Créez une nouvelle référence au futur attachement qui contiendra le buffer de pixels résolus :
 
 ```c++
     ...
@@ -208,7 +236,8 @@ The render pass now has to be instructed to resolve multisampled color image int
     ...
 ```
 
-Set the `pResolveAttachments` subpass struct member to point to the newly created attachment reference. This is enough to let the render pass define a multisample resolve operation which will let us render the image to screen:
+Ajoutez la référence à l'attachement dans le membre `pResolveAttachments` de la structure de création de la subpasse.
+La subpasse n'a besoin que de cela pour déterminer l'opération de résolution du multisampling :
 
 ```
     ...
@@ -216,7 +245,7 @@ Set the `pResolveAttachments` subpass struct member to point to the newly create
     ...
 ```
 
-Now update render pass info struct with the new color attachment:
+Fournissez ensuite l'attachement de couleur à la structure de création de la passe de rendu.
 
 ```c++
     ...
@@ -224,7 +253,7 @@ Now update render pass info struct with the new color attachment:
     ...
 ```
 
-With the render pass in place, modify `createFrameBuffers` and add the new image view to the list:
+Modifiez ensuite `createFramebuffer` afin de d'ajouter une vue sur l'image de couleur à la liste :
 
 ```c++
 void createFrameBuffers() {
@@ -238,7 +267,7 @@ void createFrameBuffers() {
 }
 ```
 
-Finally, tell the newly created pipeline to use more than one sample by modifying `createGraphicsPipeline`:
+Il ne reste plus qu'à informer la pipeline du nombre de samples à utiliser pour les opérations de rendu.
 
 ```c++
 void createGraphicsPipeline() {
@@ -248,63 +277,67 @@ void createGraphicsPipeline() {
 }
 ```
 
-Now run your program and you should see the following:
+Lançez votre programme et vous devriez voir ceci :
 
 ![](/images/multisampling.png)
 
-Just like with mipmapping, the difference may not be apparent straight away. On a closer look you'll notice that the edges on the roof are not as jagged anymore and the whole image seems a bit smoother compared to the original.
+Comme pour le mipmapping, la différence n'est pas forcément visible immédiatement. En y regardant de plus près, vous
+pouvez normalement voir que, par exemple, les bords du toit sont beaucoup plus lisses qu'avant.
 
 ![](/images/multisampling_comparison.png)
 
-The difference is more noticable when looking up close at one of the edges:
+La différence est encore plus visible en zoomant sur un bord :
 
 ![](/images/multisampling_comparison2.png)
 
-## Quality improvements
+## Amélioration de la qualité
 
-There are certain limitations of our current MSAA implementation which may impact the quality of the output image in more detailed scenes. For example, we're currently not solving potential problems caused by shader aliasing, i.e. MSAA only smoothens out the edges of geometry but not the interior filling. This may lead to a situation when you get a smooth polygon rendered on screen but the applied texture will still look aliased if it contains high contrasting colors. One way to approach this problem is to enable [Sample Shading](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#primsrast-sampleshading) which will improve the image quality even further, though at an additional performance cost:
+Notre implémentation du MSAA est limitée, et ces limitations impactent la qualité. Il existe un autre problème
+d'aliasing dû aux shaders qui n'est pas résolu par le MSAA. En effet cette technique ne permet que de lisser les bords
+de la géométrie, mais pas les bords contenus dans les textures. Ces bords internes sont particulièrement visibles dans
+le cas de couleurs qui contrastent beaucoup. Pour résoudre ce problème nous pouvons activer le
+[sample shading](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#primsrast-sampleshading), qui
+améliore encore la qualité de l'image au prix de performances encore résuites.
 
 ```c++
 
 void createLogicalDevice() {
     ...
-    deviceFeatures.sampleRateShading = VK_TRUE; // enable sample shading feature for the device
+    deviceFeatures.sampleRateShading = VK_TRUE; // activation du sample shading pour le device
     ...
 }
 
 void createGraphicsPipeline() {
     ...
-    multisampling.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
-    multisampling.minSampleShading = .2f; // min fraction for sample shading; closer to one is smoother
+    multisampling.sampleShadingEnable = VK_TRUE; // activation du sample shading dans la pipeline
+    multisampling.minSampleShading = .2f; // fraction minimale pour le sample shading; plus proche de 1 lisse d'autant plus
     ...
 }
 ```
 
-In this example we'll leave sample shading disabled but in certain scenarios the quality improvement may be noticeable:
+Dans notre tutoriel nous désactiverons le sample shading, mais dans certain cas son activation permet une nette
+amélioration de la qualité du rendu :
 
 ![](/images/sample_shading.png)
 
 ## Conclusion
 
-It has taken a lot of work to get to this point, but now you finally have a good
-base for a Vulkan program. The knowledge of the basic principles of Vulkan that
-you now possess should be sufficient to start exploring more of the features,
-like:
+Il nous a fallu beaucoup de travail pour en arriver là, mais vous avez maintenant une bonne base sur Vulkan. Vos
+connaissances sont maintenant suffisantes pour explorer d'autres fonctionnalités, dont :
 
 * Push constants
-* Instanced rendering
-* Dynamic uniforms
-* Separate images and sampler descriptors
+* Rendu instancié
+* Uniforms dynamiques
+* Descripteurs d'images et de samplers séparés
 * Pipeline cache
-* Multi-threaded command buffer generation
+* Génération des command buffers depuis plusieurs threads
 * Multiple subpasses
 * Compute shaders
 
-The current program can be extended in many ways, like adding Blinn-Phong
-lighting, post-processing effects and shadow mapping. You should be able to
-learn how these effects work from tutorials for other APIs, because despite
-Vulkan's explicitness, many concepts still work the same.
+Le programme actuel peut être grandement étendu, par exemple en ajoutant l'éclairage Blinn-Phong, des effets en
+post-processing et du shadow mapping. Vous devriez pouvoir apprendre ces techniques depuis des tutoriels conçus pour
+d'autres APIs, car la plupart des concepts sont applicables à Vulkan.
 
-[C++ code](/code/29_multisampling.cpp) /
+[Code C++](/code/29_multisampling.cpp) /
 [Vertex shader](/code/26_shader_depth.vert) /
 [Fragment shader](/code/26_shader_depth.frag)
