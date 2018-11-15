@@ -122,7 +122,7 @@ std::vector<VkDescriptorSet> descriptorSets;
 ...
 
 descriptorSets.resize(swapChainImages.size());
-if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSets[0]) != VK_SUCCESS) {
+if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
     throw std::runtime_error("echec lors de l'allocation d'un set de descripteurs!");
 }
 ```
