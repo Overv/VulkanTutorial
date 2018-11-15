@@ -66,7 +66,7 @@ telles [GLFW](http://www.glfw.org/) et [SDL](https://www.libsdl.org/). Nous util
 verrons tout cela dans le prochain chapitre.
 
 Nous avons cependant encore deux composants à évoquer pour afficher quelque chose : une surface (VkSurfaceKHR) et une
-swap chain (VkSwapChainKHR). Remarquez le suffixe «KHR», qui indique que ces fonctionnalités font partie d’une extension
+swap chain (VkSwapchainKHR). Remarquez le suffixe «KHR», qui indique que ces fonctionnalités font partie d’une extension
 . Vulkan est lui-même totalement ignorant de la plateforme sur laquelle il travaille, nous devons donc utiliser
 l’extension standard WSI (Window System Interface) pour interagir avec le gestionnaire de fenêtre. La surface est une
 abstraction cross-platform de la fenêtre, et est généralement créée en fournissant une référence à une fenêtre
