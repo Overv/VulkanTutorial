@@ -37,7 +37,7 @@ for entry in markdownFiles:
     contents = '# ' + entry['title'] + '\n\n' + contents
 
     # Fix image links
-    contents = re.sub(r'\/images\/', 'images/', contents)
+    contents = re.sub(r'\/images\/', '../images/', contents)
     contents = re.sub(r'\.svg', '.png', contents)
 
     # Fix remaining relative links (e.g. code files)
@@ -73,17 +73,19 @@ print('converting svgs...')
 
 generatedPngs = []
 
-for fn in os.listdir('images'):
+for fn in os.listdir('../images'):
     parts = fn.split('.')
 
     if parts[1] == 'svg':
-        subprocess.check_output(['inkscape', '-z', '-e', 'images/' + parts[0] + '.png', 'images/' + fn], stderr=subprocess.STDOUT)
+        subprocess.check_output(['inkscape', '-z', '-e', '../images/' + parts[0] + '.png', '../images/' + fn],
+                                stderr=subprocess.STDOUT)
         generatedPngs.append('images/' + parts[0] + '.png')
 
 # Building PDF
 print('building pdf...')
 
-subprocess.check_output(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s', '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan Tutorial.pdf'])
+subprocess.check_output(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s', '--toc',
+                         '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan_Tutorial.pdf'])
 
 print('building epub...')
 

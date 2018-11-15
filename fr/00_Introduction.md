@@ -35,7 +35,11 @@ Cela étant dit, présentons quelques prérequis pour ce tutoriel:
 Ce tutoriel ne considérera pas comme acquis les concepts d'OpenGL et de Direct3D, mais il requiert que vous connaissiez
 les bases du graphisme 3D. Il n'expliquera pas non plus les mathématiques derrière la projection de perspective, par
 exemple. Voyez [ce livre](http://opengl.datenwolf.net/gltut/html/index.html) pour une bonne introduction des concepts
-des graphismes 3D.
+des graphismes 3D. D'autres ressources pour le développement d'application graphiques sont :
+* [Ray tracing en un week-end](https://github.com/petershirley/raytracinginoneweekend)
+* [Livre sur le Physical Based Rendering](http://www.pbr-book.org/)
+* Une application de Vulkan dans les moteurs graphiques open source [Quake](https://github.com/Novum/vkQuake) et
+[DOOM 3](https://github.com/DustinHLand/vkDOOM3)
 
 Vous pouvez utiliser le C plutôt que le C++ si vous le désirez, mais vous devrez utiliser une autre librairie d'algèbre
 linéaire et vous serez seul à structurer votre code. Nous utiliserons des possibilités du C++ (RAII, classes) pour
