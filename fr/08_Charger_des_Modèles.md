@@ -12,7 +12,8 @@ plus sur l'intégration des vertices dans le programme, plutôt que sur les aspe
 
 Nous utiliserons la librairie [tinyobjloader](https://github.com/syoyo/tinyobjloader) pour charger les vertices et les
 faces depuis un fichier OBJ. Elle est facile à utiliser et à intégrer, car elle est contenue dans un seul fichier.
-Téléchargez-la depuis le lien GitHub, elle est contenue dans le fichier `tiny_obj_loader.h`.
+Téléchargez-la depuis le lien GitHub, elle est contenue dans le fichier `tiny_obj_loader.h`. Téléchargez bien le fichier
+de la branche `master` car la version "release" n'est plus assez à jour.
 
 **Visual Studio**
 
@@ -120,10 +121,10 @@ void loadModel() {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
-    std::string err;
+    std::string warn, err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, MODEL_PATH.c_str())) {
-        throw std::runtime_error(err);
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
+        throw std::runtime_error(warn + err);
     }
 }
 ```
