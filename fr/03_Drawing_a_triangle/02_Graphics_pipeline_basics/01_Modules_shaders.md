@@ -246,6 +246,11 @@ apparait. Essayez de retirer un point-virgule et voyez l'efficacité du débugge
 arguments supportés. Il peut par exemple se forcer à émettre le bytecode sous un format compréhensible permettant de 
 voir exactement ce que le shader fait et quelles optimisations le compilateur y a fait.
 
+La compilation des shaders en ligne de commande est l'une des options les plus simples et les plus évidentes. C'est ce
+que nous utiliserons dans ce tutoriel, mais il est aussi possible de compiler les shaders depuis votre code. Le SDK
+inclue la librairie [libshaderc](https://github.com/google/shaderc) , qui permet de compiler le GLSL en SPIR-V depuis le
+programme C++.
+
 ## Charger un shader
 
 Maintenant quevous pouvez créer des shaders SPIR-V il est grand temps de les charger dans le programme et de les 
