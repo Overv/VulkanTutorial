@@ -177,9 +177,9 @@ Le nombre d'extensions ne devrait pas être nul. Bravo, vous êtes fin prêts à
 
 ## Linux
 
-Ces instructions sont concues pour les utilisateurs d'Ubuntu, mais vous devriez pouvoir suivre ces instructions depuis
+Ces instructions sont conçues pour les utilisateurs d'Ubuntu, mais vous devriez pouvoir suivre ces instructions depuis
 une autre distribution si vous recompilez vous-même le SDK et adaptez les commandes "apt" à votre propre gestionnaire de
-package. Installez si ne n'est pas déjà fait gcc 4.8 ou plus récent. Vous aurez égamelent besoin de make et de CMake.
+packages. Installez si ne n'est pas déjà fait gcc 4.8 ou plus récent. Vous aurez égamelent besoin de make et de CMake.
 
 ### Le SDK Vulkan
 
@@ -325,10 +325,10 @@ Remplacez bien "user" par votre nom d'utilisateur et "x.x.x.x" par la bonne vers
 spécifiera les arguments pour la compilation :
 
 ```make
-CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include
 ```
 
-Nous utiliserons du C++ moderne (au moins `-std=c++11`). Nous devons également localiser "vulkan.h" dans le SDK de
+Nous utiliserons du C++ moderne (`-std=c++17`). Nous devons également localiser "vulkan.h" dans le SDK de
 LunarG.
 
 Définissez de manière analogue `LDFLAGS` :
@@ -394,7 +394,7 @@ Vous devriez désormais avoir un makefile complet tel que celui-ci :
 ```make
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
 
-CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
 VulkanTest: main.cpp

@@ -412,7 +412,7 @@ résultat final dans une image de la swap chain.
 
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-uint32_t queueFamilyIndices[] = {(uint32_t) indices.graphicsFamily, (uint32_t) indices.presentFamily};
+uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
 if (indices.graphicsFamily != indices.presentFamily) {
     createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;

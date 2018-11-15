@@ -190,20 +190,20 @@ commandes nous intéressant. Nous allons commencer par ne chercher qu'une queue 
 nous étendrons cela plus tard dans le tutoriel.
 
 Cette fonction retournera les indices des queue families satisfaisant les propriétés que nous désirons. La meilleure
-manière de faire cela est d'utiliser une structure dans laquelle l'indice `-1` dénotera que la queue family n'a pas
-été trouvée :
+manière de faire cela est d'utiliser une structure dans laquelle les valeurs seront contenues dans des `std::optional`.
+De cette manière il sera facile de voir quelles queues ont été trouvées.
 
 ```c++
 struct QueueFamilyIndices {
-    int graphicsFamily = -1;
+    std::optional<uint32_t> graphicsFamily;
 
     bool isComplete() {
-        return graphicsFamily >= 0;
+        return graphicsFamily.has_value();
     }
 };
 ```
 
-Nous pouvons dès maintenant implémenter `findQueueFamilies` :
+Il est nécessaire d'inclure `optional`. Nous pouvons dès maintenant implémenter `findQueueFamilies` :
 
 ```c++
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
