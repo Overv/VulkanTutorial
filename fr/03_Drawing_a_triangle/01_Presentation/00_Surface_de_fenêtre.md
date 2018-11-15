@@ -120,11 +120,11 @@ ainsi modifier la structure `QueueFamilyIndices` :
 
 ```c++
 struct QueueFamilyIndices {
-    int graphicsFamily = -1;
-    int presentFamily = -1;
+    std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
 
     bool isComplete() {
-        return graphicsFamily >= 0 && presentFamily >= 0;
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 ```
@@ -171,10 +171,10 @@ gérer ces structures est d'utiliser un set contenant tous les indices des queue
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-std::set<int> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
 float queuePriority = 1.0f;
-for (int queueFamily : uniqueQueueFamilies) {
+for (uint32_t queueFamily : uniqueQueueFamilies) {
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -195,7 +195,7 @@ Si les queues sont les mêmes, nous n'avons besoin de les indiquer qu'une seule 
 enfin un appel récupérant les queue families :
 
 ```c++
-vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
+vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 ```
 
 Si les queues sont les mêmes, les variables contenant les références devraient contenir les mêmes valeurs. Dans le 

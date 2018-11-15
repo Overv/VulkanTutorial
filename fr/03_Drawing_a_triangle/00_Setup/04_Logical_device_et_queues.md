@@ -38,7 +38,7 @@ QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 VkDeviceQueueCreateInfo queueCreateInfo = {};
 queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
 queueCreateInfo.queueCount = 1;
 ```
 
@@ -146,7 +146,7 @@ sont le logical device, la queue family, l'indice de la queue à récupérer et 
 queue. Nous ne créons qu'une seule queue, nous écrirons donc `0` pour l'indice de la queue.
 
 ```c++
-vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
+vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 ```
 
 Avec le logical device et les queues nous pouvons maintenant faire travailler la carte graphique! Dans le prochain 
