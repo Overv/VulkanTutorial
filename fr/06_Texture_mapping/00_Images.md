@@ -62,7 +62,7 @@ STB_INCLUDE_PATH = /home/user/libraries/stb
 
 ...
 
-CFLAGS = -std=c++11 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH)
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH)
 ```
 
 ## Charger une image
