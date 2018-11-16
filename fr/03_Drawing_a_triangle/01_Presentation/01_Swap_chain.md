@@ -1,10 +1,10 @@
 Vulkan ne possède pas de concept comme le framebuffer par défaut, et nous devons donc créer une infrastructure qui 
-contiendra les buffers sur lesquels nous effecturons les rendus avant de la présentation à l'écran. Cette 
+contiendra les buffers sur lesquels nous effectuerons les rendus avant de la présentation à l'écran. Cette 
 infrastructure s'appelle _swap chain_ sur Vulkan et doit être crée explicitement. La swap chain est essentiellement 
 une file d'attente d'images attendant d'être affichées. Notre application devra récupérer une des images de la file, 
 dessiner dessus puis la retourner à la file d'attente. Le fonctionnement de la file d'attente et les conditions de la
-présentation dépendent du parametrage de la swap chain. Cependant, le but constant de la swap chain est de 
-synchroniser la présentation avec le raffraichissement de l'écran.
+présentation dépendent du paramétrage de la swap chain. Cependant, l'intrêt principal de la swap chain est de 
+synchroniser la présentation avec le rafraîchissement de l'écran.
 
 ## Vérification du support de la swap chain
 
@@ -14,12 +14,13 @@ sortie vidéo. De plus, dans la mesure où la présentation est très dépendant
 surface, la swap chain ne fait pas partie de Vulkan core. Il faudra donc utiliser des extensions, dont 
 `VK_KHR_swapchain`.
 
-Pour cela nous allons modifier `isDeviceSuitable` pour qu'elle vérifie si cette extension sont suportées. Nous avons 
+Pour cela nous allons modifier `isDeviceSuitable` pour qu'elle vérifie si cette extension est suportée. Nous avons 
 déja vu comment lister les extensions supportées par un `VkPhysicalDevice` donc cette modification devrait être assez
 simple. Notez que le header Vulkan intègre la macro `VK_KHR_SWAPCHAIN_EXTENSION_NAME` permettant d'éviter une faute 
 de frappe.
 
-Déclarez d'abord une liste d'extensions nécessaires au physical device similaire à la liste des validation layers :
+Déclarez d'abord une liste d'extensions nécessaires au physical device, ainsi que nous avons fait pour les validation
+layers :
 
 ```c++
 const std::vector<const char*> deviceExtensions = {
@@ -65,8 +66,8 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
 ```
 
 J'ai décidé d'utiliser une collection de strings pour représenter les extensions requises en attente de confirmation.
-Nous pouvons ainsi facilement les éliminer en énumérant la séquence. Vous pouvez également utiliser une boucle dans 
-la boucle comme dans `checkValidationLayerSupport`, car la différence de performance n'a aucun sens dans cette phase de 
+Nous pouvons ainsi facilement les éliminer en énumérant la séquence. Vous pouvez également utiliser des boucles 
+imbriquées comme dans `checkValidationLayerSupport`, car la différence de performance n'a aucun sens dans cette phase de
 chargement. Lancez le code et vérifiez que votre carte graphique est capable de gérer une swap chain. Normalement
 la disponibilité de la queue de présentation implique que l'extension de la swap chain est supportée. Mais soyons 
 tout de mêmes explicites pour cela aussi.
@@ -177,7 +178,7 @@ plusieurs modes d'intérêts différents. Nous allons maintenant écrire quelque
 paramètres pour obtenir une swap chain la plus efficace possible. Il y a trois types de paramètres à déterminer :
 
 * Format de la surface (profondeur de la couleur)
-* Modes de présentation (conditions de "l'échange" des images à l'écran)
+* Modes de présentation (conditions de "l'échange" des images avec l'écran)
 * Swap extent (résolution des images dans la swap chain)
 
 Pour chacun de ces paramètres nous aurons une valeur idéale que nous activerons si elle est disponible, sinon nous nous 
@@ -195,17 +196,17 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 ```
 
 Chaque `VkSurfaceFormatKHR` contient les données `format` et `colorSpace`. `format` indique les canaux de couleur 
-disponibles et les types. Par exemple `VK_FORMAT_B8G8R8A8_UNORM` signifie que nous stockons les canaux de couleur R, 
-G, B et A dans cet ordre et en entiers non signés de 8 bits. `colorSpace` permet de vérifier que SRGB est supporté en
-utilisant le champ de bits `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR`.
+disponibles et les types qui contiennt les valeurs des gradients. Par exemple `VK_FORMAT_B8G8R8A8_UNORM` signifie que
+nous stockons les canaux de couleur R, G, B et A dans cet ordre et en entiers non signés de 8 bits. `colorSpace` permet
+de vérifier que SRGB est supporté en utilisant le champ de bits `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR`.
 
-Pour l'espace de couleur nous utiliserons SRGB si c'est disponible, car cela résulte dans
+Pour l'espace de couleur nous utiliserons SRGB si possible, car il en résulte
 [un rendu plus réaliste](http://stackoverflow.com/questions/12524623/). Fonctionner directement avec SRGB est un peu 
 compliqué donc nous utilserons un espace linéaire pour manipuler les couleurs. Le format le plus commun est
 `VK_FORMAT_B8G8R8A8_UNORM`.
 
 Dans le meilleur des mondes la surface n'a pas de format préféré, ce que Vulkan indique en ne retournant qu'un seul 
-`VkSurfaceFormatKHR` dont la valeur du membre format est `VK_FORMAT_UNDEFINED`.
+`VkSurfaceFormatKHR` dont la valeur du membre `format` est `VK_FORMAT_UNDEFINED`.
 
 ```c++
 if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
@@ -213,7 +214,7 @@ if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDE
 }
 ```
 
-Si nous ne pouvons choisir librement le format nous itérerons toute la liste et choisirons la meilleure combinaison 
+Si nous ne pouvons choisir librement le format, nous itérerons toute la liste et choisirons la meilleure combinaison 
 pour nous si elle est disponible :
 
 ```c++
@@ -316,7 +317,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
 Le swap extent donne la résolution des images dans la swap chain et correspond quasiment toujours à la résolution de 
 la fenêtre que nous utilisons. L'étendue des résolutions disponibles est définie dans la 
-stucture `VkSurfaceCapabilitiesKHR`. Vulkan nous demande de faire correspondre notre résolution à celle de la fenêtre
+structure `VkSurfaceCapabilitiesKHR`. Vulkan nous demande de faire correspondre notre résolution à celle de la fenêtre
 fournie par le membre `currentExtent`. Cependant certains gestionnaires de fenêtres nous permettent de choisir une 
 résolution différente, ce qui nous pouvons détecter car alors les membres `width` et `height` sont égaux à la plus 
 grande valeur d'un `uint32_t`. Dans ce cas nous choisirons la résolution correspondant le mieux à la taille de la 

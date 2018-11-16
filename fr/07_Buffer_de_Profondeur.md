@@ -109,11 +109,11 @@ la même manière que la couleur.
 La matrice de perspective générée par GLM utilise par défaut la profondeur OpenGL comprise en -1 et 1. Nous pouvons
 configurer GLM avec `GLM_FORCE_DEPTH_ZERO_TO_ONE` pour qu'elle utilise des valeurs correspondant à Vulkan.
 
-## Image de la pronfondeur et vue sur cette image
+## Image de pronfondeur et views sur cette image
 
 L'attachement de profondeur est une image. La différence est que celui-ci n'est pas créé par la swap chain. Nous n'avons
 besoin que d'un seul attachement de profondeur, car les opérations sont séquentielles. L'attachement aura encore besoin
-des trois ressources : une image, de la mémoire et une vue sur l'image.
+des trois ressources : une image, de la mémoire et une image view.
 
 ```c++
 VkImage depthImage;
@@ -273,7 +273,7 @@ textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IM
 
 Voilà tout pour la création de l'image de profondeur. Nous n'avons pas besoin d'y envoyer de données ou quoi que ce soit
 de ce genre, ce qui est très pratique. Il faudra quand même faire changer son organisation, pour qu'il puisse être
-utilisé comme attachement. Nous pourrions faire cette transition dans la passe de rendu comme pour l'attachement de
+utilisé comme attachement. Nous pourrions faire cette transition dans la render pass comme pour l'attachement de
 couleur, mais j'ai préféré utiliser une barrière de pipeline pour ne faire cette transition qu'une seule fois.
 
 ```c++
@@ -330,7 +330,7 @@ se passe en `VK_PIPELINE_STAGE_EARL_FRAGMENT_TESTS_BIT` et l'écriture en `VK_PI
 Vous devriez choisir la première des étapes correspondant à l'opération correspondante, afin que tout soit prêt pour
 l'utilisation de l'attachement de profondeur.
 
-## Passe de rendu
+## Render pass
 
 Nous allons modifier `createRenderPass` pour inclure l'attachement de profondeur. Spécifiez d'abord un
 `VkAttachementDescription` :

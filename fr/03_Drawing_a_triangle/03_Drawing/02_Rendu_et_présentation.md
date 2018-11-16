@@ -188,13 +188,13 @@ par des _subpass dependencies_. Celles-ci fournissent la mémoire et l'exécutio
 qu'une seule subpasse pour le moment, mais les opérations avant et après cette subpasse comptent aussi comme des
 "subpasses" implicites.
 
-Il existe deux dépendances préexistantes capables de gérer les transitions au début et à la fin de la passe de rendu. Le
+Il existe deux dépendances préexistantes capables de gérer les transitions au début et à la fin de la render pass. Le
 problème est que cette première dépendance ne s'exécute pas au bon moment. Elle part du principe que la transition de
 l'organisation de l'image doit être réalisée au début de la passe, mais dans notre programme l'image n'est pas encore
 acquise à ce moment! Il existe deux manières de régler ce problème. Nous pourrions changer `waitStages` pour
 `imageAvailableSemaphore` à `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` pour être sûrs que la pipeline ne commence pas avant
 que l'image ne soit acquise, mais nous perdrions en performance car les shaders travaillant sur les vertices n'ont pas
-besoin de l'image. Nous allons donc plutôt faire attendre la passe de rendu à l'étape
+besoin de l'image. Nous allons donc plutôt faire attendre la render pass à l'étape
 `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` et faire la transition à ce moment. Cela nous donne de plus une bonne
 excuse pour s'intéresser au fonctionnement des subpass dependencies.
 
@@ -208,7 +208,7 @@ dependency.dstSubpass = 0;
 ```
 
 Les deux premiers champs permettent de fournir l'indice de la subpasse d'origine et de la subpasse d'arrivée. La valeur
-particulière `VK_SUBPASS_EXTERNAL` réfère à la subpass implicite soit avant soit après la passe de rendu, selon que
+particulière `VK_SUBPASS_EXTERNAL` réfère à la subpass implicite soit avant soit après la render pass, selon que
 cette valeur est indiquée dans respectivement `srcSubpass` ou `dstSubpass`. L'indice `0` correspond à notre 
 seule et unique subpasse. La valeur fournie à `dstSubpass` doit toujours être supérieure à `srcSubpass` car sinon une
 boucle infinie peut apparaître.
@@ -238,7 +238,7 @@ renderPassInfo.dependencyCount = 1;
 renderPassInfo.pDependencies = &dependency;
 ```
 
-Nous fournissons ici à la structure ayant trait à la passe de rendu un tableau de configurations pour les subpass
+Nous fournissons ici à la structure ayant trait à la render pass un tableau de configurations pour les subpass
 dependencies.
 
 ## Présentation

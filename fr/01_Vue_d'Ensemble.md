@@ -28,7 +28,7 @@ Vulkan résout ces problèmes en ayant été repensé à partir de rien pour des
 du driver en permettant (en fait en demandant) au programmeur d’expliciter ses objectifs en passant par un API plus
 prolixe. Il permet à plusieurs threads d’invoquer des commandes de manière asynchrone. Il supprime les différences lors
 de la compilation des shaders en imposant un format en byte code compilé par un compilateur officiel. Enfin, il
-reconnaît les capacités des cartes graphiques modernes en unifiant le calcul et les graphismes dans un seul et unique
+reconnaît les capacités des cartes graphiques modernes en unifiant le computing et les graphismes dans un seul et unique
 API.
 
 ## Le nécessaire pour afficher un triangle
@@ -48,11 +48,11 @@ et ainsi préférer par exemple du matériel dédié.
 ### Étape 2 – Logical device et familles de queues (queue families)
 
 Après avoir séléctionné le hardware qui vous convient, vous devez créer un «VkDevice» (logical device). Vous décrivez
-pour cela quelles VkPhysicalDeviceFeatures vous utiliserez, comme l’affichage multi-fenêtre ou des flottants de 64 bits.
-Vous devrez également spécifier quelles familles de queues vous utiliserez. La plupart des opérations, comme les
+pour cela quelles VkPhysicalDeviceFeatures vous utiliserez, comme l’affichage multi-fenêtre ou des floats de 64 bits.
+Vous devrez également spécifier quelles queue families vous utiliserez. La plupart des opérations, comme les
 commandes d’affichage et les allocations de mémoire, sont exécutés de manière asynchrone en les envoyant à une VkQueue.
 Ces queues sont crées à partir d’une famille de queues, chacune de ces dernières supportant uniquement une certaine
-collection d’opérations. Il pourrait par exemple y avoir des familles différentes pour les graphismes, le calcul et les
+collection d’opérations. Il pourrait par exemple y avoir des families différentes pour les graphismes, le calcul et les
 opérations mémorielles. L’existence d’une famille peut aussi être aussi un critère pour la sélection d’un physical
 device. En effet une queue capable de traiter les commandes graphiques et mémorielle permet d'augmenter encore un peu
 les performances. Il sera possible qu’un périphérique supportant Vulkan ne fournisse aucun graphisme, mais à ce jour
@@ -66,8 +66,8 @@ telles [GLFW](http://www.glfw.org/) et [SDL](https://www.libsdl.org/). Nous util
 verrons tout cela dans le prochain chapitre.
 
 Nous avons cependant encore deux composants à évoquer pour afficher quelque chose : une surface (VkSurfaceKHR) et une
-swap chain (VkSwapchainKHR). Remarquez le suffixe «KHR», qui indique que ces fonctionnalités font partie d’une extension
-. Vulkan est lui-même totalement ignorant de la plateforme sur laquelle il travaille, nous devons donc utiliser
+swap chain (VkSwapchainKHR). Remarquez le suffixe «KHR», qui indique que ces fonctionnalités font partie d’une
+extension. Vulkan est lui-même totalement ignorant de la plateforme sur laquelle il travaille, nous devons donc utiliser
 l’extension standard WSI (Window System Interface) pour interagir avec le gestionnaire de fenêtre. La surface est une
 abstraction cross-platform de la fenêtre, et est généralement créée en fournissant une référence à une fenêtre
 spécifique à la plateforme, par exemple «HWND» sur Windows. Heureusement pour nous, la librairie GLFW possède une
@@ -75,8 +75,8 @@ fonction permettant de gérer tous les détails spécifiques à la plateforme po
 
 La swap chain est une collection de cibles sur lesquelles nous pouvons effectuer un rendu. Son but principal est
 d’assurer que l’image sur laquelle nous travaillons n’est pas celle utilisée par l’écran. Nous sommes ainsi sûrs que
-l’image affichée est complète. Chaque fois que nous voulons afficher une image nous devons demander à la swap chain de
-nous fournir une cible disponible. Lorsque le traitement de la cible est terminé, nous la rendons à la swap chain qui
+l’image affichée est complète. Chaque fois que nous voudrons afficher une image nous devrons demander à la swap chain de
+nous fournir une cible disponible. Une fois le traitement de la cible terminé, nous la rendrons à la swap chain qui
 l’utilisera en temps voulu pour l’affichage à l’écran. Le nombre de cibles et les conditions de leur affichage dépend
 du mode utilisé lors du paramétrage de la swap chain. Ceux-ci peuvent être le double buffering (vsync) ou le triple
 buffering. Nous détaillerons tout cela dans le chapitre dédié à la swap chain.
@@ -85,13 +85,13 @@ buffering. Nous détaillerons tout cela dans le chapitre dédié à la swap chai
 
 Pour dessiner sur une image originaire de la swap chain, nous devons la convertir en une VkImageView puis en un
 VkFramebuffer. Une image view correspond à une certaine texture extraite de l’image devant être utilisée, et un
-framebuffer référence plusieurs image views, pour les traiter comme des cible de couleur, de profondeur ou de pochoir.
+framebuffer référence plusieurs image views, pour les traiter comme des cible de couleur, de profondeur ou de stencil.
 Dans la mesure où il peut y avoir de nombreuses images dans la swap chain, nous créerons en amont les image views et la
 framebuffers pour chacune d’entre elles, puis sélectionnerons celle qui nous convient au moment de l’affichage.
 
-### Étape 5 - Passes d’affichage
+### Étape 5 - Render passes
 
-Avec Vulkan, une passe d’affichage décrit le type d’images utilisées lors du rendu, comment elles sont utilisées et
+Avec Vulkan, une render pass décrit le type d’images utilisées lors du rendu, comment elles sont utilisées et
 comment leur contenu doit être traité. Pour notre affichage d’un triangle, nous dirons à Vulkan que nous utilisons une
 seule image pour la couleur et que nous voulons qu’elle soit préparée avant l’affichage en la remplissant d’une couleur
 opaque. Là où la passe décrit le type d’images utilisées, un framebuffer sert à lier les emplacements utilisés par la
@@ -102,16 +102,16 @@ passe à une image complète.
 La pipeline graphique est configurée lors de la création d’une VkPipeline. Elle décrit les éléments paramétrables de la
 carte graphique, comme les opérations réalisée par le depth buffer (gestion de la profondeur), et les étapes
 programmables à l’aide de VkShaderModules. Ces derniers sont créés à partir de byte code. Le driver doit également être
-informé de la cible d’affichage utilisée dans la pipeline, ce que nous lui disons en référençant la passe d’affichage.
+informé du render target utilisé dans la pipeline, ce que nous lui disons en référençant la render pass.
 
 L’une des particularités les plus importantes de Vulkan est que la quasi totalité de la configuration des étapes doit
 être réalisée à l’avance. Cela implique que si vous voulez changer un shader ou la conformation des vertices, la
 totalité de la pipeline doit être recréée. Vous aurez donc probablement de nombreux VkPipeline correspondant à toutes
 les combinaisons dont votre programme aura besoin. Seules quelques configurations basiques peuvent être changées de
 manière dynamique, comme la couleur de fond. Les états doivent aussi être anticipés : il n’y a par exemple pas de
-mélange par défaut.
+blending function par défaut.
 
-La bonne nouvelle est que grâce à cette anticipation, changement qui équivaut à une compilation versus une
+La bonne nouvelle est que grâce à cette anticipation, ce qui équivaut à peu près à une compilation versus une
 interprétation, il y a beaucoup plus d’optimisations possibles pour le driver et le temps d’exécution est plus
 prévisible, car les grandes étapes telles le changement de pipeline sont très explicites.
 
@@ -122,7 +122,7 @@ d’abord être enregistrées dans une VkCommandBuffer avant d’être envoyées
 d’une «VkCommandPool» spécifique à une queue family. Pour afficher notre simple triangle nous devrons enregistrer les
 opérations suivantes :
 
-* Lancer la passe d’affichage
+* Lancer la render pass
 * Lier la pipeline graphique
 * Afficher 3 vertices
 * Terminer la passe
@@ -134,7 +134,7 @@ l’affichage. Nous pourrions en créer un à chaque frame mais ce serait peu ef
 ### Étape 8 - Boucle principale
 
 Maintenant que nous avons inscrit les commandes graphiques dans des command buffers, la boucle principale n’est qu’une
-histoire d’appels. Nous acquérons d’abord une image de la swap chain en utilisant vkAcquireNextImageKHR. Nous
+histoire d’appels. Nous acquérerons d’abord une image de la swap chain en utilisant vkAcquireNextImageKHR. Nous
 sélectionnons ensuite le command buffer approprié pour cette image et le postons à la queue avec vkQueueSubmit. Enfin,
 nous retournons l’image à la swap chain pour sa présentation à l’écran à l’aide de vkQueuePresentKHR.
 
@@ -160,7 +160,7 @@ En résumé nous devrons, pour afficher une triangle :
 * Créer un VkDevice et une VkQueue pour l’affichage et la présentation
 * Créer une fenêtre, une surface dans cette fenêtre et une swap chain
 * Considérer les images de la swap chain comme des VkImageViews puis des VkFramebuffers
-* Créer la passe de rendu spécifiant les cibles d’affichage et leur usage
+* Créer la render pass spécifiant les cibles d’affichage et leur usage
 * Créer des framebuffers pour ces passes
 * Générer la pipeline graphique
 * Allouer et enregistrer des command buffers contenant toutes les commandes pour toutes les images de la swap chain

@@ -20,7 +20,7 @@ void pickPhysicalDevice() {
 ```
 
 Nous stockerons le physical device que nous aurons sélectionnée dans un nouveau membre donnée de la classe, et celui-ci
-sera du type `VkPhysicalDevice`. Cet objet sera implicitement détruit avec l'instance, nous n'avons donc rien à 
+sera du type `VkPhysicalDevice`. Cet objet sera implicitement détruit avec l'instance, nous n'avons donc rien à
 ajouter à la fonction `cleanup`.
 
 ```c++
@@ -28,7 +28,7 @@ VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 ```
 
 Lister les physical devices est un procédé très similaire à lister les extensions. Comme d'habitude, on commence par en
- lister le nombre.
+lister le nombre.
 
 ```c++
 uint32_t deviceCount = 0;
@@ -51,7 +51,7 @@ vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 ```
 
 Nous devons maintenant évaluer chacun d'entre eux et vérifier qu'ils conviennent pour ce que nous voudrons en faire, car
- toutes les cartes graphiques ne sont pas nées libres et égales. Voici une nouvelle fonction qui fera le travail de
+toutes les cartes graphiques ne sont pas nées libres et égales. Voici une nouvelle fonction qui fera le travail de
 sélection :
 
 ```c++
@@ -89,8 +89,8 @@ VkPhysicalDeviceProperties deviceProperties;
 vkGetPhysicalDeviceProperties(device, &deviceProperties);
 ```
 
-Le support des fonctionnalités optionnelles telles que les textures compressées, les floats de 64 bits et le rendu multi
-affichage (pour la VR) s'obtiennent avec `vkGetPhysicalDeviceFeatures` :
+Le support des fonctionnalités optionnelles telles que les textures compressées, les floats de 64 bits et le multi
+viewport rendering (pour la VR) s'obtiennent avec `vkGetPhysicalDeviceFeatures` :
 
 ```c++
 VkPhysicalDeviceFeatures deviceFeatures;
@@ -138,7 +138,7 @@ void pickPhysicalDevice() {
     if (candidates.rbegin()->first > 0) {
         physicalDevice = candidates.rbegin()->second;
     } else {
-        throw std::runtime_error("aucun GPU ne peut exécuter ce programme!");
+        throw std::runtime_error("aucun GPU ne peut executer ce programme!");
     }
 }
 
@@ -180,7 +180,7 @@ Nous discuterons de la première fonctionnalité qui nous sera nécessaire dans 
 ## Familles de queues (queue families)
 
 Il a été évoqué que chaque opération avec Vulkan, de l'affichage jusqu'au chargement d'une texture, s'effectue en
-ajoutant une commande à une file d'attente (queue). Il existe différentes queues appartenant à différents types de
+ajoutant une commande à une queue. Il existe différentes queues appartenant à différents types de
 *queue families*. De plus chaque queue family ne permet que certaines commandes. Il se peut par exemple qu'une queue ne
 traite que les commandes de calcul et qu'une autre ne supporte que les commandes d'allocation de mémoire.
 
@@ -226,8 +226,8 @@ std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 ```
 
-La structure VkQueueFamilyProperties contient des informations sur la queue family, et en particulier le type 
-d'opérations qu'elle suporte et le nombre de queues que l'on peut instancier à partir de cette famille. Nous devons 
+La structure `VkQueueFamilyProperties` contient des informations sur la queue family, et en particulier le type 
+d'opérations qu'elle supporte et le nombre de queues que l'on peut instancier à partir de cette famille. Nous devons 
 trouver au moins une queue supportant `VK_QUEUE_GRAPHICS_BIT` :
 
 ```c++

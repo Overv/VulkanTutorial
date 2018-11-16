@@ -189,11 +189,11 @@ void recreateSwapChain() {
 ```
 
 Nous avons fini le paramétrage initial du MSAA. Nous devons maintenant utiliser ces ressources dans la pipeline, le
-framebuffer et la passe de rendu!
+framebuffer et la render pass!
 
 ## Ajouter de nouveaux attachements
 
-Gérons d'abord la passe de rendu. Modifiez `createRenderPass` et changez-y la création des attachements de couleur et de
+Gérons d'abord la render pass. Modifiez `createRenderPass` et changez-y la création des attachements de couleur et de
 profondeur.
 
 ```c++
@@ -225,7 +225,7 @@ d'un nouvel attachement pour la couleur, dans lequel les pixels seront résolus.
     ...
 ```
 
-La passe de rendu doit maintenant être configurée pour résoudre l'attachement multisamplé en un attachement simple.
+La render pass doit maintenant être configurée pour résoudre l'attachement multisamplé en un attachement simple.
 Créez une nouvelle référence au futur attachement qui contiendra le buffer de pixels résolus :
 
 ```c++
@@ -245,7 +245,7 @@ La subpasse n'a besoin que de cela pour déterminer l'opération de résolution 
     ...
 ```
 
-Fournissez ensuite l'attachement de couleur à la structure de création de la passe de rendu.
+Fournissez ensuite l'attachement de couleur à la structure de création de la render pass.
 
 ```c++
     ...
@@ -253,7 +253,7 @@ Fournissez ensuite l'attachement de couleur à la structure de création de la p
     ...
 ```
 
-Modifiez ensuite `createFramebuffer` afin de d'ajouter une vue sur l'image de couleur à la liste :
+Modifiez ensuite `createFramebuffer` afin de d'ajouter une image view de couleur à la liste :
 
 ```c++
 void createFrameBuffers() {

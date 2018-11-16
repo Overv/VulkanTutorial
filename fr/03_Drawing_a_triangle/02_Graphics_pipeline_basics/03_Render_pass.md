@@ -67,7 +67,7 @@ colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 ```
 
 Les membres `loadOp` et `storeOp` s'appliquent aux données de couleur et de profondeur, et `stencilLoadOp` et 
-`stencilStoreOp` s'appliquent aux données de pochoir. Notre application n'uilisant pas de pochoir, nous 
+`stencilStoreOp` s'appliquent aux données de stencil. Notre application n'uilisant pas de stencil buffer, nous 
 pouvons indiquer que les données ne nous intéressent pas.
 
 ```c++
@@ -125,7 +125,7 @@ VkSubpassDescription subpass = {};
 subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 ```
 
-Vulkan supportera également des subpasses de calcul donc nous devons indiquer que celle que nous créeons est destinée 
+Vulkan supportera également des *compute subpasses* donc nous devons indiquer que celle que nous créeons est destinée 
 aux graphismes. Nous spécifions ensuite la référence à l'attachement de couleurs :
 
 ```c++
@@ -140,13 +140,13 @@ Les types d'attachements suivants peuvent être référencés pour une subpasse 
 
 * `pInputAttachments` : attachements lus depuis un shader
 * `pResolveAttachments` : attachements utilisés pour le multisampling d'attachements de couleurs
-* `pDepthStencilAttachment` : attachements pour la profondeur et le pochoir
+* `pDepthStencilAttachment` : attachements pour la profondeur et le stencil
 * `pPreserveAttachments` : attachements qui ne sont pas utilisés par cette subpasse mais dont les données doivent 
 être conservées
 
 ## Passe de rendu
 
-Maintenant que les attachements et une subpasse simple ont été décrits nous pouvons enfin créer la passe de rendu. 
+Maintenant que les attachements et une subpasse simple ont été décrits nous pouvons enfin créer la render pass. 
 Créez une nouvelle variable du type `VkRenderPass` au-dessus de la variable `pipelineLayout` :
 
 ```c++
@@ -154,7 +154,7 @@ VkRenderPass renderPass;
 VkPipelineLayout pipelineLayout;
 ```
 
-L'objet représentant la passe de rendu peut alors être créé en remplissant la structure `VkRenderPassCreateInfo` dans
+L'objet représentant la render pass peut alors être créé en remplissant la structure `VkRenderPassCreateInfo` dans
 laquelle nous devons remplir un tableau d'attachements et de subpasses. Les objets `VkAttachmentReference` référencent
 les attachements en utilisant les indices de ce tableau.
 

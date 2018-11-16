@@ -25,7 +25,7 @@ void recreateSwapChain() {
 
 Nous appelons d'abord `vkDeviceIdle` car nous ne devons surtout pas toucher à des ressources en cours d'utilisation. La
 première chose à faire est bien sûr de recréer la swap chain. Les image views doivent être recrées également car 
-elles dépendent des images de la swap chain. La passe de rendu doit être recrée car elle dépend du format des images de
+elles dépendent des images de la swap chain. La render pass doit être recrée car elle dépend du format des images de
 la swap chain. Il est rare que le format des images de la swap chain soit altéré mais il n'est pas officiellement
 garanti qu'il reste le même, donc nous gérerons ce cas là. La pipeline dépend de la taille des images pour la
 configuration des rectangles de viewport et de ciseau, donc nous devons recréer la pipeline graphique. Il est possible
@@ -231,8 +231,8 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 }
 ```
 
-Nous devons utiliser une fonction statique car GLFW ne sait pas correctement appeler une fonction membre d'une avec 
-`this`.
+Nous devons utiliser une fonction statique car GLFW ne sait pas correctement appeler une fonction membre d'une classe
+avec `this`.
 
 Nous récupérons une référence à la `GLFWwindow` dans la fonction de rappel que nous fournissons. De plus nous pouvons
 paramétrer un pointeur de notre choix qui sera accessible à toutes nos fonctions de rappel. Nous pouvons y mettre la 

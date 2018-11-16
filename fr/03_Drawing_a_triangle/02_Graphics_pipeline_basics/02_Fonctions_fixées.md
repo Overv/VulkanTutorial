@@ -1,7 +1,7 @@
 Les anciens APIs définissaient des configurations par défaut pour toutes les étapes de la pipeline graphique. Avec 
 Vulkan vous devez être explicite dans ce domaine également et devrez donc configurer la fonction de mélange par 
-exemple. Dans ce chapitre nous remplirons toutes les structures nécessaires à la configuration des fonctions à 
-fonction fixée.
+exemple. Dans ce chapitre nous remplirons toutes les structures nécessaires à la configuration des étape à 
+fonction fixée (fixed-function stages).
 
 ## Entrée des vertices
 

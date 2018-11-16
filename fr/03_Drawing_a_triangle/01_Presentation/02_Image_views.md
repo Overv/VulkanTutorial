@@ -64,7 +64,7 @@ createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 createInfo.format = swapChainImageFormat;
 ```
 
-Le champ `components` vous permet de jouer avec les canaux de couleur. Par exemple, vous pouvez envoyer tous les 
+Le champ `components` vous permet d'altérer les canaux de couleur. Par exemple, vous pouvez envoyer tous les 
 canaux au canal rouge pour obtenir une texture monochrome. Vous pouvez aussi donner les valeurs constantes `0` ou `1`
 à un canal. Dans notre cas nous garderons les paramètres par défaut.
 

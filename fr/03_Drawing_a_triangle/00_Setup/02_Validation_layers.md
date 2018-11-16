@@ -78,9 +78,9 @@ const std::vector<const char*> validationLayers = {
 #endif
 ```
 
-Ajoutons une nouvelle fonction `chackValidationLayerSupport`, qui devra vérifier si les layers que nous voulons utiliser
- sont disponibles. Listez d'abord les validation layers disponibles à l'aide de la fonction
- `vkEnumerateInstanceLayerProperties`. Elle s'utilise de la même façon que `vkEnumerateInstanceExtensionProperties`.
+Ajoutons une nouvelle fonction `checkValidationLayerSupport`, qui devra vérifier si les layers que nous voulons utiliser
+sont disponibles. Listez d'abord les validation layers disponibles à l'aide de la fonction
+`vkEnumerateInstanceLayerProperties`. Elle s'utilise de la même façon que `vkEnumerateInstanceExtensionProperties`.
 
 ```c++
 bool checkValidationLayerSupport() {
