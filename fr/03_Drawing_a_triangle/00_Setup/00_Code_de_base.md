@@ -67,12 +67,12 @@ nouvel objet Vulkan qui sera justement créé par cette fonction. Nous le détru
 
 ## Gestion des ressources
 
-Comme pour une quelconque ressource explicitement allouée par `new` doit être explicitement libérée par `delete`, nous
+Comme une quelconque ressource explicitement allouée par `new` doit être explicitement libérée par `delete`, nous
 devrons explicitement détruire toutes les ressources Vulkan que nous allouerons. Il est possible d'exploiter des
 fonctioinnalités du C++ pour s'aquitter automatiquement de cela. Ces possibilités sont localisées dans `<memory>` si
 vous désirez les utiliser. Cependant nous resterons explicites pour toutes les opérations dans ce tutoriel, car la
-puissance de Vulkan réside spécifiquement dans la clareté de ce que le programmeur veut. De plus cela nous permettra de
-bien comprendre les durées de vie des objets.
+puissance de Vulkan réside spécifiquement dans la clareté de l'expression de la colonté du programmeur. De plus cela
+nous permettra de bien comprendre la durée de vie de chacun des objets.
 
 Après avoir suivi ce tutoriel vous pourrez parfaitement implémenter une gestion automatique des ressources en
 spécialisant `std::shared_ptr` par exemple. L'utilisations du [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
@@ -96,7 +96,7 @@ exitant d'afficher quelque chose! Remplacez d'abord la ligne `#include <vulkan/v
 #include <GLFW/glfw3.h>
 ```
 
-GLFW va ainsi automatiquement inclureses propres définitions des fonctions Vulkan et vous fournir le header Vulkan.
+GLFW va ainsi automatiquement inclure ses propres définitions des fonctions Vulkan et vous fournir le header Vulkan.
 Ajoutez une fonction `initWindow` et appelez-la depuis `run` avant les autres appels. Nous utiliserons cette fonction
 pour initialiser GLFW et créer une fenêtre.
 
@@ -136,7 +136,7 @@ window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
 ```
 
 Les trois premiers paramètres indique respectivement la largeur, la hauteur et le titre de la fenêtre. Le quatrième vous
- permet optionnellement de spécifier un moniteur sur lequel ouvrir la fenêtre, et le cinquième est spécifique à OpenGL.
+permet optionnellement de spécifier un moniteur sur lequel ouvrir la fenêtre, et le cinquième est spécifique à OpenGL.
 
 Nous devrions plutôt utiliser des constantes pour la hauteur et la largeur dans la mesure où nous aurons besoin de ces
 valeurs dans le futur. J'ai donc ajouté ceci au-dessus de la définition de la classe `HelloTriangleApplication` :
@@ -165,7 +165,7 @@ void initWindow() {
 }
 ```
 
-Pour s'assurer que l'application tourne jusqu'à ce que soit une erreur soit un click sur la croix ne l'interrompe, nous
+Pour s'assurer que l'application tourne jusqu'à ce que soit une erreur soit un clic sur la croix ne l'interrompe, nous
 devons écrire une petite boucle de gestion d'évènements :
 
 ```c++

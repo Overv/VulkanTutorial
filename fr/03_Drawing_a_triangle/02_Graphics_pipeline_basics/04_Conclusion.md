@@ -6,7 +6,7 @@ pipeline graphique! Voici un petit récapitulatif des objets que nous avons :
 entrées, le rasterizer, le viewport et le mélange des couleurs
 * Organisation de la pipeline : les uniformes et variables push utilisées par les shaders et que l'on peut changer 
 pendant l'exécution
-* Passe de rendu : les attachements référencés par la pipeline et leurs utilisations
+* Render pass : les attachements référencés par la pipeline et leurs utilisations
 
 Tout cela combiné définit le fonctionnement de la pipeline graphique. Nous pouvons maintenant remplir la structure 
 `VkGraphicsPipelineCreateInfo` à la fin de la fonction `createGraphicsPipeline`, mais avant les appels à la fonction 
@@ -40,8 +40,8 @@ Après cela vient l'organisation de la pipeline, contenue dans un type fourni pa
 pipelineInfo.layout = pipelineLayout;
 ```
 
-Finalement nous devons fournir les références à la passe de rendu et aux indices des subpasses. Il est aussi possible
-d'utiliser d'autres passes de rendu avec cette pipeline mais elles doivent être compatibles avec `renderPass`. La 
+Finalement nous devons fournir les références à la render pass et aux indices des subpasses. Il est aussi possible
+d'utiliser d'autres render passes avec cette pipeline mais elles doivent être compatibles avec `renderPass`. La 
 signification de compatible est donnée
 [ici](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#renderpass-compatibility), mais nous 
 n'utiliserons pas cette possibilité dans ce tutoriel.

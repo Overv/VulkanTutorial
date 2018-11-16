@@ -1,9 +1,8 @@
 Vulkan ignore la plateforme sur laquelle il opère et ne peut donc pas directement établir d'interface avec le 
 gestionnaire de fenêtres. Pour créer une interface permettant de présenter les rendus à l'écran, nous devons utilser 
-l'extension WSI (Window System Integration ou Système d'Intégration de Fenêtres). Nous verrons dans ce chapitre
-l'extension `VK_KHR_surface`, l'une des extensions du WSI. Nous pourrons ainsi obtenir l'objet `VkSurfaceKHR`, qui 
-représente un type abstrait de surface sur lequel nous pourrons effectuer des rendus. Cette surface sera en lien avec
-la fenêtre que nous avons créée grâce à GLFW.
+l'extension WSI (Window System Integration). Nous verrons dans ce chapitre l'extension `VK_KHR_surface`, l'une des
+extensions du WSI. Nous pourrons ainsi obtenir l'objet `VkSurfaceKHR`, qui est un type abstrait de surface sur
+lequel nous pourrons effectuer des rendus. Cette surface sera en lien avec la fenêtre que nous avons créée grâce à GLFW.
 
 L'extension `VK_KHR_surface`, qui se charge au niveau de l'instance, a déjà été ajoutée, car elle fait partie des 
 extensions retournées par la fonction `glfwGetRequiredInstanceExtensions`. Les autres fonctions WSI que nous verrons 
@@ -13,9 +12,9 @@ La surface de fenêtre doit être créée juste après l'instance car elle peut 
 Nous ne nous intéressons à ce sujet que maintenant car il fait partie du grand ensemble que nous abordons et qu'en 
 parler plus tôt aurait été confus. Il est important de noter que cette surface est complètement optionnelle, et vous 
 pouvez l'ignorer si vous voulez effectuer du rendu off-screen ou du calcul. Vulkan vous permet cela sans avoir besoin
-de recourir à des astuces comme créer une fenêtre invisible, alors que d'autres APIs le demandaient (OpenGL).
+de recourir à des astuces comme créer une fenêtre invisible, alors que d'autres APIs le demandaient (cf OpenGL).
 
-## Création de la surface de fenêtre
+## Création de la window surface
 
 Commencez par ajouter un membre donnée `surface` sous le messager.
 
@@ -34,7 +33,7 @@ spécifique de la plateforme. La fonction de GLFW `glfwCreateWindowSurface` perm
 plateforme. Cet exemple ne servira ainsi qu'à présenter le travail de bas niveau, dont la connaissance est toujours 
 utile à une bonne utilisation de Vulkan.
 
-Une surface de fenêtre est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici 
+Une window surface est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici 
 `VkWin32SurfaceCreateInfoKHR`. Elle possède deux paramètres importants :`hwnd` et `hinstance`. Ce sont les références
 à la fenêtre et au processus courant.
 
@@ -56,7 +55,7 @@ sur la variable qui contiendra la référence.
 auto CreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR) vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
 
 if (!CreateWin32SurfaceKHR || CreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de la création d'une surface de fenêtre!");
+    throw std::runtime_error("echec lors de la creation d'une window surface!");
 }
 ```
 
@@ -151,10 +150,10 @@ Il est très probable que ces deux queue families soient en fait les mêmes, mai
 étatient différentes pour une meilleure compatibilité. Vous pouvez cependant ajouter un alorithme préférant des 
 queues combinées pour améliorer légèrement les performances.
 
-## Création de la queue de présentation
+## Création de la queue de présentation (presentation queue)
 
-Il nous reste à modifier la création du logical device pour extraire de celui-ci la référence à une queue 
-de présentation `VkQueue`. Ajoutez un membre donnée pour cette référence :
+Il nous reste à modifier la création du logical device pour extraire de celui-ci la référence à une presentation queue
+`VkQueue`. Ajoutez un membre donnée pour cette référence :
 
 ```c++
 VkQueue presentQueue;
@@ -198,8 +197,8 @@ enfin un appel récupérant les queue families :
 vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 ```
 
-Si les queues sont les mêmes, les variables contenant les références devraient contenir les mêmes valeurs. Dans le 
+Si les queues sont les mêmes, les variables contenant les références devraient contenir les mêmes valeurs. Dans le
 prochain chapitre nous nous interesserons aux swap chain, et verrons comment elles permettent de présenter les rendus
- à l'écran.
+à l'écran.
  
 [Code C++](/code/05_window_surface.cpp)

@@ -46,7 +46,7 @@ Actuellement les drivers ne vous permettent que de créer un petit nombre de que
 n'avez en effet pas besoin de plus. Vous pouvez très bien créer les commandes (command buffers) depuis plusieurs 
 threads et les soumettre à la queue d'un coup sur le thread principal, et ce sans perte de performance.
 
-Vulkan permet d'assigner des niveaux de priorité aux queues à l'aide de nombres flottants entre `0.0` et `1.0`. Vous 
+Vulkan permet d'assigner des niveaux de priorité aux queues à l'aide de floats compris entre `0.0` et `1.0`. Vous 
 pouvez ainsi influencer l'exécution des command buffers. Cela est nécessaire même lorsque une seule queue est présente :
 
 ```c++
@@ -88,8 +88,8 @@ Le reste ressemble à la structure `VkInstanceCreateInfo`. Nous devons spécifie
 carte graphique et les validation layers.
 
 Un exemple d'extension spécifique au GPU est `VK_KHR_swapchain`. Celle-ci vous permet de présenter à l'écran les images 
-sur lesquels votre programme a effectué un rendu. Il est en effet possible que certains GPU ne possède pas cette 
-capacité, par exemple parce qu'ils ne supportent que des opérations de calcul. Nous reviendrons sur cette extension
+sur lesquels votre programme a effectué un rendu. Il est en effet possible que certains GPU ne possèdent pas cette 
+capacité, par exemple parce qu'ils ne supportent que les compute shaders. Nous reviendrons sur cette extension
 dans le chapitre dédié à la swap chain.
 
 Comme dit dans le chapitre sur les calidation layers, nous activerons les mêmes que celles que nous avons spécifiées 

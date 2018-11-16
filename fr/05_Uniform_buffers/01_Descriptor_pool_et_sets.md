@@ -185,7 +185,7 @@ descriptorWrite.pTexelBufferView = nullptr; // Optionnel
 Le dernier champ que nous allons utiliser est `pBufferInfo`. Il permet de fournir `descriptorCount` structures qui
 configureront les descripteurs. Les autres champs correspondent aux structures qui peuvent configurer des descripteurs
 d'autres types. Ainsi il y aura `pImageInfo` pour les descripteurs liés aux images, et `pTexelBufferInfo` pour les
-descripteurs liés aux vues sur un buffer.
+descripteurs liés aux buffer views.
 
 ```c++
 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);

@@ -5,7 +5,7 @@ triangle. La pipeline graphique est l'ensemble des opérations qui prennent les 
 ![](/images/vulkan_simplified_pipeline.svg)
 
 L'_input assembler_ collecte les données des vertices à partir des buffers que vous avez mis en place, et peut aussi 
-usiliser un index buffer pour répéter certains éléments sans avoir à stocker deux fois les mêmes données dans un buffer.
+utiliser un index buffer pour répéter certains éléments sans avoir à stocker deux fois les mêmes données dans un buffer.
 
 Le _vertex shader_ est exécuté pour chaque vertex et applique en général des transformations sur les vertices pour 
 qu'elles passent de l'espace du modèle (model space) à l'espace de l'écran (screen space). Il passe ensuite des
@@ -16,8 +16,8 @@ qualité du rendu. Ce procédé est notemment utilisé pour que des surface comm
 aient l'air moins plats lorsque l'on s'en approche.
 
 Le _geometry shader_ est invoqué pour chaque primitive (triangle, ligne, points...) et peut les détruires ou en créer
-de nouvelles, du même type ou non. Ce travail est similaire au tesselation shader tout en étant beaucoup plus 
-flexible.Il n'est cependant pas beaucoup utilisé à cause de performances assez moyennes sur les cartes graphiques 
+de nouvelles, du même type ou non. Ce travail est similaire au tesselation shader tout en étant beaucoup plus
+flexible.Il n'est cependant pas beaucoup utilisé à cause de performances assez moyennes sur les cartes graphiques
 (sauf pour les GPUs intégrés d'Intel).
 
 La _rasterization_ transforme les primitives en _fragments_. Ce sont les pixels que les primitives remplissent sur 
@@ -33,7 +33,7 @@ Le _color blending_ applique des opérations pour mixer différents fragments co
 framebuffer. Les fragments peuvent remplacer les valeurs des autres, s'additionner ou se mélanger selon les 
 paramètres de transparence (ou plus correctement de translucidité, en anglais translucency).
 
-Les étapes écrites en vert s'appellent _étapes à fonction fixée_. Elles ne vous permettent que de modifier leurs 
+Les étapes écrites en vert s'appellent _fixed-function stages_. Elles ne vous permettent que de modifier leurs 
 calculs à l'aide de paramètres, mais leur fonctionnement est prédéfini.
 
 Les étapes colorées en orange sont programmables, ce qui signifie que vous pouvez charger votre propre code dans la 

@@ -21,7 +21,7 @@ VkInstance instance;
 Pour créer l'instance, nous allons d'abord remplir une première structure avec des informations sur notre application.
 Ces données sont optionnelles, mais elles peuvent fournir des informations utiles au driver pour optimiser ou
 dignostiquer les erreurs lors de l'exécution, par exemple en reconnaissant le nom d'un moteur graphique. Cette structure
- s'appelle `VkApplicationInfo` :
+s'appelle `VkApplicationInfo` :
 
 ```c++
 VkApplicationInfo appInfo = {};
@@ -41,7 +41,7 @@ Avec Vulkan, nous rencontrerons souvent des structures à remplir pour passer le
 maintenant remplir le reste de la structure permettant la création de l'instance. Celle-ci n'est pas optionnelle. Elle
 permet d'informer le driver des extensions et des validation layers que nous utiliserons, et ceci de manière globale.
 Globale siginifie ici que ces données ne serons pas spécifiques à un périphérique. Nous verrons la signification de cela
- dans les chapitres suivants.
+dans les chapitres suivants.
 
 ```c++
 VkInstanceCreateInfo createInfo = {};
@@ -147,8 +147,8 @@ particulier celles indiquées par GLFW) sont disponibles.
 
 ## Libération des ressources
 
-L'instance contenue dans `VkInstance ne doit être détruite qu'à la fin du programme. Nous la détruirons dans la fonction
- `cleanup` grâce à la fonction `vkDestroyInstance` :
+L'instance contenue dans `VkInstance` ne doit être détruite qu'à la fin du programme. Nous la détruirons dans la
+fonction `cleanup` grâce à la fonction `vkDestroyInstance` :
 
 ```c++
 void cleanup() {
@@ -164,7 +164,7 @@ Les paramètres de cette fonctions sont évidents. Nous y retrouvons le paramèt
 `nullptr`. Toutes les ressources que nous allouerons à partir du prochain chapitre devront être libérées avant la
 libération de l'instance.
 
-Avant d'avancer dans les notions plus complexes, créons un moyen de débugger notre programme avec [les
-validations layers!](!Drawing_a_triangle/Setup/Validation_layers).
+Avant d'avancer dans les notions plus complexes, créons un moyen de débugger notre programme avec
+[les validations layers!](!Drawing_a_triangle/Setup/Validation_layers).
 
 [Code C++](/code/01_instance_creation.cpp)

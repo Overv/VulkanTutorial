@@ -178,9 +178,9 @@ indique l'état à hériter de l'appel par le command buffer primaire.
 Si un command buffer est déjà prêt un appel à `vkBeginCommandBuffer` le regénèrera implicitement. Il n'est pas possible
 d'enregistrer un command buffer en plusieurs fois.
 
-## Commencer une passe de rendu
+## Commencer une render pass
 
-L'affichage commence par le lancement de la passe de rendu réalisé par `vkCmdBeginRenderPass`. La passe est configurée
+L'affichage commence par le lancement de la render pass réalisé par `vkCmdBeginRenderPass`. La passe est configurée
 à l'aide des paramètres remplis dans une structure de type `VkRenderPassBeginInfo`.
 
 ```c++
@@ -190,7 +190,7 @@ renderPassInfo.renderPass = renderPass;
 renderPassInfo.framebuffer = swapChainFramebuffers[i];
 ```
 
-Ces premiers paramètres sont la passe de rendu elle-même et les attachements à lui fournir. Nous avons créé un
+Ces premiers paramètres sont la render pass elle-même et les attachements à lui fournir. Nous avons créé un
 framebuffer pour chacune des images de la swap chain qui spécifient ces images comme attachements de couleur.
 
 ```c++
@@ -215,17 +215,17 @@ avions activée avec `VK_ATTACHMENT_LOAD_CLEAR`). J'ai utilisé un noir complèt
 vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 ```
 
-La passe de rendu peut maintenant commencer. Toutes les fonctions enregistrables se reconnaisent à leur préfixe `vkCmd`.
+La render pass peut maintenant commencer. Toutes les fonctions enregistrables se reconnaisent à leur préfixe `vkCmd`.
 Comme elles retournent toutes `void` nous n'avons aucun moyen de gérer d'éventuelles erreurs d'ici à ce que nous 
 ayons fini l'enregistrement.
 
 Le premier paramètre de chaque commande est toujours le command buffer qui stockera l'appel. Le second paramètre donne
-des détails sur la passe de rendu à l'aide de la structure que nous avons préparée. Le dernier paramètre informe sur la
+des détails sur la render pass à l'aide de la structure que nous avons préparée. Le dernier paramètre informe sur la
 provenance des commandes pendant l'exécution de la passe. Il peut prendre ces valeurs :
 
-* `VK_SUBPASS_CONTENTS_INLINE` : les commandes de la passe de rendu seront incluses directement dans le command buffer
+* `VK_SUBPASS_CONTENTS_INLINE` : les commandes de la render pass seront incluses directement dans le command buffer
 (qui est donc primaire)
-* `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFER` : les commandes de la passe de rendu seront fournies par un ou
+* `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFER` : les commandes de la render pass seront fournies par un ou
 plusieurs command buffers secondaires
 
 Nous n'utiliserons pas de command buffer secondaire, nous devons donc fournir la première valeur à la fonction.
@@ -259,7 +259,7 @@ command buffer concerné :
 
 ## Finitions
 
-La passe de rendu peut ensuite être terminée :
+La render pass peut ensuite être terminée :
 
 ```c++
 vkCmdEndRenderPass(commandBuffers[i]);
