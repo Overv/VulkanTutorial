@@ -87,11 +87,6 @@ code looks like this:
 
 ```glsl
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
 
 vec2 positions[3] = vec2[](
     vec2(0.0, -0.5),
@@ -110,8 +105,7 @@ the vertex buffer, but in our case it will be an index into a hardcoded array
 of vertex data. The position of each vertex is accessed from the constant array
 in the shader and combined with dummy `z` and `w` components to produce a
 position in clip coordinates. The built-in variable `gl_Position` functions as
-the output. The `GL_ARB_separate_shader_objects` extension is required for
-Vulkan shaders to work.
+the output.
 
 ## Fragment shader
 
@@ -203,10 +197,6 @@ The contents of `shader.vert` should be:
 ```glsl
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
 
 layout(location = 0) out vec3 fragColor;
 
