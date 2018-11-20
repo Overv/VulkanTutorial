@@ -134,7 +134,7 @@ répétées vues à un angle aigü :
 
 ![](/images/anisotropic_filtering.png)
 
-Comme vous pouvez le vor sur l'image de droite, la texture devient d'autant plus floue que l'angle de vision se réduit.
+Comme vous pouvez le voir sur l'image de droite, la texture devient d'autant plus floue que l'angle de vision se réduit.
 La solution à ce problème peut aussi être réalisée par le sampler et s'appelle
 [anisotropic filtering](https://en.wikipedia.org/wiki/Anisotropic_filtering). Elle est par contre plus consommatrice de
 ressources.
