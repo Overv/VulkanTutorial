@@ -250,13 +250,13 @@ void initVulkan() {
     ...
     createVertexBuffer();
     createIndexBuffer();
-    createUniformBuffer();
+    createUniformBuffers();
     ...
 }
 
 ...
 
-void createUniformBuffer() {
+void createUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
     uniformBuffers.resize(swapChainImages.size());
