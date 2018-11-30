@@ -80,7 +80,10 @@ as we checked in the previous chapter, implies that the swap chain extension
 must be supported. However, it's still good to be explicit about things, and
 the extension does have to be explicitly enabled.
 
-Enabling the extension just requires a small change to the logical device
+## Enabling device extensions
+
+Using a swapchain requires enabling the `VK_KHR_swapchain` extension first. 
+Enabling the extension just requires a small change to the logical device 
 creation structure:
 
 ```c++
