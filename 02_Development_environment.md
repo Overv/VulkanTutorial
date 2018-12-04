@@ -245,8 +245,8 @@ You can now build the Vulkan examples in the SDK by running:
 ```
 
 If compilation was successful, then you should now have a
-`./examples/build/cube` executable. Run it from the `examples/build` directory
-with `./cube` and ensure that you see the following pop up in a window:
+`./examples/build/vkcube` executable. Run it from the `examples/build` directory
+with `./vkcube` and ensure that you see the following pop up in a window:
 
 ![](/images/cube_demo_nowindow.png)
 
