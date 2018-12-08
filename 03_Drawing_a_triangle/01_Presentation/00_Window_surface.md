@@ -58,15 +58,10 @@ The `glfwGetWin32Window` function is used to get the raw `HWND` from the GLFW
 window object. The `GetModuleHandle` call returns the `HINSTANCE` handle of the
 current process.
 
-After that the surface can be created with `vkCreateWin32SurfaceKHR`, which
-needs to be explicitly loaded again. Other than that the call is trivial and
-includes a parameter for the instance, surface creation details, custom
-allocators and the variable for the surface handle to be stored in.
+After that the surface can be created with `vkCreateWin32SurfaceKHR`, which includes a parameter for the instance, surface creation details, custom allocators and the variable for the surface handle to be stored in. Technically this is a WSI extension function, but it is so commonly used that the standard Vulkan loader includes it, so unlike other extensions you don't need to explicitly load it.
 
 ```c++
-auto CreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR) vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
-
-if (!CreateWin32SurfaceKHR || CreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
+if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
     throw std::runtime_error("failed to create window surface!");
 }
 ```
