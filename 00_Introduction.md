@@ -50,6 +50,8 @@ linear algebra library and you will be on your own in terms of code structuring.
 We will use C++ features like classes and RAII to organize logic and resource
 lifetimes. There is also an [alternative version](https://github.com/bwasty/vulkan-tutorial-rs) of this tutorial available for Rust developers.
 
+To make it easier to follow along for developers using other programming languages, and to get some experience with the base API we'll be using the original C API to work with Vulkan. If you are using C++, however, you may prefer using the newer [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) bindings that abstract some of the dirty work and help prevent certain classes of errors.
+
 ## E-book
 
 If you prefer to read this tutorial as an e-book, then you can download an EPUB
