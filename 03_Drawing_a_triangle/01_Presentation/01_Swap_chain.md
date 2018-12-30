@@ -82,8 +82,8 @@ the extension does have to be explicitly enabled.
 
 ## Enabling device extensions
 
-Using a swapchain requires enabling the `VK_KHR_swapchain` extension first. 
-Enabling the extension just requires a small change to the logical device 
+Using a swapchain requires enabling the `VK_KHR_swapchain` extension first.
+Enabling the extension just requires a small change to the logical device
 creation structure:
 
 ```c++
@@ -409,9 +409,9 @@ void createSwapChain() {
 }
 ```
 
-There is actually one more small things that need to be decided upon, but it's
-so simple that it's not really worth creating separate functions for them. The
-first one is the number of images in the swap chain, essentially the queue
+Now, there is actually one more small thing that need to be decided upon, but it's
+so simple that it's not really worth creating a separate function for. That is
+deciding the number of images in the swap chain, essentially the queue
 length. The implementation specifies the minimum amount of images to function
 properly and we'll try to have one more than that to properly implement triple
 buffering.
