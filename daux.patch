@@ -1,6 +1,6 @@
-From e0550e64598b7b22897f98cd2c56f2a8b09a1063 Mon Sep 17 00:00:00 2001
+From 3ceba9884e5db76a32c6318e0d474d4ba2f7756d Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Sun, 26 Aug 2018 19:53:42 +0200
+Date: Fri, 4 Jan 2019 18:42:00 +0100
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
@@ -186,7 +186,7 @@ index 868dd05..8926ed8 100755
  <body class="<?= $params['html']['float'] ? 'with-float' : ''; ?>">
      <?= $this->section('content'); ?>
 diff --git a/templates/layout/05_page.php b/templates/layout/05_page.php
-index 1bd8752..9715453 100755
+index 1bd8752..ad872bf 100755
 --- a/templates/layout/05_page.php
 +++ b/templates/layout/05_page.php
 @@ -4,11 +4,6 @@
@@ -244,7 +244,7 @@ index 1bd8752..9715453 100755
 +                </div>
  
 +                <div style="color: #666; padding: 0 20px 0 20px; font-size: 90%">
-+                    This site is not affiliated with or endorsed by the Khronos Group. Vulkan™ and the Vulkan logo are trademarks of the Khronos Group Inc.
++                    This site is not affiliated with or endorsed by the Khronos Group. Vulkan® and the Vulkan logo are trademarks of the Khronos Group Inc.
                  </div>
              </div>
          </div>
