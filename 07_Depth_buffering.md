@@ -362,7 +362,7 @@ ready for usage as depth attachment when it needs to be.
 ## Render pass
 
 We're now going to modify `createRenderPass` to include a depth attachment.
-First specify the `VkAttachementDescription`:
+First specify the `VkAttachmentDescription`:
 
 ```c++
 VkAttachmentDescription depthAttachment = {};
