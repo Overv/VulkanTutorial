@@ -251,6 +251,126 @@ corrects for aspect ratio. The `updateUniformBuffer` takes care of screen
 resizing, so we don't need to recreate the descriptor set in
 `recreateSwapChain`.
 
+## Alignment requirements
+
+One thing we've glossed over so far is how exactly the data in the C++ structure should match with the uniform definition in the shader. It seems obvious enough to simply use the same types in both:
+
+```c++
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
+```
+
+However, that's not all there is to it. For example, try modifying the struct and shader to look like this:
+
+```c++
+struct UniformBufferObject {
+    glm::vec2 foo;
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
+layout(binding = 0) uniform UniformBufferObject {
+    vec2 foo;
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
+```
+
+Recompile your shader and your program and run it and you'll find that the colorful square you worked so far has disappeared! That's because we haven't taken into account the *alignment requirements*.
+
+Vulkan expects the data in your structure to be aligned in memory in a specific way, for example:
+
+* Scalars have to be aligned by N (= 4 bytes given 32 bit floats).
+* A `vec2` must be aligned by 2N (= 8 bytes)
+* A `vec3` or `vec4` must be aligned by 4N (= 16 bytes)
+* A nested structure must be aligned by the base alignment of its members rounded up to a multiple of 16.
+* A `mat4` matrix must have the same alignment as a `vec4`.
+
+You can find the full list of alignment requirements in [the specification](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap14.html#interfaces-resources-layout).
+
+Our original shader with just three `mat4` fields already met the alignment requirements. As each `mat4` is 4 x 4 x 4 = 64 bytes in size, `model` has an offset of `0`, `view` has an offset of 64 and `proj` has an offset of 128. All of these are multiples of 16 and that's why it worked fine.
+
+The new structure starts with a `vec2` which is only 8 bytes in size and therefore throws off all of the offsets. Now `model` has an offset of `8`, `view` an offset of `72` and `proj` an offset of `136`, none of which are multiples of 16. To fix this problem we can use the [`alignas`](https://en.cppreference.com/w/cpp/language/alignas) specifier introduced in C++11:
+
+```c++
+struct UniformBufferObject {
+    glm::vec2 foo;
+    alignas(16) glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+```
+
+If you now compile and run your program again you should see that the shader correctly receives its matrix values once again.
+
+Luckily there is a way to not have to think about these alignment requirements *most* of the time. We can define `GLM_FORCE_DEFAULT_ALIGNED_GENTYPES` right before including GLM:
+
+```c++
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#include <glm/glm.hpp>
+```
+
+This will force GLM to use a version of `vec2` and `mat4` that has the alignment requirements already specified for us. If you add this definition then you can remove the `alignas` specifier and your program should still work.
+
+Unfortunately this method can break down if you start using nested structures. Consider the following definition in the C++ code:
+
+```c++
+struct Foo {
+    glm::vec2 v;
+};
+
+struct UniformBufferObject {
+    Foo f1;
+    Foo f2;
+};
+```
+
+And the following shader definition:
+
+```c++
+struct Foo {
+    vec2 v;
+};
+
+layout(binding = 0) uniform UniformBufferObject {
+    Foo f1;
+    Foo f2;
+} ubo;
+```
+
+In this case `f2` will have an offset of `8` whereas it should have an offset of `16` since it is a nested structure. In this case you must specify the alignment yourself:
+
+```c++
+struct UniformBufferObject {
+    Foo f1;
+    alignas(16) Foo f2;
+};
+```
+
+These gotchas are a good reason to always be explicit about alignment. That way you won't be caught offguard by the strange symptoms of alignment errors.
+
+```c++
+struct UniformBufferObject {
+    alignas(16) glm::mat4 model;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+};
+```
+
+Don't forget to recompile your shader after removing the `foo` field.
+
 ## Multiple descriptor sets
 
 As some of the structures and function calls hinted at, it is actually possible
