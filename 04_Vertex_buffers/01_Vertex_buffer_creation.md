@@ -290,6 +290,8 @@ matches the contents of the allocated memory. Do keep in mind that this may lead
 to slightly worse performance than explicit flushing, but we'll see why that
 doesn't matter in the next chapter.
 
+Flushing memory ranges or using a coherent memory heap means that the driver will be aware of our writes to the buffer, but it doesn't mean that they are actually visible on the GPU yet. The transfer of data to the GPU is an operation that happens in the background and the specification simply [tells us](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#synchronization-submission-host-writes) that it is guaranteed to be complete as of the next call to `vkQueueSubmit`.
+
 ## Binding the vertex buffer
 
 All that remains now is binding the vertex buffer during rendering operations.
