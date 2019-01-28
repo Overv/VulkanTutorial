@@ -100,6 +100,8 @@ finished images to the screen depends on the present mode. Common present modes
 are  double buffering (vsync) and triple buffering. We'll look into these in the
 swap chain creation chapter.
 
+Some platforms allow you to render directly to a display without interacting with any window manager through the `VK_KHR_display` and `VK_KHR_display_swapchain` extensions. These allow you to create a surface that represents the entire screen and could be used to implement your own window manager, for example.
+
 ### Step 4 - Image views and framebuffers
 
 To draw to an image acquired from the swap chain, we have to wrap it into a
