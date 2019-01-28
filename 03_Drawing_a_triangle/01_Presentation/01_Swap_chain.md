@@ -409,22 +409,25 @@ void createSwapChain() {
 }
 ```
 
-Now, there is actually one more small thing that need to be decided upon, but it's
-so simple that it's not really worth creating a separate function for. That is
-deciding the number of images in the swap chain, essentially the queue
-length. The implementation specifies the minimum amount of images to function
-properly and we'll try to have one more than that to properly implement triple
-buffering.
+Aside from these properties we also have to decide how many images we would like to have in the swap chain. The implementation specifies the minimum number that it requires to function:
+
+```c++
+uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
+```
+
+However, simply sticking to this minimum means that we may sometimes have to wait on the driver to complete internal operations before we can acquire another image to render to. Therefore it is recommended to request at least one more image than the minimum:
 
 ```c++
 uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+```
+
+We should also make sure to not exceed the maximum number of images while doing this, where `0` is a special value that means that there is no maximum:
+
+```c++
 if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
     imageCount = swapChainSupport.capabilities.maxImageCount;
 }
 ```
-
-A value of `0` for `maxImageCount` means that there is no limit besides memory
-requirements, which is why we need to check for that.
 
 As is tradition with Vulkan objects, creating the swap chain object requires
 filling in a large structure. It starts out very familiarly:
@@ -583,9 +586,7 @@ don't need to add any cleanup code.
 
 I'm adding the code to retrieve the handles to the end of the `createSwapChain`
 function, right after the `vkCreateSwapchainKHR` call. Retrieving them is very
-similar to the other times where we retrieved an array of objects from Vulkan.
-First query the number of images in the swap chain with a call to
-`vkGetSwapchainImagesKHR`, then resize the container and finally call it again
+similar to the other times where we retrieved an array of objects from Vulkan. Remember that we only specified a minimum number of images in the swap chain, so the implementation is allowed to create a swap chain with more. That's why we'll first query the final number of images with `vkGetSwapchainImagesKHR`, then resize the container and finally call it again
 to retrieve the handles.
 
 ```c++
@@ -593,10 +594,6 @@ vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 swapChainImages.resize(imageCount);
 vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 ```
-
-Note that when we created the swap chain, we passed the number of desired images
-to a field called `minImageCount`. The implementation is allowed to create more
-images, which is why we need to explicitly query the amount again.
 
 One last thing, store the format and extent we've chosen for the swap chain
 images in member variables. We'll need them in future chapters.
