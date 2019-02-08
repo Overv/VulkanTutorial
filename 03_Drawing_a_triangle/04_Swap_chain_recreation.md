@@ -168,7 +168,7 @@ If the swap chain turns out to be out of date when attempting to acquire an
 image, then it is no longer possible to present to it. Therefore we should
 immediately recreate the swap chain and try again in the next `drawFrame` call.
 
-However, if we abort drawing at this point then the fence will be never have
+However, if we abort drawing at this point then the fence will never have
 been submitted with `vkQueueSubmit` and it'll be in an unexpected state when we
 try to wait for it later on. We could recreate the fences as part of swap chain
 recreation, but it's easier to move the `vkResetFences` call:
