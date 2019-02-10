@@ -224,9 +224,7 @@ following:
 
 ![](/images/inverted_texture_coordinates.png)
 
-Great, the geometry looks correct, but what's going on with the texture? The
-problem is that the origin of texture coordinates in Vulkan is the top-left
-corner, whereas the OBJ format assumes the bottom-left corner. Solve this by
+Great, the geometry looks correct, but what's going on with the texture? The OBJ format assumes a coordinate system where a vertical coordinate of `0` means the bottom of the image, however we've uploaded our image into Vulkan in a top to bottom orientation where `0` means the top of the image. Solve this by
 flipping the vertical component of the texture coordinates:
 
 ```c++
