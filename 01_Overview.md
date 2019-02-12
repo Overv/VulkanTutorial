@@ -131,7 +131,7 @@ driver also needs to know which render targets will be used in the pipeline,
 which we specify by referencing the render pass.
 
 One of the most distinctive features of Vulkan compared to existing APIs, is
-that almost all configuration of the graphics pipeline needs to be in advance.
+that almost all configuration of the graphics pipeline needs to be set in advance.
 That means that if you want to switch to a different shader or slightly
 change your vertex layout, then you need to entirely recreate the graphics
 pipeline. That means that you will have to create many VkPipeline objects in
