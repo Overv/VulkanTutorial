@@ -15,7 +15,7 @@ to set it up.
 ```c++
 void initVulkan() {
     ...
-    createUniformBuffer();
+    createUniformBuffers();
     createDescriptorPool();
     ...
 }
