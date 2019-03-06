@@ -67,7 +67,7 @@ l'utilisation type du buffer. La fonction a deux résultats, elle fonctionne don
 derniers paramètres, dans lesquels elle place les référernces aux objets créés.
 
 Vous pouvez maintenant supprimer la création du buffer et l'allocation de la mémoire de `createVertexBuffer` et
-remplacer tout ça par deux appels à votre nouvelle fonction :
+remplacer tout ça par un appel à votre nouvelle fonction :
 
 ```c++
 void createVertexBuffer() {
