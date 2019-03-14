@@ -91,6 +91,8 @@ createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()
 createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 ```
 
+Make sure to replace the existing line `createInfo.enabledExtensionCount = 0;` when you do so.
+
 ## Querying details of swap chain support
 
 Just checking if a swap chain is available is not sufficient, because it may not
