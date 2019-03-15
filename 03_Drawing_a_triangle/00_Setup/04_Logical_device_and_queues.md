@@ -100,9 +100,7 @@ there are Vulkan devices in the system that lack this ability, for example
 because they only support compute operations. We will come back to this
 extension in the swap chain chapter.
 
-As mentioned in the validation layers chapter, we will enable the same
-validation layers for devices as we did for the instance. We won't need any
-device specific extensions for now.
+Previous implementations of Vulkan made a distinction between instance and device specific validation layers, but this is [no longer the case](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#extendingvulkan-layers-devicelayerdeprecation). That means that the `enabledLayerCount` and `ppEnabledLayerNames` fields of `VkDeviceCreateInfo` are ignored by up-to-date implementations. However, it is still a good idea to set them anyway to be compatible with older implementations:
 
 ```c++
 createInfo.enabledExtensionCount = 0;
@@ -114,6 +112,8 @@ if (enableValidationLayers) {
     createInfo.enabledLayerCount = 0;
 }
 ```
+
+We won't need any device specific extensions for now.
 
 That's it, we're now ready to instantiate the logical device with a call to the
 appropriately named `vkCreateDevice` function.
