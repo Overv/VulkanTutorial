@@ -302,7 +302,7 @@ Only the `VK_PRESENT_MODE_FIFO_KHR` mode is guaranteed to be available, so we'll
 again have to write a function that looks for the best mode that is available:
 
 ```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 ```
@@ -313,7 +313,7 @@ images that are as up-to-date as possible right until the vertical blank. So,
 let's look through the list to see if it's available:
 
 ```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
     for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
             return availablePresentMode;
@@ -329,7 +329,7 @@ Unfortunately some drivers currently don't properly support
 if `VK_PRESENT_MODE_MAILBOX_KHR` is not available:
 
 ```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
     VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
 
     for (const auto& availablePresentMode : availablePresentModes) {
