@@ -163,7 +163,7 @@ The following other types of attachments can be referenced by a subpass:
 
 * `pInputAttachments`: Attachments that are read from a shader
 * `pResolveAttachments`: Attachments used for multisampling color attachments
-* `pDepthStencilAttachment`: Attachments for depth and stencil data
+* `pDepthStencilAttachment`: Attachment for depth and stencil data
 * `pPreserveAttachments`: Attachments that are not used by this subpass, but for
 which the data must be preserved
 
