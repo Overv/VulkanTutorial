@@ -227,17 +227,17 @@ private:
         }
 
         vkDestroySwapchainKHR(device, swapChain, nullptr);
+
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
+            vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+        }
     }
 
     void cleanup() {
         cleanupSwapChain();
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-
-        for (size_t i = 0; i < swapChainImages.size(); i++) {
-            vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
-        }
 
         vkDestroyBuffer(device, indexBuffer, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
@@ -283,6 +283,7 @@ private:
         createRenderPass();
         createGraphicsPipeline();
         createFramebuffers();
+        createUniformBuffers();
         createCommandBuffers();
     }
 
