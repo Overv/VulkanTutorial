@@ -72,15 +72,30 @@ if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SU
 
 Add a new class member to store the handle of the descriptor pool and call
 `vkCreateDescriptorPool` to create it. The descriptor pool should be destroyed
-only at the end of the program, much like the other drawing related resources:
+when the swap chain is recreated because it depends on the number of images:
 
 ```c++
-void cleanup() {
-    cleanupSwapChain();
+void cleanupSwapChain() {
+    ...
+
+    for (size_t i = 0; i < swapChainImages.size(); i++) {
+        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+    }
 
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+}
+```
 
+And recreated in `recreateSwapChain`:
+
+```c++
+void recreateSwapChain() {
     ...
+
+    createUniformBuffers();
+    createDescriptorPool();
+    createCommandBuffers();
 }
 ```
 
@@ -91,6 +106,13 @@ function for that purpose:
 
 ```c++
 void initVulkan() {
+    ...
+    createDescriptorPool();
+    createDescriptorSets();
+    ...
+}
+
+void recreateSwapChain() {
     ...
     createDescriptorPool();
     createDescriptorSets();

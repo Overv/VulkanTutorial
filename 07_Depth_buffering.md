@@ -546,6 +546,12 @@ function to recreate the depth resources in that case:
 
 ```c++
 void recreateSwapChain() {
+    int width = 0, height = 0;
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+    }
+
     vkDeviceWaitIdle(device);
 
     cleanupSwapChain();
@@ -556,6 +562,9 @@ void recreateSwapChain() {
     createGraphicsPipeline();
     createDepthResources();
     createFramebuffers();
+    createUniformBuffers();
+    createDescriptorPool();
+    createDescriptorSets();
     createCommandBuffers();
 }
 ```
