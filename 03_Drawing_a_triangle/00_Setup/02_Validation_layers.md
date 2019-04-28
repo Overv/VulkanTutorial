@@ -68,9 +68,7 @@ device level, which we'll see [later on](!Drawing_a_triangle/Setup/Logical_devic
 
 In this section we'll see how to enable the standard diagnostics layers provided
 by the Vulkan SDK. Just like extensions, validation layers need to be enabled by
-specifying their name. Instead of having to explicitly specify all of the useful
-layers, the SDK allows you to request the `VK_LAYER_LUNARG_standard_validation`
-layer that implicitly enables a whole range of useful diagnostics layers.
+specifying their name. All of the useful standard validation is bundled into a layer included in the SDK that is known as `VK_LAYER_KHRONOS_validation`.
 
 Let's first add two configuration variables to the program to specify the layers
 to enable and whether to enable them or not. I've chosen to base that value on
@@ -82,7 +80,7 @@ const int WIDTH = 800;
 const int HEIGHT = 600;
 
 const std::vector<const char*> validationLayers = {
-    "VK_LAYER_LUNARG_standard_validation"
+    "VK_LAYER_KHRONOS_validation"
 };
 
 #ifdef NDEBUG
