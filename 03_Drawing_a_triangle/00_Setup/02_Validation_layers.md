@@ -342,7 +342,7 @@ window. You'll see that the following messages are printed to the command prompt
 
 ![](/images/validation_layer_test.png)
 
->If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.0.61.0/windows/getting_started.html#user-content-verify-the-installation).
+>If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.1.106.0/windows/getting_started.html#user-content-verify-the-installation).
 
 Oops, it has already spotted a bug in our program! The
 `VkDebugUtilsMessengerEXT` object needs to be cleaned up with a call to
