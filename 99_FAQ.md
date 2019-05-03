@@ -5,7 +5,7 @@ developing Vulkan applications.
 that MSI Afterburner / RivaTuner Statistics Server is not running, because it
 has some compatibility problems with Vulkan.
 
-* **I don't see any messages from the validation layers**: First make sure that
+* **I don't see any messages from the validation layers / Validation layers are not available**: First make sure that
 the validation layers get a chance to print errors by keeping the terminal open
 after your program exits. You can do this from Visual Studio by running your
 program with Ctrl-F5 instead of F5, and on Linux by executing your program from
