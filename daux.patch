@@ -1,13 +1,13 @@
-From 3ceba9884e5db76a32c6318e0d474d4ba2f7756d Mon Sep 17 00:00:00 2001
+From 340a3c96e897c2f1d16425a4dd69512bc36cf22c Mon Sep 17 00:00:00 2001
 From: Alexander Overvoorde <overv161@gmail.com>
-Date: Fri, 4 Jan 2019 18:42:00 +0100
+Date: Wed, 24 Apr 2019 21:26:17 +0200
 Subject: [PATCH] Adjust theme for Vulkan tutorial
 
 ---
  daux/VulkanLinkProcessor.php            |  69 ++++
- templates/content.php                   |  25 +-
+ templates/content.php                   |  27 +-
  templates/layout/00_layout.php          |  21 +-
- templates/layout/05_page.php            |  22 +-
+ templates/layout/05_page.php            |  28 +-
  themes/daux/css/theme-blue.min.css      |   2 +-
  themes/daux/css/theme-green.min.css     |   2 +-
  themes/daux/css/theme-navy.min.css      |   2 +-
@@ -20,7 +20,7 @@ Subject: [PATCH] Adjust theme for Vulkan tutorial
  themes/daux/less/structure.less         |  27 +-
  themes/daux/less/theme-blue.less        |  10 +-
  themes/daux_singlepage/css/main.min.css |   2 +-
- 16 files changed, 967 insertions(+), 139 deletions(-)
+ 16 files changed, 974 insertions(+), 140 deletions(-)
  create mode 100644 daux/VulkanLinkProcessor.php
 
 diff --git a/daux/VulkanLinkProcessor.php b/daux/VulkanLinkProcessor.php
@@ -99,7 +99,7 @@ index 0000000..4e4d456
 +    }
 +?>
 diff --git a/templates/content.php b/templates/content.php
-index 2febe38..f1083bd 100644
+index 2febe38..2f72f0d 100644
 --- a/templates/content.php
 +++ b/templates/content.php
 @@ -2,17 +2,14 @@
@@ -122,11 +122,12 @@ index 2febe38..f1083bd 100644
          </div>
      <?php } ?>
  
-@@ -26,5 +23,23 @@
+@@ -26,5 +23,25 @@
          </ul>
      </nav>
      <?php } ?>
 +
++    <?php if ($page['title'] != 'Privacy policy') { ?>
 +    <div id="disqus_thread"></div>
 +    <script>
 +    if (document.location.host) {
@@ -144,6 +145,7 @@ index 2febe38..f1083bd 100644
 +    }
 +    </script>
 +    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
++    <?php } ?>
  </article>
  
 diff --git a/templates/layout/00_layout.php b/templates/layout/00_layout.php
@@ -186,7 +188,7 @@ index 868dd05..8926ed8 100755
  <body class="<?= $params['html']['float'] ? 'with-float' : ''; ?>">
      <?= $this->section('content'); ?>
 diff --git a/templates/layout/05_page.php b/templates/layout/05_page.php
-index 1bd8752..ad872bf 100755
+index 1bd8752..f9eb2ca 100755
 --- a/templates/layout/05_page.php
 +++ b/templates/layout/05_page.php
 @@ -4,11 +4,6 @@
@@ -223,18 +225,24 @@ index 1bd8752..ad872bf 100755
  
                  <div class="sidebar-links">
                      <?php if (!empty($params['html']['links']) || !empty($params['html']['twitter']) || $params['html']['toggle_code']) { ?>
-@@ -37,6 +37,10 @@
+@@ -36,7 +36,15 @@
+                         <!-- Links -->
                          <?php
                          foreach ($params['html']['links'] as $name => $url) {
-                             echo '<a href="' . $url . '" target="_blank">' . $name . '</a><br>';
+-                            echo '<a href="' . $url . '" target="_blank">' . $name . '</a><br>';
++                            if ($name == "Privacy policy") {
++                                echo '<a href="' . $url . '">' . $name . '</a><br>';
++                            } else {
++                                echo '<a href="' . $url . '" target="_blank">' . $name . '</a><br>';
++                            }
 +
-+                            if ($name == "Support the website" || $name == "Vulkan Hardware Database") {
++                            if ($name == "Privacy policy" || $name == "Vulkan Hardware Database") {
 +                                echo '<br>';
 +                            }
                          } ?>
  
                          <div id="toggleCodeBlock">
-@@ -60,15 +64,15 @@
+@@ -60,15 +68,15 @@
                                  <iframe allowtransparency="true" frameborder="0" scrolling="no" style="width:162px; height:20px;" src="https://platform.twitter.com/widgets/follow_button.html?screen_name=<?= $handle; ?>&amp;show_count=false"></iframe>
                              </div>
                          <?php } ?>
