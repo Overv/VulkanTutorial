@@ -352,7 +352,7 @@ int main() {
 Next, we'll write a makefile to compile and run this basic Vulkan code. Create a
 new empty file called `Makefile`. I will assume that you already have some basic
 experience with makefiles, like how variables and rules work. If not, you can
-get up to speed very quickly with [this tutorial](http://mrbook.org/blog/tutorials/make/).
+get up to speed very quickly with [this tutorial](https://makefiletutorial.com/).
 
 We'll first define a couple of variables to simplify the remainder of the file.
 Define a `VULKAN_SDK_PATH` variable that refers to the location of the `x86_64`
