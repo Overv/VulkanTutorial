@@ -49,15 +49,15 @@ int main() {
 
 Nous incluons ici d'abord le header Vulkan du SDK, qui fournit les fonctions, les structures et les énumérations.
 `stdexcept` et `iostream` nous permettront de reporter et de traiter les erreurs. Le header `functional` nous servira
-pour l'écriture d'une lambda dans la section sur la gestion des ressources. `cstdlib` nous fournit `EXIT_FAILURE` et
-`EXIT_SUCCESS` (optionnels).
+pour l'écriture d'une lambda dans la section sur la gestion des ressources. `cstdlib` nous fournit les macros `EXIT_FAILURE` et
+`EXIT_SUCCESS` (optionnelles).
 
 Le programme est écrit à l'intérieur d'une classe, dans laquelle nous stockerons les objets Vulkan. Nous avons également
  une fonction pour la création de chacun de ces objets. Une fois toute l'initialisation réalisée, nous entrons dans la
 boucle principale, qui attendra que nous fermions la fenêtre pour quitter le programme, après avoir libéré toutes les
 ressources que nous avons allouées grâce à la fonction cleanup.
 
-Si nous rencontrons une quelconque erreur lors de l'exécution nous soulèverons une `std::runtime_error` comportant un
+Si nous rencontrons une quelconque erreur lors de l'exécution nous lèverons une `std::runtime_error` comportant un
 message descriptif, qui sera affiché sur le terminal depuis la fonction `main`. Afin de s'assurer que nous récupérons
 bien toutes les erreurs, nous utilisons `std::exception` dans le `catch`. Nous verrons bientôt que la requête de
 certaines extensions peut mener à soulever des exceptions.
@@ -67,11 +67,11 @@ nouvel objet Vulkan qui sera justement créé par cette fonction. Nous le détru
 
 ## Gestion des ressources
 
-Comme une quelconque ressource explicitement allouée par `new` doit être explicitement libérée par `delete`, nous
+De la même façon qu'une quelconque ressource explicitement allouée par `new` doit être explicitement libérée par `delete`, nous
 devrons explicitement détruire toutes les ressources Vulkan que nous allouerons. Il est possible d'exploiter des
 fonctioinnalités du C++ pour s'aquitter automatiquement de cela. Ces possibilités sont localisées dans `<memory>` si
 vous désirez les utiliser. Cependant nous resterons explicites pour toutes les opérations dans ce tutoriel, car la
-puissance de Vulkan réside spécifiquement dans la clareté de l'expression de la colonté du programmeur. De plus cela
+puissance de Vulkan réside spécifiquement dans la clareté de l'expression de la volonté du programmeur. De plus cela
 nous permettra de bien comprendre la durée de vie de chacun des objets.
 
 Après avoir suivi ce tutoriel vous pourrez parfaitement implémenter une gestion automatique des ressources en
@@ -80,16 +80,15 @@ spécialisant `std::shared_ptr` par exemple. L'utilisations du [RAII](https://en
 connaître les détails de l'implémentation.
 
 Les objets Vulkan peuvent être crées de deux manières. Soit ils sont directement crées avec une fonction du type
-`vkCreateXXX`, soit il sont récupérés à partir d'un autre objet avec une fonction du type `vkAllocateXXX`. Après vous
-être assuré qu'il n'est plus utilisé où que ce soit, vous devrezle détruire en utilisant les fonctions du type
+`vkCreateXXX`, soit il sont alloués à l'aide d'un autre objet avec une fonction `vkAllocateXXX`. Après vous
+être assuré qu'il n'est plus utilisé où que ce soit, vous devrez le détruire en utilisant les fonctions
 `vkDestroyXXX` ou `vkFreeXXX`, respectivement. Les paramètres de ces fonctions varient sauf pour l'un d'entre eux :
 `pAllocator`. Ce paramètre optionnel vous permet de spécifier un callback sur un allocateur de mémoire. Nous
-n'utiliserons jamais ce paramètre et l'indiquerons donc toujours nullptr.
+n'utiliserons jamais ce paramètre et indiquerons donc toujours `nullptr`.
 
 ## Intégrer GLFW
 
-Vulkan marche très bien sans fenêtre si vous voulez l'utiliser pour du rendu sans écran, mais c'est tout de même plus
-exitant d'afficher quelque chose! Remplacez d'abord la ligne `#include <vulkan/vulkan.h>` par :
+Vulkan marche très bien sans fenêtre si vous voulez l'utiliser pour du rendu sans écran (offscreen rendering en Anglais), mais c'est tout de même plus exitant d'afficher quelque chose! Remplacez d'abord la ligne `#include <vulkan/vulkan.h>` par :
 
 ```c++
 #define GLFW_INCLUDE_VULKAN
@@ -128,7 +127,7 @@ l'interdisons pour l'instant
 glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 ```
 
-Il ne nous reste plus qu'à créer la fenêtre. Ajoutez un membre privé `GLFWWindow *m_window` pour en stocker une
+Il ne nous reste plus qu'à créer la fenêtre. Ajoutez un membre privé `GLFWWindow* m_window` pour en stocker une
 référence, et initialisez la ainsi :
 
 ```c++
@@ -165,7 +164,7 @@ void initWindow() {
 }
 ```
 
-Pour s'assurer que l'application tourne jusqu'à ce que soit une erreur soit un clic sur la croix ne l'interrompe, nous
+Pour s'assurer que l'application tourne jusqu'à ce qu'une erreur ou un clic sur la croix ne l'interrompe, nous
 devons écrire une petite boucle de gestion d'évènements :
 
 ```c++
@@ -190,7 +189,7 @@ void cleanup() {
 }
 ```
 
-Si vous lancez l'application, vous devriez voir une fenêtre appelée "Vulkan" se fermant en cliquant sur la croix.
+Si vous lancez l'application, vous devriez voir une fenêtre appelée "Vulkan" qui se ferme en cliquant sur la croix.
 Maintenant que nous avons une base pour notre application Vulkan, [créons notre premier objet Vulkan!](!Drawing_a_triangle/Setup/Instance)!
 
 [Code C++](/code/00_base_code.cpp)
