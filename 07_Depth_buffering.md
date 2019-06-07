@@ -475,6 +475,8 @@ lies at the far view plane and `0.0` at the near view plane. The initial value
 at each point in the depth buffer should be the furthest possible depth, which
 is `1.0`.
 
+Note that the order of `clearValues` should be identical to the order of your attachments.
+
 ## Depth and stencil state
 
 The depth attachment is ready to be used now, but depth testing still needs to
