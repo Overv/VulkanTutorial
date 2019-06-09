@@ -141,7 +141,7 @@ alpha channel, even if it doesn't have one, which is nice for consistency with
 other textures in the future. The middle three parameters are outputs for the
 width, height and actual number of channels in the image. The pointer that is
 returned is the first element in an array of pixel values. The pixels are laid
-out row by row with 4 bytes per pixel in the case of `STBI_rgba_alpha` for a
+out row by row with 4 bytes per pixel in the case of `STBI_rgb_alpha` for a
 total of `texWidth * texHeight * 4` values.
 
 ## Staging buffer
