@@ -233,18 +233,7 @@ Working directly with SRGB colors is a little bit challenging, so we'll use
 standard RGB for the color format, of which one of the most common ones is
 `VK_FORMAT_B8G8R8A8_UNORM`.
 
-The best case scenario is that the surface has no preferred format, which Vulkan
-indicates by only returning one `VkSurfaceFormatKHR` entry which has its
-`format` member set to `VK_FORMAT_UNDEFINED`.
-
-```c++
-if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
-    return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-}
-```
-
-If we're not free to choose any format, then we'll go through the list and see
-if the preferred combination is available:
+Let's go through the list and see if the preferred combination is available:
 
 ```c++
 for (const auto& availableFormat : availableFormats) {
