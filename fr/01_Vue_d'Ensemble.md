@@ -5,10 +5,10 @@ utilisée.
 
 ## Origine de Vulkan
 
-Comme les APIs précédents, Vulkan est conçue comme une abstraction des
+Comme les APIs précédentes, Vulkan est conçue comme une abstraction des
 [GPUs](https://en.wikipedia.org/wiki/Graphics_processing_unit). Le problème avec la plupart de ces APIs est qu'elles
 furent créées à une époque où le hardware graphique était limité à des fonctionnalités prédéfinies tout juste
-configurables. Les développeurs devaient fournir les vertices dans un format standardisé, et étaient ainsi à la merci
+configurables. Les développeurs devaient fournir les sommets dans un format standardisé, et étaient ainsi à la merci
 des constructeurs pour les options d'éclairage et les jeux d'ombre.
 
 Au fur et à mesure que les cartes graphiques progressèrent, elles offrirent de plus en plus de fonctionnalités
@@ -24,7 +24,7 @@ multithreading, menant à des goulot d'étranglement du coté du CPU. Au-delà d
 été témoin de l’arrivée de matériel mobile. Ces GPUs portables ont des architectures différentes qui prennent en compte
 des contraintes spatiales ou énergétiques.
 
-Vulkan résout ces problèmes en ayant été repensée à partir de rien pour des architectures modernes. Il réduit le travail
+Vulkan résout ces problèmes en ayant été repensée à partir de rien pour des architectures modernes. Elle réduit le travail
 du driver en permettant (en fait en demandant) au développeur d’expliciter ses objectifs en passant par une API plus
 prolixe. Elle permet à plusieurs threads d’invoquer des commandes de manière asynchrone. Elle supprime les différences lors
 de la compilation des shaders en imposant un format en bytecode compilé par un compilateur officiel. Enfin, elle
@@ -39,9 +39,9 @@ simplement de vous donner une vue d’ensemble afin d’y replacer tous les él�
 
 ### Étape 1 - Instance et sélection d’un Physical Device
 
-Une application commence par paramétrer l’API à l’aide d’une «`VkInstance`». Une instance est crée en décrivant votre
+Une application commence par paramétrer l’API à l’aide d’une «`VkInstance`». Une instance est créée en décrivant votre
 application et les extensions que vous comptez utiliser. Après avoir créé votre `VkInstance`, vous pouvez demander l’accès
-à du hardware compatible avec Vulkan, et ainsi sélectionner un ou plusieurs «VkPhysicalDevice» pour y réaliser vos
+à du hardware compatible avec Vulkan, et ainsi sélectionner un ou plusieurs «`VkPhysicalDevice`» pour y réaliser vos
 opérations. Vous pouvez traiter des informations telles que la taille de la VRAM ou des capacités de la carte graphique,
 et ainsi préférer par exemple du matériel dédié.
 
@@ -50,7 +50,7 @@ et ainsi préférer par exemple du matériel dédié.
 Après avoir séléctionné le hardware qui vous convient, vous devez créer un «`VkDevice`» (logical device). Vous décrivez
 pour cela quelles `VkPhysicalDeviceFeatures` vous utiliserez, comme l’affichage multi-fenêtre ou des floats de 64 bits.
 Vous devrez également spécifier quelles `vkQueueFamilies` vous utiliserez. La plupart des opérations, comme les
-commandes d’affichage et les allocations de mémoire, sont exécutés de manière asynchrone en les envoyant à une VkQueue.
+commandes d’affichage et les allocations de mémoire, sont exécutés de manière asynchrone en les envoyant à une `VkQueue`.
 Ces queues sont crées à partir d’une famille de queues, chacune de ces dernières supportant uniquement une certaine
 collection d’opérations. Il pourrait par exemple y avoir des familles différentes pour les graphismes, le calcul et les
 opérations mémoire. L’existence d’une famille peut aussi être un critère pour la sélection d’un physical
@@ -78,7 +78,7 @@ d’assurer que l’image sur laquelle nous travaillons n’est pas celle utilis
 l’image affichée est complète. Chaque fois que nous voudrons afficher une image nous devrons demander à la swap chain de
 nous fournir une cible disponible. Une fois le traitement de la cible terminé, nous la rendrons à la swap chain qui
 l’utilisera en temps voulu pour l’affichage à l’écran. Le nombre de cibles et les conditions de leur affichage dépend
-du mode utilisé lors du paramétrage de la swap chain. Ceux-ci peuvent être le double buffering (synchronisation verticale) 
+du mode utilisé lors du paramétrage de la Swap Chain. Ceux-ci peuvent être le double buffering (synchronisation verticale) 
 ou le triple buffering. Nous détaillerons tout cela dans le chapitre dédié à la Swap Chain.
 
 ### Étape 4 - Image Views et Framebuffers
@@ -91,7 +91,7 @@ Framebuffers pour chacune d’entre elles, puis sélectionnerons celle qui nous 
 
 ### Étape 5 - Render Passes
 
-Avec Vulkan, une Render Pass décrit le type d’images utilisées lors du rendu, comment elles sont utilisées et
+Avec Vulkan, une Render Pass décrit les types d’images utilisées lors du rendu, comment elles sont utilisées et
 comment leur contenu doit être traité. Pour notre affichage d’un triangle, nous dirons à Vulkan que nous utilisons une
 seule image pour la couleur et que nous voulons qu’elle soit préparée avant l’affichage en la remplissant d’une couleur
 opaque. Là où la passe décrit le type d’images utilisées, un Framebuffer sert à lier les emplacements utilisés par la
@@ -105,7 +105,7 @@ programmables à l’aide de `VkShaderModules`. Ces derniers sont créés à par
 informé des cibles du rendu utilisées dans le pipeline, ce que nous lui disons en référençant la render pass.
 
 L’une des particularités les plus importantes de Vulkan est que la quasi totalité de la configuration des étapes doit
-être réalisée à l’avance. Cela implique que si vous voulez changer un shader ou la conformation des vertices, la
+être réalisée à l’avance. Cela implique que si vous voulez changer un shader ou la conformation des sommets, la
 totalité du pipeline doit être recréée. Vous aurez donc probablement de nombreux `VkPipeline` correspondant à toutes
 les combinaisons dont votre programme aura besoin. Seules quelques configurations basiques peuvent être changées de
 manière dynamique, comme la couleur de fond. Les états doivent aussi être anticipés : il n’y a par exemple pas de
@@ -124,17 +124,17 @@ opérations suivantes :
 
 * Lancer la Render Pass
 * Lier le pipeline graphique
-* Afficher 3 vertices
+* Afficher 3 sommets
 * Terminer la passe
 
-Du fait que l’image que nous avons extrait du framebuffer pour s’en servir comme cible dépend de l’image que la swap
+Du fait que l’image que nous avons extraite du framebuffer pour nous en servir comme cible dépend de l’image que la swap
 chain nous fournira, nous devons préparer un command buffer pour chaque image possible et choisir le bon au moment de
-l’affichage. Nous pourrions en créer un à chaque frame mais ce serait peu efficace.
+l’affichage. Nous pourrions en créer un à chaque frame mais ce ne serait pas aussi efficace.
 
 ### Étape 8 - Boucle principale
 
 Maintenant que nous avons inscrit les commandes graphiques dans des Command Buffers, la boucle principale n’est qu’une
-histoire d’appels. Nous acquérerons d’abord une image de la Swap Chain en utilisant `vkAcquireNextImageKHR`. Nous
+histoire d’appels. Nous acquérons d’abord une image de la Swap Chain en utilisant `vkAcquireNextImageKHR`. Nous
 sélectionnons ensuite le command buffer approprié pour cette image et le postons à la queue avec vkQueueSubmit. Enfin,
 nous retournons l’image à la Swap Chain pour sa présentation à l’écran à l’aide de `vkQueuePresentKHR`.
 
@@ -150,7 +150,7 @@ Ce tour devrait vous donner une compréhension basique du travail que nous auron
 triangle. Un véritable programme contient plus d’étapes comme allouer des vertex Buffers, créer des Uniform Buffers et
 envoyer des textures, mais nous verrons cela dans des chapitres suivants. Nous allons commencer par les bases car Vulkan
 a suffisamment d’étapes ainsi. Notez que nous allons ‘tricher’ en écrivant les coordonnées du triangle directement dans
-un shader, afin d’éviter l’utilisation d’un vertex buffer qui nécessitent une certaine familiarité avec les Command
+un shader, afin d’éviter l’utilisation d’un vertex buffer qui nécessite une certaine familiarité avec les Command
 Buffers.
 
 En résumé nous devrons, pour afficher un triangle :
@@ -167,7 +167,7 @@ En résumé nous devrons, pour afficher un triangle :
 * Dessiner sur les Frames en acquérant une image, en soumettant la commande d’affichage correspondante et en retournant
 l’image à la Swap Chain
 
-Cela fait beaucoup d’étapes, cependant le but de chacune d’entre elles sera explicité clairement et simplement dans les
+Cela fait beaucoup d’étapes, cependant le but de chacune d’entre elles sera explicitée clairement et simplement dans les
 chapitres suivants. Si vous êtes confus quant à l’intérêt d’une étape dans le programme entier, référez-vous à ce
 premier chapitre.
 
