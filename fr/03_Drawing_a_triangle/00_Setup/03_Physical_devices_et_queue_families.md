@@ -20,7 +20,7 @@ void pickPhysicalDevice() {
 ```
 
 Nous stockerons le physical device que nous aurons sélectionnée dans un nouveau membre donnée de la classe, et celui-ci
-sera du type `VkPhysicalDevice`. Cet objet sera implicitement détruit avec l'instance, nous n'avons donc rien à
+sera du type `VkPhysicalDevice`. Cette référence sera implicitement détruit avec l'instance, nous n'avons donc rien à
 ajouter à la fonction `cleanup`.
 
 ```c++
@@ -35,7 +35,7 @@ uint32_t deviceCount = 0;
 vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 ```
 
-Si il n'y aucun physical device supportant Vulkan, rien ne sert de continuer l'exécution.
+Si aucun physical device ne supporte Vulkan, il est inutile de continuer l'exécution.
 
 ```c++
 if (deviceCount == 0) {
@@ -50,8 +50,8 @@ std::vector<VkPhysicalDevice> devices(deviceCount);
 vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 ```
 
-Nous devons maintenant évaluer chacun d'entre eux et vérifier qu'ils conviennent pour ce que nous voudrons en faire, car
-toutes les cartes graphiques ne sont pas nées libres et égales. Voici une nouvelle fonction qui fera le travail de
+Nous devons maintenant évaluer chacun des gpus et vérifier qu'ils conviennent pour ce que nous voudrons en faire, car
+toutes les cartes graphiques n'ont pas été crées égales. Voici une nouvelle fonction qui fera le travail de
 sélection :
 
 ```c++
@@ -126,7 +126,7 @@ un GPU intégré au CPU si le système n'en détecte aucune. Vous pourriez impl�
 void pickPhysicalDevice() {
     ...
 
-    // L'utilisation d'une unordered_map permet de les trier automatiquement de manière ascendante
+    // L'utilisation d'une map permet de les trier automatiquement de manière ascendante
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (const auto& device : devices) {
@@ -134,7 +134,7 @@ void pickPhysicalDevice() {
         candidates.insert(std::make_pair(score, device));
     }
 
-    // Vérifier si la meilleure possède les fonctionnalités dont nous ne pouvons nous passer
+    // Voyons si la meilleure possède les fonctionnalités dont nous ne pouvons nous passer
     if (candidates.rbegin()->first > 0) {
         physicalDevice = candidates.rbegin()->second;
     } else {
@@ -164,8 +164,8 @@ int rateDeviceSuitability(VkPhysicalDevice device) {
 }
 ```
 
-Vous n'avez pas besoin d'implémenter tout ça pour ce tutoriel, mais faites-le si vous voulez. Vous pourriez également
-vous contenter d'afficher les noms des cartes graphiques et laisser l'utilisateur choisir.
+Vous n'avez pas besoin d'implémenter tout ça pour ce tutoriel, mais faites-le si vous voulez, à titre d'entrainement.
+Vous pourriez également vous contenter d'afficher les noms des cartes graphiques et laisser l'utilisateur choisir.
 
 Nous ne faisons que commencer donc nous prendrons la première carte supportant Vulkan :
 
@@ -257,6 +257,6 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 ```
 
 Bien, c'est tout ce dont nous aurons besoin pour choisir le bon physical device! La prochaine étape est de [créer un 
-logical device](!Drawing_a_triangle/Setup/Logical_device_and_queues) pour servir d'interface.
+logical device](!Drawing_a_triangle/Setup/Logical_device_and_queues) pour créer une interface avec la carte.
 
 [Code C++](/code/03_physical_device_selection.cpp)
