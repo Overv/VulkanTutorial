@@ -34,8 +34,8 @@ Le _color blending_ applique des opérations pour mixer différents fragments co
 framebuffer. Les fragments peuvent remplacer les valeurs des autres, s'additionner ou se mélanger selon les 
 paramètres de transparence (ou plus correctement de translucidité, en anglais translucency).
 
-Les étapes écrites en vert sur le diagramme s'appellent _fixed-function stages_. Il est possible de modifier des
-paramètres influençant les calculs, mais pas de modifier les calculs eux-mêmes.
+Les étapes écrites en vert sur le diagramme s'appellent _fixed-function stages_ (étapes à fonction fixée). Il est 
+possible de modifier des paramètres influençant les calculs, mais pas de modifier les calculs eux-mêmes.
 
 Les étapes colorées en orange sont programmables, ce qui signifie que vous pouvez charger votre propre code dans la 
 carte graphique pour y appliquer exactement ce que vous voulez. Cela vous permet par exemple d'utiliser les fragment
