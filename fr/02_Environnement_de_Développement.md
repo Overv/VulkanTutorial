@@ -173,8 +173,8 @@ Appuyez sur F5 pour compiler et lancer le projet. Vous devriez voir une fenêtre
 
 ![](/images/vs_test_window.png)
 
-Le nombre d'extensions ne devrait pas être nul. Si c'est le cas, bravo, vous êtes fin prêts à
-[jouer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
+Si le nombre d'extensions est nul, il y a un problème avec la configuration de Vulkan sur votre système. Sinon, vous
+êtes fin prêts à vous [lancer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
 
 ## Linux
 
@@ -293,7 +293,7 @@ int main() {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
-    std::cout << extensionCount << " extensions supportées" << std::endl;
+    std::cout << extensionCount << " extensions supported" << std::endl;
 
     glm::mat4 matrix;
     glm::vec4 vec;
@@ -380,9 +380,10 @@ test: VulkanTest
     LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib ./VulkanTest
 ```
 
-Le programme devrait se lancer correctement maintenant, et afficher le nombre d'extensions disponibles. L'application
-devrait quitter avec le code 0 lorsque vous fermez la fenêtre. Il y a pourtant encore une variable que nous devons
-créer. Nous allons utiliser les validation layers et devons donc lui indiquer leur localisation avec la variable
+Le programme devrait se lancer correctement maintenant, et afficher le nombre d'extensions disponibles. Si ce nombre est
+zéro, il y a un problème avec la configuration de Vulkan sur votre système. L'application devrait quitter avec le
+code 0 lorsque vous fermez la fenêtre. Il y a pourtant encore une variable que nous devons créer. Nous allons
+utiliser les validation layers et devons donc lui indiquer leur localisation avec la variable
 `VK_LAYER_PATH` :
 
 ```make
@@ -423,7 +424,7 @@ Le dossier "Doc" contient des informations pouvant vous être utiles sur le SDK 
 spécification de Vulkan. Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
 fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
 
-Bravo, vous êtes fin prêts à [jouer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
+Bravo, vous êtes fin prêts à vous [lancer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
 
 ## MacOS
 
@@ -584,7 +585,7 @@ avoir ceci :
 
 ![](/images/xcode_output.png)
 
-Le nombre d'extensions ne doit pas être zéro. Les autres données proviennet de librairies, et dépendent de votre
-configuration.
+Si vouc obtenez `0 extensions supported`, il y a un problème avec la configuration de Vulkan sur votre système. Les
+autres données proviennet de librairies, et dépendent de votre configuration.
 
-Vous êtes maintenant prêts à [attaquer la partie intéressante!](!Drawing_a_triangle/Setup/Base_code).
+Vous êtes maintenant prêts à vous [lancer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code).
