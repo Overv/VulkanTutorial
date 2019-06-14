@@ -3,18 +3,18 @@
 L'API Vulkan est concu pour limiter au maximum le travail du driver. Par conséquent il n'y a aucun traitement d'erreur
 par défaut. Une erreur aussi simple que se tromper dans la valeur d'une énumération ou passer un pointeur nul comme
 argument non optionnel résultent en un crash. Dans la mesure où Vulkan nous demande d'être complètement explicite, il
-est facile d'utiliser une fonctionnalité optionnelle et d'oublier de paramétrer l'utilisation de l'extension à laquelle
-elle appartient, par exemple.
+est facile d'utiliser une fonctionnalité optionnelle et d'oublier de mettre en place l'utilisation de l'extension à
+laquelle elle appartient, par exemple.
 
 Cependant de telles vérifications peuvent être ajoutées à l'API. Vulkan possède un système élégant appelé validation
-layers. Ce sont des composants optionnels s'insérant dans les appels des fonctions Vulkan pour y insérer des opérations.
+layers. Ce sont des composants optionnels s'insérant dans les appels des fonctions Vulkan pour y ajouter des opérations.
 Voici un exemple d'opérations qu'elles réalisent :
 
 * Comparer les valeurs des paramètres à celles de la spécification pour détecter une mauvaise utilisation
-* Suivre la création et la destruction des objets pour repérer les pertes de mémoire
+* Suivre la création et la destruction des objets pour repérer les fuites de mémoire
 * Vérifier la sécurité des threads en suivant l'origine des appels
 * Afficher toutes les informations sur les appels à l'aide de la sortie standard
-* Suivre les appels Vulkan pour permettre l'analyse dynamique
+* Suivre les appels Vulkan pour créer une analyse dynamique de l'exécution du programme
 
 Voici ce à quoi une fonction de diagnostic pourrait ressembler :
 
@@ -33,20 +33,20 @@ VkResult vkCreateInstance(
 }
 ```
 
-Les validation layers peuvent être combinées à loisir pour fournir toutes les fonctionnalités de débuggage nécessaires.
+Les validation layers peuvent être combinées à loisir pour fournir toutes les fonctionnalités de débogage nécessaires.
 Vous pouvez même activer les validations layers lors du développement et les désactiver lors du déploiement sans
-aucun problème!
+aucun problème, sans aucune répercussion sur les performances et même sur l'exécutable!
 
-Vulkan ne possède aucune validation layer, mais nous en avons dans le SDK de LunarG. Elles sont complètement [open
+Vulkan ne fournit aucune validation layer, mais nous en avons dans le SDK de LunarG. Elles sont complètement [open
 source](https://github.com/KhronosGroup/Vulkan-ValidationLayers), vous pouvez donc voir quelles erreurs elles suivent et
 contribuer à leur développement. Les utiliser est la meilleure manière d'éviter que votre application fonctionne grâce
 à un comportement spécifique à un driver.
 
 Les validations layers ne sont utilisables que si elles sont installées sur la machine. Il faut le SDK installé et
-paramétré pour qu'elles fonctionnent.
+mis en place pour qu'elles fonctionnent.
 
-Il a existé deux formes de validation layers : les layers spécifiques de l'instance et celles spécifiques du
-physical device. Elles ne vérifiaient ainsi respectivement que les appels aux fonctions d'ordre global et les appels aux
+Il a existé deux formes de validation layers : les layers spécifiques à l'instance et celles spécifiques au physical
+device (gpu). Elles ne vérifiaient ainsi respectivement que les appels aux fonctions d'ordre global et les appels aux
 fonctions spécifiques au GPU. Les layers spécifiques du GPU sont désormais dépréciées. Les autres portent désormais sur
 tous les appels. Cependant la spécification recommande encore que nous activions les validations layers au niveau du 
 logical device, car cela est requis par certaines implémentations. Nous nous contenterons de spécifier les mêmes 
@@ -57,11 +57,11 @@ layers pour le logical device que pour le physical device, que nous verrons
 
 Nous allons maintenant activer les validations layers fournies par le SDK de LunarG. Comme les extensions, nous devons
 indiquer leurs nom. Au lieu de devoir spécifier les noms de chacune d'entre elles, nous pouvons les activer à l'aide
-d'un nom générique : "VK_LAYER_LUNARG_standard_validation".
+d'un nom générique : `VK_LAYER_LUNARG_standard_validation`.
 
 Mais ajoutons d'abord deux variables spécifiant les layers à activer et si le programme doit en effet les activer. J'ai
 choisi d'effectuer ce choix selon si le programme est compilé en mode debug ou non. La macro `NDEBUG` fait partie
-du standard et correspond au deuxième cas.
+du standard c++ et correspond au second cas.
 
 ```c++
 const int WIDTH = 800;
@@ -174,7 +174,7 @@ std::vector<const char*> getRequiredExtensions() {
 }
 ```
 
-Les extensions spécifiées par GLFW seront toujours nécessaires, mais celle pour le débugage n'est ajoutée que
+Les extensions spécifiées par GLFW seront toujours nécessaires, mais celle pour le débogage n'est ajoutée que
 conditionnellement. Remarquez l'utilisation de la macro `VK_EXT_DEBUG_UTILS_EXTENSION_NAME` au lieu du nom de
 l'extension pour éviter les erreurs de frappe.
 
@@ -187,12 +187,12 @@ createInfo.ppEnabledExtensionNames = extensions.data();
 ```
 
 Exécutez le programme et assurez-vous que vous ne recevez pas l'erreur `VK_ERROR_EXTENSION_NOT_PRESENT`. Nous ne devrions
- pas avoir besoin de vérifier sa présence dans la mesure où elle devrait être disponible avec les validation layers,
+pas avoir besoin de vérifier sa présence dans la mesure où les validation layers devraient impliquer son support,
 mais sait-on jamais.
 
 Intéressons-nous maintenant à la fonction de rappel. Ajoutez la fonction statique `debugCallback` à votre classe avec le
- prototype `PFN_vkDebugUtilsMessengerCallbackEXT`. `VKAPI_ATTR` et `VKAPI_CALL` assurent une comptaibilité avec tous les
- compilateurs.
+prototype `PFN_vkDebugUtilsMessengerCallbackEXT`. `VKAPI_ATTR` et `VKAPI_CALL` assurent une comptaibilité avec tous les
+compilateurs.
 
 ```c++
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -209,7 +209,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
 Le premier paramètre indique la sévérité du message, et peut prendre les valeurs suivantes :
 
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Message de diagnostic
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Message de suivi des appels
 * `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: Message d'information (allocation d'une ressource...)
 * `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message relevant un comportment qui n'est pas un bug mais plutôt
 une imperfection involontaire
@@ -230,16 +230,16 @@ Le paramètre `messageType` peut prendre les valeurs suivantes :
 performances ou la spécification
 * `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT` : Une violation de la spécification ou une potentielle erreur est
 survenue
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT` : Utilisation potentiellement mal optiomisée de Vulkan
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT` : Utilisation potentiellement non optimale de Vulkan
 
 Le paramètre `pCallbackData` est une structure du type `VkDebugUtilsMessengerCallbackDataEXT` contenant les détails du
 message. Ses membres les plus importants sont :
 
-* `pMessage`: Le message sous la forme d'une chaîne de type C terminée par le caractère nul
+* `pMessage`: Le message sous la forme d'une chaîne de type C terminée par le caractère nul `\0`
 * `pObjects`: Un tableau d'objets Vulkan liés au message
 * `objectCount`: Le nombre d'objets dans le tableau précédent
 
-Finallement, le paramètre `pUserData` est un pointeur sur une donnée quelconque que vous pouvez spécifier à la création
+Finalement, le paramètre `pUserData` est un pointeur sur une donnée quelconque que vous pouvez spécifier à la création
 de la fonction de rappel.
 
 La fonction de rappel que nous programmons retourne un booléen déterminant si la fonction à l'origine de son appel doit
@@ -247,8 +247,8 @@ La fonction de rappel que nous programmons retourne un booléen déterminant si 
 `VK_ERROR_VALIDATION_FAILED_EXT`. Cette fonctionnalité n'est globalement utilisée que pour tester les validation layers
 elles-mêmes, nous retournerons donc invariablement `VK_FALSE`.
 
-Il ne nous reste plus qu'à fournir notre fonction à Vulkan. D'une manière suprenante, même le messager de débugage se
-gère à travers une référence, du type `VkDebugUtilsMessengerEXT`, que nous devrons explicitement créer et détruire. Une
+Il ne nous reste plus qu'à fournir notre fonction à Vulkan. Surprenamment, même le messager de débogage se
+gère à travers une référence de type `VkDebugUtilsMessengerEXT`, que nous devrons explicitement créer et détruire. Une
 telle fonction de rappel est appelée *messager*, et vous pouvez en posséder autant que vous le désirez. Ajoutez un
 membre donnée pour le messager sous l'instance :
 
@@ -286,10 +286,10 @@ appelée. J'ai laissé tous les types sauf `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO
 toutes les informations à propos de possibles bugs tout en éliminant la verbose.
 
 De manière similaire, le champ `messageType` vous permet de filtrer les types de message pour lesquels la fonction de
-rappel sera appelée. J'y ai mis tous les types possibles. Vous pouvez très bien en désactiver si ils ne vous servent à
+rappel sera appelée. J'y ai mis tous les types possibles. Vous pouvez très bien en désactiver s'ils ne vous servent à
 rien.
 
-Le champ `pfnUserCallback` indique le pointeur sur la fonction de rappel.
+Le champ `pfnUserCallback` indique le pointeur vers la fonction de rappel.
 
 Vous pouvez optionnellement ajouter un pointeur sur une donnée de votre choix grâce au champ `pUserData`. Le pointeur
 fait partie des paramètres de la fonction de rappel.
@@ -301,9 +301,9 @@ pour plus d'informations sur ces possibilités.
 
 Cette structure doit maintenant être passée à la fonction `vkCreateDebugUtilsMessengerEXT` afin de créer l'objet
 `VkDebugUtilsMessengerEXT`. Malheureusement cette fonction fait partie d'une extension non incluse par GLFW. Nous devons
- donc gérer la procédure de son chargement nous-mêmes. Nous utiliserons la fonction `vkGetInstancePorcAddr` pous en
+donc gérer son activation nous-mêmes. Nous utiliserons la fonction `vkGetInstancePorcAddr` pous en
 récupérer un pointeur. Nous allons créer notre propre fonction - servant de proxy - pour abstraire cela. Je l'ai ajoutée
- au-dessus de la définition de la classe `HelloTriangleApplication`.
+au-dessus de la définition de la classe `HelloTriangleApplication`.
 
 ```c++
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback) {
@@ -325,18 +325,17 @@ if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &callback) != V
 }
 ```
 
-Le troisième paramètre est encore le même allocateur optionnel que nous laissons `nullptr`. Les autres paramètres sont
+Le troisième paramètre est l'invariable allocateur optionnel que nous laissons `nullptr`. Les autres paramètres sont
 assez logiques. La fonction de rappel est spécifique de l'instance et des validation layers, nous devons donc passer
-l'instance en premier argument. Lancez le programme et vérifiez qu'il fonction... Vous devrez avoir le résultat 
-suivant...
-:
+l'instance en premier argument. Lancez le programme et vérifiez qu'il fonctionne. Vous devriez avoir le résultat 
+suivant :
 
 ![](/images/validation_layer_test.png)
 
-...indiquant déjà un bug dans notre application! En effet l'objet `VkDebugUtilsMessengerEXT` doit être libéré 
+qui indique déjà un bug dans notre application! En effet l'objet `VkDebugUtilsMessengerEXT` doit être libéré 
 explicitement à l'aide de la fonction `vkDestroyDebugUtilsMessagerEXT`. De même qu'avec 
 `vkCreateDebugUtilsMessangerEXT` nous devons charger dynamiquement cette fonction. Notez qu'il est normal que le 
-message s'affiche plusieurs fois; il y a plusieurs validation layers, et dans certains cas leurs domaines de travail 
+message s'affiche plusieurs fois; il y a plusieurs validation layers, et dans certains cas leurs domaines d'expertise 
 se recoupent.
 
 Créez une autre fonction proxy en-dessous de `CreateDebugUtilsMessengerEXT` :
@@ -367,7 +366,7 @@ void cleanup() {
 ```
 
 Si vous exécutez le programme maintenant, vous devriez constater que le message n'apparait plus. Si vous voulez voir
-quel appel a lancé un appel, vous pouvez insérer un point d'arrêt dans la fonction de rappel.
+quel fonction a lancé un appel au messager, vous pouvez insérer un point d'arrêt dans la fonction de rappel.
 
 ## Configuration
 
