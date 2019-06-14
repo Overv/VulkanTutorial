@@ -30,8 +30,8 @@ void createLogicalDevice() {
 
 La création d'un logical device requiert encore que nous remplissions des informations dans des structures. La 
 première de ces structures s'appelle `VkDeviceQueueCreateInfo`. Elle indique le nombre de queues que nous désirons pour 
-chaque queue family. Pour le moment nous n'avons besoin que d'une queue originaire d'une seule queue family : celle 
-des graphismes.
+chaque queue family. Pour le moment nous n'avons besoin que d'une queue originaire d'une unique queue family : la 
+première avec un support pour les graphismes.
 
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -47,7 +47,8 @@ n'avez en effet pas besoin de plus. Vous pouvez très bien créer les commandes 
 threads et les soumettre à la queue d'un coup sur le thread principal, et ce sans perte de performance.
 
 Vulkan permet d'assigner des niveaux de priorité aux queues à l'aide de floats compris entre `0.0` et `1.0`. Vous 
-pouvez ainsi influencer l'exécution des command buffers. Cela est nécessaire même lorsque une seule queue est présente :
+pouvez ainsi influencer l'exécution des command buffers. Il est nécessaire d'indiquer une priorité même lorsqu'une
+seule queue est présente :
 
 ```c++
 float queuePriority = 1.0f;
@@ -92,8 +93,8 @@ sur lesquels votre programme a effectué un rendu. Il est en effet possible que 
 capacité, par exemple parce qu'ils ne supportent que les compute shaders. Nous reviendrons sur cette extension
 dans le chapitre dédié à la swap chain.
 
-Comme dit dans le chapitre sur les calidation layers, nous activerons les mêmes que celles que nous avons spécifiées 
-lors de la création de l'instance. Nous n'avons pour l'instant besoin d'aucune validation layer spécifique.
+Comme dit dans le chapitre sur les validation layers, nous activerons les mêmes que celles que nous avons spécifiées 
+lors de la création de l'instance. Nous n'avons pour l'instant besoin d'aucune validation layer en particulier.
 
 ```c++
 createInfo.enabledExtensionCount = 0;
@@ -114,9 +115,9 @@ if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
 }
 ```
 
-Les paramètres sont d'abord par le physical device dont on souhaite extraire une interface, puis la structure contenant
-les informations, ensuite un pointeur optionnel pour l'allocation et enfin un pointeur sur la référence au logical 
-device créé. Nous vérifions encore si la création a été un succès ou non, comme avec la création de l'instance.
+Les paramètres sont d'abord le physical device dont on souhaite extraire une interface, ensuite la structure contenant
+les informations, puis un pointeur optionnel pour l'allocation et enfin un pointeur sur la référence au logical 
+device créé. Vérifions également si la création a été un succès ou non, comme lors de la création de l'instance.
 
 Le logical device doit être explicitement détruit dans la fonction `cleanup` avant le physical device :
 
@@ -133,15 +134,15 @@ pourquoi il n'y a pas de paramètre pour l'instance.
 ## Récupérer des références aux queues
 
 Les queue families sont automatiquement crées avec le logical device. Cependant nous n'avons aucune interface avec 
-elles. Ajoutez un membre donnée pour stocker une référence à la queue family graphique :
+elles. Ajoutez un membre donnée pour stocker une référence à la queue family supportant les graphismes :
 
 ```c++
 VkQueue graphicsQueue;
 ```
 
-Les queues sont implicitement détruite avec le logical device, nous n'avons donc pas à nous en charger dans `cleanup`.
+Les queues sont implicitement détruites avec le logical device, nous n'avons donc pas à nous en charger dans `cleanup`.
 
-Nous pourrons ensuite récupérer des références à des queues avec la fonction `vkGetDeviceQueue`. Les parametres en 
+Nous pourrons ensuite récupérer des références à des queues avec la fonction `vkGetDeviceQueue`. Les paramètres en 
 sont le logical device, la queue family, l'indice de la queue à récupérer et un pointeur où stocker la référence à la
 queue. Nous ne créons qu'une seule queue, nous écrirons donc `0` pour l'indice de la queue.
 
@@ -149,7 +150,7 @@ queue. Nous ne créons qu'une seule queue, nous écrirons donc `0` pour l'indice
 vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 ```
 
-Avec le logical device et les queues nous pouvons maintenant faire travailler la carte graphique! Dans le prochain 
-chapitre nous parametrerons les ressources nécessaires à la présentation des résultats à l'écran.
+Avec le logical device et les queues nous allons maintenant pouvoir faire travailler la carte graphique! Dans le 
+prochain chapitre nous mettrons en place les ressources nécessaires à la présentation des images à l'écran.
 
 [Code C++](/code/04_logical_device.cpp)
