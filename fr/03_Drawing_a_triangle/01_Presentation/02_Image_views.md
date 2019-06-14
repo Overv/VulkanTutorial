@@ -1,6 +1,6 @@
 Quelque soit la `VkImage` que nous voulons utiliser, dont celles de la swap chain, nous devons en créer une 
-`VkImageView` pour la pipeline. Cette image view correspond assez litéralement à une vue dans l'image. Elle décrit 
-l'accès à l'image et les parties de l'image à accéder, par exemple indique si elle doit être traitée comme une 
+`VkImageView` pour la manipuler. Cette image view correspond assez litéralement à une vue dans l'image. Elle décrit 
+l'accès à l'image et les parties de l'image à accéder. Par exemple elle indique si elle doit être traitée comme une 
 texture 2D pour la profondeur sans aucun niveau de mipmapping.
 
 Dans ce chapitre nous écrirons une fonction `createImageViews` pour créer une image view basique pour chacune des 
@@ -56,8 +56,8 @@ createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 createInfo.image = swapChainImages[i];
 ```
 
-Les champs `viewType` et `format` indiquent la manière dont les images doivent être interprétés. Le paramètre 
-`viewType` permet de traiter les images comme des textures 1D, 2D, 3D ou cube maps.
+Les champs `viewType` et `format` indiquent la manière dont les images doivent être interprétées. Le paramètre 
+`viewType` permet de traiter les images comme des textures 1D, 2D, 3D ou cube map.
 
 ```c++
 createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -87,14 +87,14 @@ createInfo.subresourceRange.layerCount = 1;
 ```
 
 Si vous travailliez sur une application 3D stéréoscopique, vous devrez alors créer une swap chain avec plusieurs 
-couches. Vous pourriez alors créer plusieurs image views pour chaque image représentant ce qui sera affiché par 
-l'oeil gauche et l'oeil droit.
+couches. Vous pourriez alors créer plusieurs image views pour chaque image. Elles représenteront ce qui sera affiché
+pour l'oeil gauche et pour l'oeil droit.
 
-Créer l'image view ne se résume plus qu'à un appel à `vkCreateImageView` :
+Créer l'image view ne se résume plus qu'à appeler `vkCreateImageView` :
 
 ```c++
 if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de la création d'une image view!");
+    throw std::runtime_error("échec de la création d'une image view!");
 }
 ```
 
@@ -113,6 +113,6 @@ void cleanup() {
 
 Une image view est suffisante pour commencer à utiliser une image comme une texture, mais pas pour que l'image soit 
 utilisée comme cible d'affichage. Pour cela nous avons encore une étape, appelée framebuffer. Mais nous devons 
-d'abord paramétrer la pipelinie graphique.
+d'abord mettre en place la pipelinie graphique.
 
 [CCode ++](/code/07_image_views.cpp)
