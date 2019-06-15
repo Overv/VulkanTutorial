@@ -1,11 +1,11 @@
-Nous pouvons maintenant combiner toutes les structures et les objets des chapitres précédentes pour créer la 
+Nous pouvons maintenant combiner toutes les structures et tous les objets des chapitres précédentes pour créer la 
 pipeline graphique! Voici un petit récapitulatif des objets que nous avons :
 
 * Étapes shader : les modules shader définissent le fonctionnement des étapes programmables de la pipeline graphique
-* Étapes à fonction fixées : plusieurs structures paramétrant les étapes à fonction fixées comme l'assemblage des 
+* Étapes à fonction fixée : plusieurs structures paramètrent les étapes à fonction fixée comme l'assemblage des 
 entrées, le rasterizer, le viewport et le mélange des couleurs
-* Organisation de la pipeline : les uniformes et variables push utilisées par les shaders et que l'on peut changer 
-pendant l'exécution
+* Organisation de la pipeline : les uniformes et push constants utilisées par les shaders, auquelles on attribue une
+valeur pendant pendant l'exécution de la pipeline
 * Render pass : les attachements référencés par la pipeline et leurs utilisations
 
 Tout cela combiné définit le fonctionnement de la pipeline graphique. Nous pouvons maintenant remplir la structure 
@@ -29,12 +29,12 @@ pipelineInfo.pInputAssemblyState = &inputAssembly;
 pipelineInfo.pViewportState = &viewportState;
 pipelineInfo.pRasterizationState = &rasterizer;
 pipelineInfo.pMultisampleState = &multisampling;
-pipelineInfo.pDepthStencilState = nullptr; // Optionnel
+pipelineInfo.pDepthStencilState = nullptr; // Optionel
 pipelineInfo.pColorBlendState = &colorBlending;
-pipelineInfo.pDynamicState = nullptr; // Optionnel
+pipelineInfo.pDynamicState = nullptr; // Optionel
 ```
 
-Après cela vient l'organisation de la pipeline, contenue dans un type fourni par Vulkan au lieu d'une structure.
+Après cela vient l'organisation de la pipeline, qui est une référence à un objet Vulkan plutôt qu'une structure.
 
 ```c++
 pipelineInfo.layout = pipelineLayout;
@@ -52,29 +52,29 @@ pipelineInfo.subpass = 0;
 ```
 
 Il nous reste en fait deux paramètres : `basePipelineHandle` et `basePipelineIndex`. Vulkan vous permet de créer une 
-nouvelle pipeline en "héritant" d'une pipeline déjà existante. L'idée derrière cette possibilité est qu'il
+nouvelle pipeline en "héritant" d'une pipeline déjà existante. L'idée derrière cette fonctionnalité est qu'il
 est moins coûteux de créer une pipeline à partir d'une qui existe déjà, mais surtout que passer d'une pipeline à une
 autre est plus rapide si elles ont un même parent. Vous pouvez spécifier une pipeline de deux manières : soit en 
-fournissant une référence soit en donnant l'indice d'une pipeline qui va être crée. Nous n'utilisons pas cela donc 
+fournissant une référence soit en donnant l'indice de la pipeline à hériter. Nous n'utilisons pas cela donc 
 nous indiquerons une référence nulle et un indice invalide. Ces valeurs ne sont de toute façon utilisées que si le champ
 `flags` de la structure `VkGraphicsPipelineCreateInfo` comporte `VK_PIPELINE_CREATE_DERIVATIVE_BIT`.
 
 ```c++
-pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optionnel
-pipelineInfo.basePipelineIndex = -1; // Optionnel
+pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optionel
+pipelineInfo.basePipelineIndex = -1; // Optionel
 ```
 
-Préparons nous pour l'étape finale en créant un membre donnée pour stocker l'objet `VkPipeline` :
+Préparons-nous pour l'étape finale en créant un membre donnée où stocker la référence à la `VkPipeline` :
 
 ```c++
 VkPipeline graphicsPipeline;
 ```
 
-Et créez enfin la pipeline graphique :
+Et créons enfin la pipeline graphique :
 
 ```c++
 if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de la création de la pipeline graphique!");
+    throw std::runtime_error("échec de la création de la pipeline graphique!");
 }
 ```
 
@@ -83,7 +83,7 @@ nous avons pu voir jusqu'à présent. Elles peut en effet accepter plusieurs str
 et créer plusieurs `VkPipeline` en un seul appel.
 
 Le second paramètre que nous n'utilisons pas ici (mais que nous reverrons dans un chapitre qui lui sera dédié) sert à
-fournir un objet `VkPipelineCache` optionnel. Un tel objet peut être stocké et réutilisé entre plusieurs appels de la
+fournir un objet `VkPipelineCache` optionel. Un tel objet peut être stocké et réutilisé entre plusieurs appels de la
 fonction et même entre plusieurs exécutions du programme si son contenu est correctement stocké dans un fichier. Cela
 permet de grandement accélérer la création des pipelines.
 
