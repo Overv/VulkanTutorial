@@ -1,9 +1,9 @@
-##  Préparation
+## Préparation
 
 Avant de finaliser la création de la pipeline nous devons informer Vulkan des attachements des framebuffers utilisés 
-lors du rendu. Nous devons indiquer combien chacun aura de buffers de couleur et de profondeur, combien de samples il
-faudra utiliser avec chaque frambuffer et comment les utiliser tout au long des opérations de rendu. Toutes ces 
-informations sont contenues dans un objet appelé _render pass_ pour la configuration duquel nous créerons la fonction
+lors du rendu. Nous devons indiquer combien chaque framebuffer aura de buffers de couleur et de profondeur, combien de 
+samples il faudra utiliser avec chaque frambuffer et comment les utiliser tout au long des opérations de rendu. Toutes
+ces informations sont contenues dans un objet appelé *render pass*. Pour le configurer, créons la fonction
 `createRenderPass`. Appelez cette fonction depuis `initVulkan` après `createGraphicsPipeline`.
 
 ```c++
@@ -28,7 +28,7 @@ void createRenderPass() {
 
 ## Description de l'attachement
 
-Dans notre cas nous aurons un seul attachement de couleur représenté par une image de la swap chain.
+Dans notre cas nous aurons un seul attachement de couleur, et c'est une image de la swap chain.
 
 ```c++
 void createRenderPass() {
@@ -83,10 +83,11 @@ Les organisations les plus communes sont :
 
 * `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` : images utilisées comme attachements de couleur
 * `VK_IMAGE_LAYOUT_PRESENT_SRC_KHR` : images présentées à une swap chain
-* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` : image utilisées comme destination d'opérations de recopie de mémoire
+* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` : image utilisées comme destination d'opérations de copie de mémoire
 
 Nous discuterons plus précisément de ce sujet dans le chapitre sur les textures. Ce qui compte pour le moment est que
-les images doivent changer d'organisation mémoire selon les opérations qui leur sont appliquées.
+les images doivent changer d'organisation mémoire selon les opérations qui leur sont appliquées au long de l'exécution
+de la pipeline.
 
 Le membre `initialLayout` spécifie l'organisation de l'image avant le début du rendu. Le membre `finalLayout` fournit
 l'organisation vers laquelle l'image doit transitionner à la fin du rendu. La valeur `VK_IMAGE_LAYOUT_UNDEFINED` 
@@ -96,10 +97,10 @@ rendre l'image compatible avec la swap chain, nous fournissons `VK_IMAGE_LAYOUT_
 
 ## Subpasses et références aux attachements
 
-Une unique passe de rendu consiste est composée de plusieurs subpasses. Les subpasses sont des opérations de rendu 
-ultérieures dépendant du contenu qui aura été mis dans le framebuffer. Elles peuvent consister en des opérations de 
-post-processing exécutées l'une après l'autre. En regroupant toutes ces opérations en une seule passe, Vulkan peut 
-alors réaliser des optimisations et conserver de la bande passante pour de potentiellement meilleures performances. 
+Une unique passe de rendu est composée de plusieurs subpasses. Les subpasses sont des opérations de rendu
+dépendant du contenu présent dans le framebuffer quand elles commencent. Elles peuvent consister en des opérations de
+post-processing exécutées l'une après l'autre. En regroupant toutes ces opérations en une seule passe, Vulkan peut
+alors réaliser des optimisations et conserver de la bande passante pour de potentiellement meilleures performances.
 Pour notre triangle nous nous contenterons d'une seule subpasse.
 
 Chacune d'entre elle référence un ou plusieurs attachements décrits par les structures que nous avons vues 
@@ -113,19 +114,19 @@ colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 Le paramètre `attachment` spécifie l'attachement à référencer à l'aide d'un indice correspondant à la position de la 
 structure dans le tableau de descriptions d'attachements. Notre tableau ne consistera qu'en une seule référence donc 
-son indice est nécessairement `0`. Le membre `layout` donne l'organisation que l'attachement devrait avoir pendant une 
+son indice est nécessairement `0`. Le membre `layout` donne l'organisation que l'attachement devrait avoir au début d'une
 subpasse utilsant cette référence. Vulkan changera automatiquement l'organisation de l'attachement quand la subpasse 
 commence. Nous voulons que l'attachement soit un color buffer, et pour cela la meilleure performance sera obtenue avec
-`VK_IMAGE_LAYOUT_COLOR_OPTIMAL`, comme son nom le laisse penser.
+`VK_IMAGE_LAYOUT_COLOR_OPTIMAL`, comme son nom le suggère.
 
-Le subpasse est décrite dans la structure `VkSubpassDescription` :
+La subpasse est décrite dans la structure `VkSubpassDescription` :
 
 ```c++
 VkSubpassDescription subpass = {};
 subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 ```
 
-Vulkan supportera également des *compute subpasses* donc nous devons indiquer que celle que nous créeons est destinée 
+Vulkan supportera également des *compute subpasses* donc nous devons indiquer que celle que nous créons est destinée 
 aux graphismes. Nous spécifions ensuite la référence à l'attachement de couleurs :
 
 ```c++
@@ -133,10 +134,10 @@ subpass.colorAttachmentCount = 1;
 subpass.pColorAttachments = &colorAttachmentRef;
 ```
 
-L'indice de cet attachement est indiqué dans le fragment shader avec la directive `layout(location = 0) out vec4 
-outColor`.
+L'indice de cet attachement est indiqué dans le fragment shader avec le `location = 0` dans la directive 
+`layout(location = 0) out vec4 outColor`.
 
-Les types d'attachements suivants peuvent être référencés pour une subpasse :
+Les types d'attachements suivants peuvent être indiqués dans une subpasse :
 
 * `pInputAttachments` : attachements lus depuis un shader
 * `pResolveAttachments` : attachements utilisés pour le multisampling d'attachements de couleurs
@@ -167,7 +168,7 @@ renderPassInfo.subpassCount = 1;
 renderPassInfo.pSubpasses = &subpass;
 
 if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de la création de la passe de rendu!");
+    throw std::runtime_error("échec de la création de la render pass!");
 }
 ```
 
