@@ -15,7 +15,7 @@ Au fur et à mesure que les cartes graphiques progressèrent, elles offrirent de
 programmables. Il fallait alors intégrer toutes ces nouvelles fonctionnalités aux APIs existantes. Ceci résulta
 en une abstraction peu pratique et le driver devait deviner l'intention du développeur pour relier le programme aux
 architectures modernes. C'est pour cela que les drivers étaient mis à jour si souvent, et que certaines augmentaient
-drastiquement les performances. À cause de la complexité de ces drivers, les développeurs devaient gérer les
+soudainement les performances. À cause de la complexité de ces drivers, les développeurs devaient gérer les
 différences de comportement entre les fabricants, dont par exemple des tolérances plus ou moins importantes pour les
 [shaders](https://en.wikipedia.org/wiki/Shader). Un exemple de fonctionnalité est le
 [tiled rendering](https://en.wikipedia.org/wiki/Tiled_rendering), pour laquelle une plus grande flexibilité mènerait à
@@ -47,7 +47,7 @@ et ainsi préférer par exemple du matériel dédié.
 
 ### Étape 2 – Logical Device et familles de queues (Queue Families)
 
-Après avoir séléctionné le hardware qui vous convient, vous devez créer un «`VkDevice`» (logical device). Vous décrivez
+Après avoir sélectionné le hardware qui vous convient, vous devez créer un `VkDevice` (logical device). Vous décrivez
 pour cela quelles `VkPhysicalDeviceFeatures` vous utiliserez, comme l’affichage multi-fenêtre ou des floats de 64 bits.
 Vous devrez également spécifier quelles `vkQueueFamilies` vous utiliserez. La plupart des opérations, comme les
 commandes d’affichage et les allocations de mémoire, sont exécutés de manière asynchrone en les envoyant à une `VkQueue`.
@@ -113,7 +113,7 @@ fonction de blending par défaut.
 
 La bonne nouvelle est que grâce à cette anticipation, ce qui équivaut à peu près à une compilation versus une
 interprétation, il y a beaucoup plus d’optimisations possibles pour le driver et le temps d’exécution est plus
-prévisible, car les grandes étapes telles le changement de pipeline sont très explicites.
+prévisible, car les grandes étapes telles le changement de pipeline sont faites très explicites.
 
 ### Étape 7 - Command Pools et Command Buffers
 
@@ -133,8 +133,8 @@ l’affichage. Nous pourrions en créer un à chaque frame mais ce ne serait pas
 
 ### Étape 8 - Boucle principale
 
-Maintenant que nous avons inscrit les commandes graphiques dans des Command Buffers, la boucle principale n’est qu’une
-histoire d’appels. Nous acquérons d’abord une image de la Swap Chain en utilisant `vkAcquireNextImageKHR`. Nous
+Maintenant que nous avons inscrit les commandes graphiques dans des Command Buffers, la boucle principale n’est plus
+qu'une question d’appels. Nous acquérons d’abord une image de la Swap Chain en utilisant `vkAcquireNextImageKHR`. Nous
 sélectionnons ensuite le command buffer approprié pour cette image et le postons à la queue avec vkQueueSubmit. Enfin,
 nous retournons l’image à la Swap Chain pour sa présentation à l’écran à l’aide de `vkQueuePresentKHR`.
 
@@ -149,7 +149,7 @@ l’affichage soit terminé.
 Ce tour devrait vous donner une compréhension basique du travail que nous aurons à fournir pour afficher notre premier
 triangle. Un véritable programme contient plus d’étapes comme allouer des vertex Buffers, créer des Uniform Buffers et
 envoyer des textures, mais nous verrons cela dans des chapitres suivants. Nous allons commencer par les bases car Vulkan
-a suffisamment d’étapes ainsi. Notez que nous allons ‘tricher’ en écrivant les coordonnées du triangle directement dans
+a suffisamment d’étapes ainsi. Notez que nous allons "tricher" en écrivant les coordonnées du triangle directement dans
 un shader, afin d’éviter l’utilisation d’un vertex buffer qui nécessite une certaine familiarité avec les Command
 Buffers.
 
@@ -177,7 +177,7 @@ Ce chapitre va conclure en survolant la structure de l’API à un plus bas nive
 
 ### Conventions
 
-Toute les fonctions, les énumérations et les structures de Vulkan sont définies dans le header «vulkan.h», inclus dans
+Toute les fonctions, les énumérations et les structures de Vulkan sont définies dans le header `vulkan.h`, inclus dans
 le [SDK Vulkan](https://lunarg.com/vulkan-sdk/) développé par LunarG. Nous verrons comment l’installer dans le prochain
 chapitre.
 
