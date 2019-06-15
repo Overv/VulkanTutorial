@@ -1,12 +1,12 @@
 Les commandes Vulkan, comme les opérations d'affichage et de transfert mémoire, ne sont pas réalisées avec des appels de
-fonctions. Vous devez pré-enregistrer toutes les opérations dans des _command buffers_. L'avantage est que vous pouvez
+fonctions. Il faut pré-enregistrer toutes les opérations dans des _command buffers_. L'avantage est que vous pouvez
 préparer tout ce travail à l'avance et depuis plusieurs threads, puis vous contenter d'indiquer à Vulkan quel command
-buffer doit être exécuté. Cela réduit considérablement la bande passante entre le CPU et le GPU pour de bien meilleures
-performances.
+buffer doit être exécuté. Cela réduit considérablement la bande passante entre le CPU et le GPU et améliore grandement
+les performances.
 
 ## Command pools
 
-Nous devons créer une _command pool_ avant de pouvoir créer les command buffers. Les command pools gèrent la mémoire
+Nous devons créer une *command pool* avant de pouvoir créer les command buffers. Les command pools gèrent la mémoire
 utilisée par les buffers, et c'est de fait les command pools qui nous instancient les command buffers. Ajoutez un 
 nouveau membre donnée à la classe de type `VkCommandPool` :
 
@@ -46,26 +46,26 @@ QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 VkCommandPoolCreateInfo poolInfo = {};
 poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-poolInfo.flags = 0; // Optionnel
+poolInfo.flags = 0; // Optionel
 ```
 
 Les commands buffers sont exécutés depuis une queue, comme la queue des graphismes et de présentation que nous avons 
-récupérées. Une command pool ne peut allouer des command buffers compatibles qu'avec un seul type de queue. Nous allons
-enregistrer des commandes d'affichage, c'est pourquoi nous avons récupéré une queue de graphismes.
+récupérées. Une command pool ne peut allouer des command buffers compatibles qu'avec une seule famille de queues. Nous
+allons enregistrer des commandes d'affichage, c'est pourquoi nous avons récupéré une queue de graphismes.
 
 Il existe deux valeurs acceptées par `flags` pour les command pools :
 
 * `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT` : informe que les command buffers sont ré-enregistrés très souvent, ce qui
-peut inciter Vulkan à ne pas utiliser le même type de mémoire
+peut inciter Vulkan (et donc le driver) à ne pas utiliser le même type d'allocation
 * `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` : permet aux command buffers d'être ré-enregistrés individuellement,
 ce que les autres configurations ne permettent pas
 
 Nous n'enregistrerons les command buffers qu'une seule fois au début du programme, nous n'aurons donc pas besoin de ces
-configurations.
+fonctionnalités.
 
 ```c++
 if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de la création d'une command pool!");
+    throw std::runtime_error("échec de la création d'une command pool!");
 }
 ```
 
@@ -119,7 +119,8 @@ void createCommandBuffers() {
 ```
 
 Les command buffers sont alloués par la fonction `vkAllocateCommandBuffers` qui prend en paramètre une structure du
-type `VkCommandBufferAllocateInfo`. Cette structure spécifie la command pool et le nombre de buffers à allouer :
+type `VkCommandBufferAllocateInfo`. Cette structure spécifie la command pool et le nombre de buffers à allouer depuis
+celle-ci :
 
 ```c++
 VkCommandBufferAllocateInfo allocInfo = {};
@@ -129,11 +130,11 @@ allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
 if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de l'allocation de command buffers!");
+    throw std::runtime_error("échec de l'allocation de command buffers!");
 }
 ```
 
-Les command buffers peuvent être _primaires_ ou _secondaires_, ce que l'on indique avec le paramètre `level`. Il peut
+Les command buffers peuvent être *primaires* ou *secondaires*, ce que l'on indique avec le paramètre `level`. Il peut
 prendre les valeurs suivantes :
 
 * `VK_COMMAND_BUFFER_LEVEL_PRIMARY` : peut être envoyé à une queue pour y être exécuté mais ne peut être appelé par
@@ -141,8 +142,8 @@ d'autres command buffers
 * `VK_COMMAND_BUFFER_LEVEL_SECONDARY` : ne peut pas être directement émis à une queue mais peut être appelé par un autre
 command buffer
 
-Nous n'utiliserons pas la fonctionnalité de command buffer secondaire ici mais vous pouvez imaginer que cela évite la
-redondance d'exécutions basiques.
+Nous n'utiliserons pas la fonctionnalité de command buffer secondaire ici. Sachez que le mécanisme de command buffer
+secondaire est à la base de la génération rapie de commandes d'affichage depuis plusieurs threads.
 
 ## Début de l'enregistrement des commandes
 
@@ -155,19 +156,20 @@ for (size_t i = 0; i < commandBuffers.size(); i++) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    beginInfo.pInheritanceInfo = nullptr; // Optionnel
+    beginInfo.pInheritanceInfo = nullptr; // Optionel
 
     if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-        throw std::runtime_error("échec au début de l'enregistrement d'un command buffer!");
+        throw std::runtime_error("erreur au début de l'enregistrement d'un command buffer!");
     }
 }
 ```
 
-L'utilisation du command buffer est spécifiée dans le paramètre `flags`, qui peut prendre les valeurs suivantes :
+L'utilisation du command buffer s'indique avec le paramètre `flags`, qui peut prendre les valeurs suivantes :
 
-* `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT` : le command buffer sera ré-enregistré après son utilisation
+* `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT` : le command buffer sera ré-enregistré après son utilisation, donc
+invalidé une fois son exécution terminée
 * `VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT` : ce command buffer secondaire sera intégralement exécuté dans une
-render pass
+unique render pass
 * `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT` : le command buffer peut être ré-envoyé à la queue alors qu'il y est
 déjà et/ou est en cours d'exécution
 
@@ -216,14 +218,14 @@ vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INL
 ```
 
 La render pass peut maintenant commencer. Toutes les fonctions enregistrables se reconnaisent à leur préfixe `vkCmd`.
-Comme elles retournent toutes `void` nous n'avons aucun moyen de gérer d'éventuelles erreurs d'ici à ce que nous 
-ayons fini l'enregistrement.
+Comme elles retournent toutes `void` nous n'avons aucun moyen de gérer d'éventuelles erreurs avant d'avoir fini
+l'enregistrement.
 
 Le premier paramètre de chaque commande est toujours le command buffer qui stockera l'appel. Le second paramètre donne
 des détails sur la render pass à l'aide de la structure que nous avons préparée. Le dernier paramètre informe sur la
 provenance des commandes pendant l'exécution de la passe. Il peut prendre ces valeurs :
 
-* `VK_SUBPASS_CONTENTS_INLINE` : les commandes de la render pass seront incluses directement dans le command buffer
+* `VK_SUBPASS_CONTENTS_INLINE` : les commandes de la render pass seront inclues directement dans le command buffer
 (qui est donc primaire)
 * `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFER` : les commandes de la render pass seront fournies par un ou
 plusieurs command buffers secondaires
@@ -246,12 +248,12 @@ nous reste donc plus qu'à lui dire d'afficher un triangle :
 vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
 ```
 
-Le fonction `vkCmdDraw` semble en fait assez ridicule quand on sait tout ce qu'elle implique, mais sa simplicité est due
+Le fonction `vkCmdDraw` est assez ridicule quand on sait tout ce qu'elle implique, mais sa simplicité est due
 à ce que tout a déjà été préparé en vue de ce moment tant attendu. Elle possède les paramètres suivants en plus du
 command buffer concerné :
 
-* `vertexCount` : même si nous n'avons pas de vertex buffer nous avons techniquement trois vertices à dessiner
-* `instanceCount` : sert au rendu instancié (instanced rendering), indiquez `1` si vous ne l'utilisez pas
+* `vertexCount` : même si nous n'avons pas de vertex buffer, nous avons techniquement trois vertices à dessiner
+* `instanceCount` : sert au rendu instancié (instanced rendering); indiquez `1` si vous ne l'utilisez pas
 * `firstVertex` : utilisé comme décalage dans le vertex buffer et définit ainsi la valeur la plus basse pour
 `glVertexIndex`
 * `firstInstance` : utilisé comme décalage pour l'instanced rendering et définit ainsi la valeur la plus basse pour
@@ -269,7 +271,7 @@ Et nous avons fini l'enregistrement du command buffer :
 
 ```c++
 if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
-    throw std::runtime_error("échec lors de l'enregistrement d'un command buffer!");
+    throw std::runtime_error("échec de l'enregistrement d'un command buffer!");
 }
 ```
 
