@@ -368,7 +368,7 @@ void cleanup() {
 
 ## Conclusion
 
-Voila tout ce qu'il y a à savoir sur les étapes à fonctions fixées! Leur configuration représente un gros travail 
+Voila tout ce qu'il y a à savoir sur les étapes à fonction fixée! Leur configuration représente un gros travail 
 mais nous sommes au courant de tout ce qui se passe dans la pipeline graphique, ce qui réduit les chances de 
 comportement imprévu à cause d'un paramètre par défaut oublié.
 
