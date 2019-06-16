@@ -3,9 +3,9 @@
 Nous avons maintenant un vertex buffer fonctionnel. Par contre il n'est pas dans la mémoire la plus optimale posible
 pour la carte graphique. Il serait préférable d'utiliser une mémoire `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT`,
 mais de telles mémoires ne sont pas accessibles depuis le CPU. Dans ce chapitre nous allons créer deux vertex buffers.
-Le premier, un *buffer intermédiaire*, sera stocké dans de la mémoire accessible depuis le CPU, et nous y mettrons nos
-données. Le second sera directement dans la carte graphique, et nous y copierons les données des vertices depuis le
-buffer intermédiaire.
+Le premier, un buffer intermédiaire (*staging buffer*), sera stocké dans de la mémoire accessible depuis le CPU, et
+nous y mettrons nos données. Le second sera directement dans la carte graphique, et nous y copierons les données des
+vertices depuis le buffer intermédiaire.
 
 ## Queue de transfert
 
@@ -43,7 +43,7 @@ void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyF
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-        throw std::runtime_error("echec lors de la creation d'un buffer!");
+        throw std::runtime_error("echec de la creation d'un buffer!");
     }
 
     VkMemoryRequirements memRequirements;
@@ -55,7 +55,7 @@ void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyF
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-        throw std::runtime_error("echec lors de l'allocation de memoire!");
+        throw std::runtime_error("echec de l'allocation de memoire!");
     }
 
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
@@ -112,9 +112,10 @@ graphique. Dans ce chapitre nous allons utiliser deux nouvelles valeurs pour les
 * `VK_BUFFER_USAGE_TRANSFER_DST_BIT` : le buffer peut être utilisé comme destination pour un transfert de mémoire
 
 Le `vertexBuffer` est maintenant alloué à partir d'un type de mémoire local au device, ce qui implique en général que
-nous ne pouvons pas utiliser `vkMapMemory`. Nous pouvons cependant bien sûr copier les données depuis le buffer
-intermédiaire. Nous indiquons que nous voulons transmettre des données entre des buffers à l'aide des valeurs que nous
-avons vues juste au-dessus. Nous pouvons combiner ces informations avec par exemple `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`.
+nous ne pouvons pas utiliser `vkMapMemory`. Nous pouvons cependant bien sûr y copier les données depuis le buffer
+intermédiaire. Nous pouvons indiquer que nous voulons transmettre des données entre ces buffers à l'aide des valeurs
+que nous avons vues juste au-dessus. Nous pouvons combiner ces informations avec par exemple
+`VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`.
 
 Nous allons maintenant écrire la fonction `copyBuffer`, qui servira à recopier le contenu du buffer intermédiaire dans
 le véritable buffer.
@@ -125,10 +126,11 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 }
 ```
 
-Les opérations de transfert de mémoire sont réalisée à travers un command buffer, comme pour l'affichage. Nous devons
+Les opérations de transfert de mémoire sont réalisées à travers un command buffer, comme pour l'affichage. Nous devons
 commencer par allouer des command buffers temporaires. Vous devriez d'ailleurs utiliser une autre command pool pour
 tous ces command buffer temporaires, afin de fournir à l'implémentation une occasion d'optimiser la gestion de la
-mémoire. Utilisez alors `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT` pendant la création de la command pool.
+mémoire séparément des graphismes. Si vous le faites, utilisez `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT` pendant la 
+création de la command pool, car les commands buffers ne seront utilisés qu'une seule fois.
 
 ```c++
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
@@ -160,8 +162,8 @@ terminée avant de sortir de la fonction. Il est alors préférable d'informer l
 
 ```c++
 VkBufferCopy copyRegion = {};
-copyRegion.srcOffset = 0; // Optionnel
-copyRegion.dstOffset = 0; // Optionnel
+copyRegion.srcOffset = 0; // Optionel
+copyRegion.dstOffset = 0; // Optionel
 copyRegion.size = size;
 vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 ```
@@ -169,7 +171,7 @@ vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 La copie est réalisée à l'aide de la commande `vkCmdCopyBuffer`. Elle prend les buffers de source et d'arrivée comme
 arguments, et un tableau des régions à copier. Ces régions sont décrites dans des structures de type `VkBufferCopy`, qui
 consistent en un décalage dans le buffer source, le nombre d'octets à copier et le décalage dans le buffer d'arrivée. Il
-n'est pas ici possible d'indiquer `VK_WHOLE_SIZE`.
+n'est ici pas possible d'indiquer `VK_WHOLE_SIZE`.
 
 ```c++
 vkEndCommandBuffer(commandBuffer);
@@ -202,7 +204,7 @@ vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 
 N'oubliez pas de libérer le command buffer utilisé pour l'opération de transfert.
 
-Nous pouvons maintenant appeler `copyBuffer` depuis la fonction `createVertexBuffer` pour que les vertices soient enfin
+Nous pouvons maintenant appeler `copyBuffer` depuis la fonction `createVertexBuffer` pour que les sommets soient enfin
 stockées dans la mémoire locale.
 
 ```c++
@@ -226,14 +228,16 @@ donc le détruire.
 
 Lancez votre programme pour vérifier que vous voyez toujours le même triangle. L'amélioration n'est peut-être pas
 flagrante, mais il est clair que la mémoire permet d'améliorer les performances, préparant ainsi le terrain
-pour de la géométrie plus complexe.
+pour le chargement de géométrie plus complexe.
 
 ## Conclusion
 
 Notez que dans une application réelle, vous ne devez pas allouer de la mémoire avec `vkAllocateMemory` pour chaque
 buffer. De toute façon le nombre d'appel à cette fonction est limité, par exemple à 4096, et ce même sur des cartes
-graphiques comme les GTX 1080. La bonne pratique consiste à allouer une grande zone de mémoire et d'utiliser un objet
-pour créer des décalages pour chacun des buffers.
+graphiques comme les GTX 1080. La bonne pratique consiste à allouer une grande zone de mémoire et d'utiliser un
+gestionnaire pour créer des décalages pour chacun des buffers. Il est même préférable d'utiliser un buffer pour
+plusieurs types de données (sommets et uniformes par exemple) et de séparer ces types grâce à des indices dans le
+buffer (voyez encore [ce même article](https://developer.nvidia.com/vulkan-memory-management)).
 
 Vous pouvez implémenter votre propre solution, ou bien utiliser la librairie
 [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) crée par GPUOpen. Pour ce
