@@ -432,7 +432,7 @@ Vulkan library where to load these from using the `VK_LAYER_PATH` variable:
 
 ```make
 test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/explicit_layer.d ./VulkanTest
+    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./VulkanTest
 ```
 
 You should now have a complete makefile that resembles the following:
@@ -449,7 +449,7 @@ VulkanTest: main.cpp
 .PHONY: test clean
 
 test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/explicit_layer.d ./VulkanTest
+    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./VulkanTest
 
 clean:
     rm -f VulkanTest
