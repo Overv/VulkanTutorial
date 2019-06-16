@@ -1,9 +1,9 @@
 ## Introduction
 
 Les buffers sont pour Vulkan des emplacements mémoire qui peuvent permettre de stocker des données quelconques sur la
-carte graphique. Nous pouvons en particulier y placer les données représentant les vertices, et ce que nous allons
-faire dans ce chapitre. Nous verrons plus tard d'autres utilisation répandues. Au contraire des autres objets que nous
-avons rencontré les buffers n'allouent pas de mémoire. Il nous faudra gérer la mémoire nous-mêmes.
+carte graphique. Nous pouvons en particulier y placer les données représentant les sommets, et c'est ce que nous allons
+faire dans ce chapitre. Nous verrons plus tard d'autres utilisations répandues. Au contraire des autres objets que nous
+avons rencontré les buffers n'allouent pas eux-mêmes de mémoire. Il nous faudra gérer la mémoire à la main.
 
 ## Création d'un buffer
 
@@ -49,15 +49,14 @@ Le premier champ de cette structure s'appelle `size`. Il spécifie la taille du 
 bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 ```
 
-Le deuxième champ, appelé `usage`, permet d'informer Vulkan de la manière dont nous utiliserons le buffer. Nous pouvons
-indiquer plusieurs valeurs représentant les utilisations possibles. Dans notre cas nous ne mettons que la valeur qui
-correspond à un vertex buffer.
+Le deuxième champ, appelé `usage`, correspond à l'utilisation type du buffer. Nous pouvons indiquer plusieurs valeurs
+représentant les utilisations possibles. Dans notre cas nous ne mettons que la valeur qui correspond à un vertex buffer.
 
 ```c++
 bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 ```
 
-De la même manière que les images de la swap chain, les buffers peuvent soit être possédés par une queue family, ou bien
+De la même manière que les images de la swap chain, les buffers peuvent soit être gérés par une queue family, ou bien
 être partagés entre plusieurs queue families. Notre buffer ne sera utilisé que par la queue des graphismes, nous
 pouvons donc rester en mode exclusif.
 
@@ -80,7 +79,7 @@ void createVertexBuffer() {
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("echec lors de la creation d'un vertex buffer!");
+        throw std::runtime_error("echec de la creation d'un vertex buffer!");
     }
 }
 ```
@@ -113,10 +112,10 @@ La structure que la fonction nous remplit possède trois membres :
 * `size` : le nombre d'octets dont le buffer a besoin, ce qui peut différer de ce que nous avons écrit en préparant le
 buffer
 * `alignment` : le décalage en octets entre le début de la mémoire allouée pour lui et le début des données du buffer,
-ce qui est déterminé par les valeurs que nous avons fournies dans `usage` et `flags`
+ce que le driver détermine avec les valeurs que nous avons fournies dans `usage` et `flags`
 * `memoryTypeBits` : champs de bits combinant les types de mémoire qui conviennent au buffer
 
-Les cartes graphiques offrent plusieurs types de mémoire. Ils diffèrenent en performance et en opérations disponibles.
+Les cartes graphiques offrent plusieurs types de mémoire. Ils diffèrent en performance et en opérations disponibles.
 Nous devons considérer ce dont le buffer a besoin en même temps que ce dont nous avons besoin pour sélectionner le
 meilleur type de mémoire possible. Créons une fonction `findMemoryType` pour y isoler cette logique.
 
@@ -197,9 +196,8 @@ VkBuffer vertexBuffer;
 VkDeviceMemory vertexBufferMemory;
 
 ...
-
 if (vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS) {
-    throw std::runtime_error("echec lors d'une allocation de memoire!");
+    throw std::runtime_error("echec d'une allocation de memoire!");
 }
 ```
 
@@ -212,7 +210,8 @@ vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
 Les trois premiers paramètres sont évidents. Le quatrième indique le décalage entre le début de la mémoire et le début
 du buffer. Nous avons alloué cette mémoire spécialement pour ce buffer, nous pouvons donc mettre `0`. Si vous décidez
 d'allouer un grand espace mémoire pour y mettre plusieurs buffers, sachez qu'il faut que ce nombre soit divisible par
-`memRequirements.alignement`.
+`memRequirements.alignement`. Notez que cette stratégie est la manière recommandée de gérer la mémoire des GPUs (voyez
+[cet article](https://developer.nvidia.com/vulkan-memory-management)).
 
 Il est évident que cette allocation dynamique de mémoire nécessite que nous libérions l'emplacement nous-mêmes. Comme la
 mémoire est liée au buffer, et que le buffer sera nécessaire à toutes les opérations de rendu, nous ne devons la libérer
@@ -261,7 +260,11 @@ manières de régler ce problème :
 d'accéder à la mémoire
 
 Nous utiliserons la première approche qui nous assure une cohérence permanente. Cette méthode est moins performante que
-le flushing explicite, mais nous verrons dès le prochain chapitre que cela n'a aucune importance.
+le flushing explicite, mais nous verrons dès le prochain chapitre que cela n'a aucune importance car nous changerons
+complètement de stratégie.
+
+Remarquez également l'utilisation de `memcpy` qui indique la compatibilité bit-à-bit des structures avec la
+représentation sur la carte graphique.
 
 ## Lier le vertex buffer
 
@@ -278,11 +281,11 @@ vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 ```
 
-La fonction `vkCmbBindVertexBuffers` lie des vertex buffers aux bindings. Le deuxième et le troisième paramètre
-indiquent un décalage et le nombre de bindings auquel ce buffer correspond. L'avant-dernier paramètre est le tableau de
-vertex buffers à lier, et le dernier est un tableau de décalages en octets entre le début d'un buffer et le début des
-données. Il est d'ailleurs préférable d'appeler `vkCmdDraw` avec la taille du tableau de vertices plutôt qu'avec un
-nombre écrit à la main.
+La fonction `vkCmdBindVertexBuffers` lie des vertex buffers aux bindings. Les deuxième et troisième paramètres indiquent
+l'indice du premier binding auquel le buffer correspond et le nombre de bindings qu'il contiendra. L'avant-dernier 
+paramètre est le tableau de vertex buffers à lier, et le dernier est un tableau de décalages en octets entre le début
+d'un buffer et le début des données. Il est d'ailleurs préférable d'appeler `vkCmdDraw` avec la taille du tableau de
+vertices plutôt qu'avec un nombre écrit à la main.
 
 Lancez maintenant le programme; vous devriez voir le triangle habituel apparaître à l'écran.
 
@@ -300,7 +303,7 @@ const std::vector<Vertex> vertices = {
 
 ![](/images/triangle_white.png)
 
-Dans le prochain chapitre nous verrons une autre manière de copier les données dans un buffer. Elle est plus performante
+Dans le prochain chapitre nous verrons une autre manière de copier les données vers un buffer. Elle est plus performante
 mais nécessite plus de travail.
 
 [Code C++](/code/18_vertex_buffer.cpp) /
