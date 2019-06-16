@@ -15,7 +15,7 @@ dupliquer les données de ce buffer. L'image ci-dessus démontre l'utilité de c
 ## Création d'un index buffer
 
 Dans ce chapitre, nous allons ajouter les données nécessaires à l'affichage d'un rectangle. Nous allons ainsi rajouter
-une coordonnée dans le vertex buffer et créer un index buffer. Voici les vertices au complet :
+une coordonnée dans le vertex buffer et créer un index buffer. Voici les données des sommets au complet :
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -27,8 +27,8 @@ const std::vector<Vertex> vertices = {
 ```
 
 Le coin en haut à gauche est rouge, celui en haut à droite est vert, celui en bas à droite est bleu et celui en bas à
-gauche est blanc. Nous allons maintenant créer le tableau `indices` pour représenter l'index buffer. Son contenu
-correspond à ce qui est présenté dans l'illustration.
+gauche est blanc. Les couleurs seront dégradées par l'interpolation du rasterizer. Nous allons maintenant créer le
+tableau `indices` pour représenter l'index buffer. Son contenu correspond à ce qui est présenté dans l'illustration.
 
 ```c++
 const std::vector<uint16_t> indices = {
@@ -37,9 +37,9 @@ const std::vector<uint16_t> indices = {
 ```
 
 Il est possible d'utiliser `uint16_t` ou `uint32_t` pour les valeurs de l'index buffer, en fonction du nombre d'éléments
-dans `vertices`. Nous pouvons nous contenter de `uint16_t` car nous n'utilisons pas plus de 65535 vertices différents.
+dans `vertices`. Nous pouvons nous contenter de `uint16_t` car nous n'utilisons pas plus de 65535 sommets différents.
 
-Comme les données des vertices, nous devons placer les indices dans un `VkBuffer` pour que le GPU puisse y avoir accès.
+Comme les données des sommets, nous devons placer les indices dans un `VkBuffer` pour que le GPU puisse y avoir accès.
 Créez deux membres donnée pour référencer les ressources du futur index buffer :
 
 ```c++
@@ -104,8 +104,8 @@ void cleanup() {
 
 Pour utiliser l'index buffer lors des opérations de rendu nous devons modifier un petit peu `createCommandBuffers`. Tout
 d'abord il nous faut lier l'index buffer. La différence est qu'il n'est pas possible d'avoir plusieurs index buffers. De
-plus il n'est pas possible de subdiviser les vertices en leurs coordonnées, ce qui implique que la modification d'une
-seule coordonnée nécessite de dupliquer tout le vertex.
+plus il n'est pas possible de subdiviser les sommets en leurs coordonnées, ce qui implique que la modification d'une
+seule coordonnée nécessite de créer un autre sommet le vertex buffer.
 
 ```c++
 vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
@@ -137,8 +137,8 @@ Lancez le programme et vous devriez avoir ceci :
 Vous savez maintenant économiser la mémoire en réutilisant les vertices à l'aide d'un index buffer. Cela deviendra
 crucial pour les chapitres suivants dans lesquels vous allez apprendre à charger des modèles complexes.
 
-Il a déjà été dit que tous le plus de buffers possibles devraient être stockés dans un seul emplacement mémoire. Il
-faudrait dans l'idéal allez encore plus loin :
+Nous avons déjà évoqué le fait que le plus de buffers possibles devraient être stockés dans un seul emplacement
+mémoire. Il faudrait dans l'idéal allez encore plus loin :
 [les développeurs des drivers recommandent](https://developer.nvidia.com/vulkan-memory-management) également que vous
 placiez plusieurs buffers dans un seul et même `VkBuffer`, et que vous utilisiez des décalages pour les différencier
 dans les fonctions comme `vkCmdBindVertexBuffers`. Cela simplifie la mise des données dans des caches car elles sont
