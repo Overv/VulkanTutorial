@@ -1,8 +1,8 @@
 ## Introduction
 
-L'objet `VkDescriptorSetLayout` que nous avons créé au chapitre précédent décrit les descripteurs que nous devons lier
-pour les opérations de rendu. Dans ce chapitre nous allons créer les véritables sets de descripteurs, un pour chaque
-`VkBuffer`, afin que nous puissions chacun les lier au descripteur UBO.
+L'objet `VkDescriptorSetLayout` que nous avons créé dans le chapitre précédent décrit les descripteurs que nous devons
+lier pour les opérations de rendu. Dans ce chapitre nous allons créer les véritables sets de descripteurs, un pour
+chaque `VkBuffer`, afin que nous puissions chacun les lier au descripteur de l'UBO côté shader.
 
 ## Pool de descripteurs
 
@@ -43,15 +43,15 @@ poolInfo.poolSizeCount = 1;
 poolInfo.pPoolSizes = &poolSize;
 ```
 
-Nous devons aussi spécifier le nombre maximum de sets de descriptors que nous sommes susceptibles d'allouer.
+Nous devons aussi spécifier le nombre maximum de sets de descripteurs que nous sommes susceptibles d'allouer.
 
 ```c++
-poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());;
+poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
 ```
 
 La stucture possède un membre optionnel également présent pour les command pools. Il permet d'indiquer que les
 sets peuvent être libérés indépendemment les uns des autres avec la valeur
-`VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`. Comme nous ne voulons pas toucher aux descripteurs pendant que le
+`VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`. Comme nous n'allons pas toucher aux descripteurs pendant que le
 programme s'exécute, nous n'avons pas besoin de l'utiliser. Indiquez `0` pour ce champ.
 
 ```c++
@@ -60,11 +60,11 @@ VkDescriptorPool descriptorPool;
 ...
 
 if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-    throw std::runtime_error("echec lors de la creation de la pool de descripteurs!");
+    throw std::runtime_error("echec de la creation de la pool de descripteurs!");
 }
 ```
 
-Créez un nouveau membre donnée pour référencer la pool, puis appelez `vkCreateDescriptorPool`. La pool doit alors être
+Créez un nouveau membre donnée pour référencer la pool, puis appelez `vkCreateDescriptorPool`. La pool doit être
 détruite à la fin du programme, comme la plupart des ressources liées au rendu.
 
 ```c++
@@ -77,7 +77,7 @@ void cleanup() {
 }
 ```
 
-## Set de descriptors
+## Set de descripteurs
 
 Nous pouvons maintenant allouer les sets de descipteurs. Créez pour cela la fonction `createDescriptorSets` :
 
@@ -123,13 +123,13 @@ std::vector<VkDescriptorSet> descriptorSets;
 
 descriptorSets.resize(swapChainImages.size());
 if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-    throw std::runtime_error("echec lors de l'allocation d'un set de descripteurs!");
+    throw std::runtime_error("echec de l'allocation d'un set de descripteurs!");
 }
 ```
 
 Il n'est pas nécessaire de détruire les sets de descripteurs explicitement, car leur libération est induite par la
-destruction de la pool. L'appel à `vkAllocateDescriptorSets` alloue donc tous les sets, chacun possédant un descripteur
-de buffer uniform.
+destruction de la pool. L'appel à `vkAllocateDescriptorSets` alloue donc tous les sets, chacun possédant un unique
+descripteur d'UBO.
 
 Nous avons créé les sets mais nous n'avons pas paramétré les descripteurs. Nous allons maintenant créer une boucle pour
 rectifier ce problème :
@@ -152,7 +152,7 @@ for (size_t i = 0; i < swapChainImages.size(); i++) {
 }
 ```
 
-Nous allons utiliser tout le buffer, donc nous pourrions indiquer `VK_WHOLE_SIZE`. La configuration des
+Nous allons utiliser tout le buffer, il est donc aussi possible d'indiquer `VK_WHOLE_SIZE`. La configuration des
 descripteurs est maintenant mise à jour avec la fonction `vkUpdateDescriptorSets`. Elle prend un tableau de
 `VkWriteDescriptorSet` en paramètre.
 
@@ -178,8 +178,8 @@ type en même temps. La fonction commence à `dstArrayElement` et s'étend sur `
 
 ```c++
 descriptorWrite.pBufferInfo = &bufferInfo;
-descriptorWrite.pImageInfo = nullptr; // Optionnel
-descriptorWrite.pTexelBufferView = nullptr; // Optionnel
+descriptorWrite.pImageInfo = nullptr; // Optionel
+descriptorWrite.pTexelBufferView = nullptr; // Optionel
 ```
 
 Le dernier champ que nous allons utiliser est `pBufferInfo`. Il permet de fournir `descriptorCount` structures qui
@@ -197,8 +197,8 @@ Les mises à jour sont appliquées quand nous appellons `vkUpdateDescriptorSets`
 ## Utiliser des sets de descripteurs
 
 Nous devons maintenant étendre `createCommandBuffers` pour qu'elle lie les sets de descripteurs aux descripteurs des
-shaders avec la commande `cmdBindDescriptorSets`. Il faut invoquer cette commande dans la configuration des buffers de
-commande avant l'appel à `vkCmdDrawIndexed`.
+shaders avec la commande `cmdBindDescriptorSets`. Il faut invoquer cette commande dans l'enregistrement des command
+buffers avant l'appel à `vkCmdDrawIndexed`.
 
 ```c++
 vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
@@ -229,7 +229,7 @@ Maintenant vous devriez voir ceci en lançant votre programme :
 ![](/images/spinning_quad.png)
 
 Le rectangle est maintenant un carré car la matrice de projection corrige son aspect. La fonction `updateUniformBuffer`
-traite les redimensionnements d'écran, il n'est donc pas nécessaire de recréer les descripteurs dans
+inclut d'office les redimensionnements d'écran, il n'est donc pas nécessaire de recréer les descripteurs dans
 `recreateSwapChain`.
 
 ## Plusieurs sets de descripteurs
@@ -243,8 +243,8 @@ layout(set = 0, binding = 0) uniform UniformBufferObject { ... }
 ```
 
 Vous pouvez utiliser cette possibilité pour placer dans différents sets les descripteurs dépendant d'objets et les
-descripteurs partagés. De cette manière vous éviter de relier une partie des descripteurs, ce qui peut être plus
-performant.
+descripteurs partagés. De cette manière vous éviter de relier constemment une partie des descripteurs, ce qui peut être
+plus performant.
 
 [Code C++](/code/22_descriptor_sets.cpp) /
 [Vertex shader](/code/21_shader_ubo.vert) /
