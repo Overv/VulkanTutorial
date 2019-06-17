@@ -7,7 +7,7 @@ import re
 def create_ebook(path):
 
     name_path = path
-    print('create \"' + name_path + '\" ebook')
+    print('\n Creating \"' + name_path + '\" ebook')
     # Recursively gather all markdown files in the right order
     markdownFiles = []
 
