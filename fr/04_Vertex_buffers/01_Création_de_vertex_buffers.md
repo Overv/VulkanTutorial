@@ -263,6 +263,10 @@ Nous utiliserons la première approche qui nous assure une cohérence permanente
 le flushing explicite, mais nous verrons dès le prochain chapitre que cela n'a aucune importance car nous changerons
 complètement de stratégie.
 
+Par ailleurs, notez que l'utilisation d'une mémoire cohérente ou le flushing de la mémoire ne garantissent que le fait
+que le driver soit au courant des modifications de la mémoire. La seule garantie est que le déplacement se finisse d'ici
+le prochain appel à `vkQueueSubmit`.
+
 Remarquez également l'utilisation de `memcpy` qui indique la compatibilité bit-à-bit des structures avec la
 représentation sur la carte graphique.
 

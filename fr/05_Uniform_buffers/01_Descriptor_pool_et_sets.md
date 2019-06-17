@@ -65,15 +65,30 @@ if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SU
 ```
 
 Créez un nouveau membre donnée pour référencer la pool, puis appelez `vkCreateDescriptorPool`. La pool doit être
-détruite à la fin du programme, comme la plupart des ressources liées au rendu.
+recrée avec la swap chain..
 
 ```c++
-void cleanup() {
-    cleanupSwapChain();
-
+void cleanupSwapChain() {
+    ...
+    for (size_t i = 0; i < swapChainImages.size(); i++) {
+        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+    }
+    
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
     ...
+}
+```
+
+Et recréée dans `recreateSwapChain` :
+
+```c++
+void recreateSwapChain() {
+    ...
+    createUniformBuffers();
+    createDescriptorPool();
+    createCommandBuffers();
 }
 ```
 
@@ -231,6 +246,128 @@ Maintenant vous devriez voir ceci en lançant votre programme :
 Le rectangle est maintenant un carré car la matrice de projection corrige son aspect. La fonction `updateUniformBuffer`
 inclut d'office les redimensionnements d'écran, il n'est donc pas nécessaire de recréer les descripteurs dans
 `recreateSwapChain`.
+
+## Alignement
+
+Jusqu'à présent nous avons évité la question de la compatibilité des types côté C++ avec la définition des types pour
+les variables uniformes. Il semble évident d'utiliser des types au même nom des deux côtés :
+
+```c++
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
+```
+
+Pourtant ce n'est pas aussi simple. Essayez la modifiction suivante :
+
+```c++
+struct UniformBufferObject {
+    glm::vec2 foo;
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+layout(binding = 0) uniform UniformBufferObject {
+    vec2 foo;
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
+```
+
+Recompilez les shaders et relancez le programme. Le carré coloré a disparu! La raison réside dans cette question de
+l'alignement.
+
+Vulkan s'attend à un certain alignement des données en mémoire pour chaque type. Par exemple :
+* Les scalaires doivent être alignés sur leur nombre d'octets N (float de 32 bits donne un alognement de 4 octets)
+* Un `vec2` doit être aligné sur 2N (8 octets)
+* Les `vec3` et `vec4` doivent être alignés sur 4N (16 octets)
+* Une structure imbriquée doit être alignée sur la somme des alignements de ses membres arrondie sur le multiple de
+16 octets au-dessus
+* Une `mat4` doit avoir le même alignement qu'un `vec4`
+
+Les alignemenents imposés peuvent être trouvés dans
+[la spécification](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap14.html#interfaces-resources-layout)
+
+Notre shader original et ses trois `mat4` était bien aligné. `model` a un décalage de 0, `view` de 64 et `proj` de 128,
+ce qui sont des multiples de 16.
+
+La nouvelle structure commence avec un membre de 8 octets, ce qui décale tout ce qui suit. Les décalages sont augmentés
+de 8 et ne sont alors plus multiples de 16. Nous pouvons fixer ce problème avec le mot-clef `alignas` :
+
+```c++
+struct UniformBufferObject {
+    glm::vec2 foo;
+    alignas(16) glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+```
+
+Si vous recompilez et relancez, le programme devrait fonctionner à nouveau.
+
+Heuresement pour nous, GLM inclue un moyen qui nous permet de plus penser à ce souci d'alignement :
+
+```c++
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#include <glm/glm.hpp>
+```
+
+La ligne `#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES` force GLM a s'assurer de l'alignement des types qu'elle expose.
+La limite de cette méthode s'atteint en utilisant des structures imbriquées. Prenons l'exémple suivant :
+
+```c++
+struct Foo {
+    glm::vec2 v;
+};
+struct UniformBufferObject {
+    Foo f1;
+    Foo f2;
+};
+```
+
+Et côté shader mettons :
+
+```c++
+struct Foo {
+    vec2 v;
+};
+layout(binding = 0) uniform UniformBufferObject {
+    Foo f1;
+    Foo f2;
+} ubo;
+```
+
+Nous nous retrouvons avec un décalage de 8 pour `f2` alors qu'il lui faudrait un décalage de 16. Il faut dans ce cas
+de figure utiliser `alignas` :
+
+```c++
+struct UniformBufferObject {
+    Foo f1;
+    alignas(16) Foo f2;
+};
+```
+
+Pour cette raison il est préférable de toujours être explicite à propos de l'alignement de données que l'on envoie aux
+shaders. Vous ne serez pas supris par des problèmes d'alignement imprévus.
+
+```c++
+struct UniformBufferObject {
+    alignas(16) glm::mat4 model;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+};
+```
+
+Recompilez le shader avant de continuer la lecture.
 
 ## Plusieurs sets de descripteurs
 

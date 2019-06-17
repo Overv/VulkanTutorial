@@ -63,11 +63,6 @@ dans le vertex shader. Son code ressemble donc à ceci :
 
 ```glsl
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
 
 vec2 positions[3] = vec2[](
     vec2(0.0, -0.5),
@@ -84,8 +79,7 @@ La fonction `main` est invoquée pour chaque sommet. La variable prédéfinie `g
 sommet à l'origine de l'invocation du `main`. Elle est en général utilisée comme index dans le vertex buffer, mais nous 
 l'emploierons pour déterminer la coordonnée à émettre. Cette coordonnée est extraite d'un tableau prédéfini à trois 
 entrées, et est combinée avec un `z` à 0.0 et un `w` à 1.0 pour faire de la division une identité. La variable 
-prédéfinie `gl_Position` fonctionne comme sortie pour les coordonnées. L'extension `GL_ARB_separate_shader_objects` 
-est requise pour fonctionnner avec Vulkan.
+prédéfinie `gl_Position` fonctionne comme sortie pour les coordonnées.
 
 ## Le fragment shader
 
@@ -309,7 +303,8 @@ void createGraphicsPipeline() {
 ```
 
 Assurez-vous que les shaders soient correctement chargés en affichant la taille des fichiers lus depuis votre 
-programme puis en comparez ces valeurs à la taille des fichiers indiquées par l'OS.
+programme puis en comparez ces valeurs à la taille des fichiers indiquées par l'OS. Notez que le code n'a pas besoin
+d'avoir un caractère nul en fin de chaîne car nous indiquerons à Vulkan sa taille exacte.
 
 ## Créer des modules shader
 
@@ -356,20 +351,17 @@ contenant le code peut être libéré immédiatement après l'appel. Retournez e
 return shaderModule;
 ```
 
-Les modules shader ne sont requis que pendant la création de la pipeline, par conséquent nous ne les 
-stockerons pas dans des membres données de la classe mais seulement comme des variables locales à la fonction 
-`createGraphicsPipeline` :
+Les modules shaders ne sont au fond qu'une fine couche autour du byte code chargé depuis les fichiers. Au moment de la
+création de la pipeline, les codes des shaders sont compilés et mis sur la carte. Nous pouvons donc détruire les modules
+dès que la pipeline est crée. Nous en ferons donc des variables locales à la fonction `createGraphicsPipeline` :
 
 ```c++
-VkShaderModule vertShaderModule;
-VkShaderModule fragShaderModule;
-```
+void createGraphicsPipeline() {
+    auto vertShaderModule = createShaderModule(vertShaderCode);
+    fragShaderModule = createShaderModule(fragShaderCode);
 
-Appelez le fonction que nous venons de créer pour charger les modules shader :
-
-```c++
-vertShaderModule = createShaderModule(vertShaderCode);
-fragShaderModule = createShaderModule(fragShaderCode);
+    vertShaderModule = createShaderModule(vertShaderCode);
+    fragShaderModule = createShaderModule(fragShaderCode);
 ```
 
 Ils doivent être libérés une fois que la pipeline est créée, juste avant que `createGraphicsPipeline` ne retourne. 
@@ -383,11 +375,12 @@ Ajoutez ceci à la fin de la fonction :
 }
 ```
 
+Le reste du code de ce chapitre sera ajouté entre les deux parties de la fonction présentés ci-dessus.
+
 ## Création des étapes shader
 
-L'objet `VkShaderModule` n'est qu'un simple wrapper autour du bytecode. Les shaders ne sont pas liés l'un à l'autre 
-et on ne leur a pas assigné de tâche. Pour indiquer à quelle étape il doivent intervenir nous devons remplir la 
-structure `VkPipelineShaderStageCreateInfo`.
+Nous devons assigner une étape shader aux modules que nous avons crées. Nous allons utiliser une structure du type
+`VkPipelineShaderStageCreateInfo` pour cela.
 
 Nous allons d'abord remplir cette structure pour le vertex shader, une fois de plus dans la fonction 
 `createGraphicsPipeline`.
@@ -406,9 +399,9 @@ vertShaderStageInfo.module = vertShaderModule;
 vertShaderStageInfo.pName = "main";
 ```
 
-Les deux membres suivants indiquent le module contenant le code et la fonction à invoquer. Il est donc possible de 
-combiner plusieurs fragment shaders dans un seul module et de les différencier à l'aide de leurs points d'entrée. 
-Nous nous contenterons du `main` standard.
+Les deux membres suivants indiquent le module contenant le code et la fonction à invoquer en *entrypoint*. Il est donc 
+possible de combiner plusieurs fragment shaders dans un seul module et de les différencier à l'aide de leurs points
+d'entrée. Nous nous contenterons du `main` standard.
 
 Il existe un autre membre, celui-ci optionnel, appelé `pSpecializationInfo`, que nous n'utiliserons pas mais qu'il
 est intéressant d'évoquer. Il vous permet de donner des valeurs à des constantes présentes dans le code du shader.
