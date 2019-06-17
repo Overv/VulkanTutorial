@@ -1,12 +1,12 @@
 ## Introduction
 
 Votre programme peut maintenant réaliser des rendus 3D, mais la géométrie que nous utilisons n'est pas très
-intéressante. Nous allons maintenant étendre notre programme pour charger les vertices depuis des fichiers. Votre carte
-graphique aura enfin un peu de travail à faire.
+intéressante. Nous allons maintenant étendre notre programme pour charger les sommets depuis des fichiers. Votre carte
+graphique aura enfin un peu de travail sérieux à faire.
 
 Beaucoup de tutoriels sur les APIs graphiques font implémenter par le lecteur un système pour charger les modèle OBJ. Le
 problème est que ce type de fichier est limité. Nous *allons* charger des modèles en OBJ, mais nous nous concentrerons
-plus sur l'intégration des vertices dans le programme, plutôt que sur les aspects spécifiques des formats de fichier.
+plus sur l'intégration des sommets dans le programme, plutôt que sur les aspects spécifiques de ce format de fichier.
 
 ## Une librairie
 
@@ -62,7 +62,7 @@ const std::string MODEL_PATH = "models/chalet.obj";
 const std::string TEXTURE_PATH = "textures/chalet.jpg";
 ```
 
-Changez la fonction `createTextureImage` pour qu'elle utilise cette seconde variable pour charger la texture.
+Changez la fonction `createTextureImage` pour qu'elle utilise cette seconde constante pour charger la texture.
 
 ```c++
 stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -80,7 +80,7 @@ VkBuffer vertexBuffer;
 VkDeviceMemory vertexBufferMemory;
 ```
 
-Il faut aussi que le type des indices soit maintenant un `uint32_t` car nous allons avoir plus que 65535 vertices.
+Il faut aussi que le type des indices soit maintenant un `uint32_t` car nous allons avoir plus que 65535 sommets.
 Changez également le paramètre de type dans l'appel à `vkCmdBindIndexBuffer`.
 
 ```c++
@@ -165,7 +165,7 @@ for (const auto& shape : shapes) {
 }
 ```
 
-Pour faire simple nous allons partir du principe que les vertices sont uniques. La variable `index` est du type
+Pour faire simple nous allons partir du principe que les sommets sont uniques. La variable `index` est du type
 `tinyobj::index_t`, et contient `vertex_index`, `normal_index` et `texcoord_index`. Nous devons traiter ces données
 pour les relier aux données contenues dans les tableaux `attrib` :
 
@@ -211,7 +211,7 @@ Vous pouvez lancer à nouveau le programme. Le rendu devrait être correct :
 ## Déduplication des vertices
 
 Pour le moment nous n'utilisons pas l'index buffer, et le vecteur `vertices` contient beaucoup de vertices dupliquées.
-Nous ne devrions les inclure qu'une seule fois dans ce conteneur et utiliser leurs indeices pour s'y référer. Une
+Nous ne devrions les inclure qu'une seule fois dans ce conteneur et utiliser leurs indices pour s'y référer. Une
 manière simple de procéder consiste à utiliser une `unoredered_map` pour suivre les vertices multiples et leurs indices.
 
 ```c++
