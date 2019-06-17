@@ -276,4 +276,4 @@ are so extensive, it can actually be a lot easier to find out why your screen is
 black compared to OpenGL and Direct3D!
 
 There's only one more step before we'll start writing code and that's [setting
-up the development environment](!Development_environment).
+up the development environment](!en/Development_environment).

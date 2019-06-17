@@ -26,12 +26,12 @@ carte graphique supporte Vulkan. Allez dans le dossier d'installation du SDK, ou
 ![](/images/cube_demo.png)
 
 Si vous recevez un message d'erreur assurez-vous que votre driver est à jour, inclut Vulkan et que votre carte graphique
-est supportée. Référez-vous au [chapitre introductif](!Introduction) pour les liens vers les principaux constructeurs.
+est supportée. Référez-vous au [chapitre introductif](!fr/Introduction) pour les liens vers les principaux constructeurs.
 
 Il y a un autre programme dans ce dossier qui vous sera utile : "glslangValidator.exe". Nous en aurons besoin pour la
 compilation des shaders. Il transforme un code compréhensible facilement et semblable au C (le 
 [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)) en byte code.
-Nous couvrirons cela dans le chapitre des [modules shader](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules).
+Nous couvrirons cela dans le chapitre des [modules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 Le dossier "Bin" contient aussi les fichiers binaires du loader Vulkan et des validation layers. Le dossier "Lib" en
 contient les librairies.
 
@@ -174,7 +174,7 @@ Appuyez sur F5 pour compiler et lancer le projet. Vous devriez voir une fenêtre
 ![](/images/vs_test_window.png)
 
 Si le nombre d'extensions est nul, il y a un problème avec la configuration de Vulkan sur votre système. Sinon, vous
-êtes fin prêts à vous [lancer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
+êtes fin prêts à vous [lancer avec Vulkan!](!fr/Dessiner_un_triangle/Mise_en_place/Code_de_base)
 
 ## Linux
 
@@ -224,7 +224,7 @@ dossier "examples/build" avec la commande "./vkcube" et assurez-vous que vous ob
 ![](/images/cube_demo_nowindow.png)
 
 Si vous recevez un message d'erreur, assurez-vous que vos drivers sont à jour, incluent Vulkan et que votre carte
-graphique est supportée. Référez-vous au [chapitre introductif](!Introduction) pour les liens aux vendeurs principaux.
+graphique est supportée. Référez-vous au [chapitre introductif](!fr/Introduction) pour les liens aux vendeurs principaux.
 
 ### GLFW
 
@@ -417,14 +417,14 @@ nom du projet et tout sera prêt!
 Avant d'avancer, regardons le SDK plus en détail. Il y a un autre programme dans ce dossier qui vous sera utile :
 "glslangValidator". Nous nous en servirons pour compiler les shaders. Il transforme un code lisible par l'homme
 écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en byte code. Nous couvrirons cela dans le
-chapitre [modeules shader](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules).
+chapitre [modeules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 
 
 Le dossier "Doc" contient des informations pouvant vous être utiles sur le SDK et une version offline de la
 spécification de Vulkan. Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
 fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
 
-Bravo, vous êtes fin prêts à vous [lancer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code)
+Bravo, vous êtes fin prêts à vous [lancer avec Vulkan!](!fr/Dessiner_un_triangle/Mise_en_place/Code_de_base)
 
 ## MacOS
 
@@ -588,4 +588,4 @@ avoir ceci :
 Si vouc obtenez `0 extensions supported`, il y a un problème avec la configuration de Vulkan sur votre système. Les
 autres données proviennet de librairies, et dépendent de votre configuration.
 
-Vous êtes maintenant prêts à vous [lancer avec Vulkan!](!Drawing_a_triangle/Setup/Base_code).
+Vous êtes maintenant prêts à vous [lancer avec Vulkan!](!fr/Dessiner_un_triangle/Mise_en_place/Code_de_base).

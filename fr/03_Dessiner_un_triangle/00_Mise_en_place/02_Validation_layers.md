@@ -51,7 +51,7 @@ fonctions spécifiques au GPU. Les layers spécifiques du GPU sont désormais d�
 tous les appels. Cependant la spécification recommande encore que nous activions les validations layers au niveau du 
 logical device, car cela est requis par certaines implémentations. Nous nous contenterons de spécifier les mêmes 
 layers pour le logical device que pour le physical device, que nous verrons
-[plus tard](!Drawing_a_triangle/Setup/Logical_device_and_queues).
+[plus tard](!fr/Dessiner_un_triangle/Mise_en_place/Logical_device_et_queues).
 
 ## Utiliser les validation layers
 
@@ -435,6 +435,6 @@ partirai du principe que vous les avez laissées avec leur comportement par déf
 
 Tout au long du tutoriel je laisserai de petites erreurs intentionnelles pour vous montrer à quel point les validation
 layers sont pratiques, et à quel point vous devez comprendre tout ce que vous faites avec Vulkan. Il est maintenant
-temps de s'intéresser aux [devices Vulkan dans le système](!Drawing_a_triangle/Setup/Physical_devices_and_queue_families).
+temps de s'intéresser aux [devices Vulkan dans le système](!fr/Dessiner_un_triangle/Mise_en_place/Physical_devices_et_queue_families).
 
 [Code C++](/code/02_validation_layers.cpp)

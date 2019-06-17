@@ -185,6 +185,6 @@ in Vulkan have an optional allocator callback that we'll ignore by passing
 following chapters should be cleaned up before the instance is destroyed.
 
 Before continuing with the more complex steps after instance creation, it's time
-to evaluate our debugging options by checking out [validation layers](!Drawing_a_triangle/Setup/Validation_layers).
+to evaluate our debugging options by checking out [validation layers](!en/Drawing_a_triangle/Setup/Validation_layers).
 
 [C++ code](/code/01_instance_creation.cpp)
