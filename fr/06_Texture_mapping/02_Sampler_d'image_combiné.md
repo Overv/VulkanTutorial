@@ -1,17 +1,17 @@
 ## Introduction
 
-Nous avons déjà évoqué les descripteurs dans la partie sur les buffers uniforms. Dans ce chapitre nous en verrons un
-nouveau type : les *samplers d'image combinés*. Ceux-ci permettent aux shaders d'accéder au contenu d'images, à travers
-un sampler.
+Nous avons déjà évoqué les descripteurs dans la partie sur les buffers d'uniformes. Dans ce chapitre nous en verrons un
+nouveau type : les *samplers d'image combinés* (*combined image sampler*). Ceux-ci permettent aux shaders d'accéder au 
+contenu d'images, à travers un sampler.
 
-Nous allons d'abord modifier l'organisation des descripteurs, la pool de descripteurs et le set de descripteur pour
-qu'ils incluent le sampler d'image combinés. Ensuite nous ajouterons des coordonnées de texture à la structure
+Nous allons d'abord modifier l'organisation des descripteurs, la pool de descripteurs et le set de descripteurs pour
+qu'ils incluent le sampler d'image combiné. Ensuite nous ajouterons des coordonnées de texture à la structure
 `Vertex` et modifierons le vertex shader et le fragment shader pour qu'il utilisent les couleurs de la texture.
 
 ## Modifier les descripteurs
 
 Trouvez la fonction `createDescriptorSetLayout` et créez une instance de `VkDescriptorSetLayoutBinding`. Cette
-structure correspond aux descripteurs d'image combinés. Nous n'y mettons quasiment que l'indice du binding :
+structure correspond aux descripteurs d'image combinés. Nous n'avons quasiment que l'indice du binding à y mettre :
 
 ```c++
 VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
@@ -29,12 +29,12 @@ layoutInfo.pBindings = bindings.data();
 ```
 
 Assurez-vous également de bien indiquer le fragment shader dans le champ `stageFlags`. Ce sera à cette étape que la
-couleur sera déterminée. Il est également possible d'utiliser le sampler pour échantilloner une texture dans le vertex
-shader. Cela permet par exemple de déformer dynamiquement une grille de vertices pour réaliser une
-[heightmap](https://en.wikipedia.org/wiki/Heightmap).
+couleur sera extraite de la texture. Il est également possible d'utiliser le sampler pour échantilloner une texture dans
+le vertex shader. Cela permet par exemple de déformer dynamiquement une grille de vertices pour réaliser une
+[heightmap](https://en.wikipedia.org/wiki/Heightmap) à partir d'une texture de vecteurs.
 
 Si vous lancez l'application, vous verrez que la pool de descripteurs ne peut pas allouer de set avec l'organisation que
-nous avons préparée, car elle ne comprend aucun descripteur de sampler d'image combinés. Il nous faut donc modifier la
+nous avons préparée, car elle ne comprend aucun descripteur de sampler d'image combiné. Il nous faut donc modifier la
 fonction `createDescriptorPool` pour qu'elle inclue une structure `VkDesciptorPoolSize` qui corresponde à ce type de
 descripteur :
 
@@ -71,7 +71,7 @@ for (size_t i = 0; i < swapChainImages.size(); i++) {
 }
 ```
 
-Les ressources nécessaires à la structure paramétrant un descripteur d'image combinés doivent être fournies dans
+Les ressources nécessaires à la structure paramétrant un descripteur d'image combiné doivent être fournies dans
 une structure de type `VkDescriptorImageInfo`. Cela est similaire à la création d'un descripteur pour buffer. Les objets
 que nous avons créés dans les chapitres précédents s'assemblent enfin!
 
@@ -98,12 +98,12 @@ vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), d
 ```
 
 Les descripteurs doivent être mis à jour avec des informations sur l'image, comme pour les buffers. Cette fois nous
-allons utiliser le tableau `pImageInfo` plutôt que `pBufferInfo`. Les descripteurs sont maintenant prêts à l'emploi!
+allons utiliser le tableau `pImageInfo` plutôt que `pBufferInfo`. Les descripteurs sont maintenant prêts à l'emploi.
 
 ## Coordonnées de texture
 
-Il manque encore un élément au mapping de textures. Ce sont les coordonnées spécifiques aux vertices. Ce sont elles qui
-déterminent les pixels liés à la géométrie.
+Il manque encore un élément au mapping de textures. Ce sont les coordonnées spécifiques aux sommets. Ce sont elles qui
+déterminent les coordonées de la texture à lier à la géométrie.
 
 ```c++
 struct Vertex {
@@ -159,7 +159,8 @@ const std::vector<Vertex> vertices = {
 
 Dans ce tutoriel nous nous contenterons de mettre une texture sur le carré en utilisant des coordonnées normalisées.
 Nous mettrons le `0, 0` en haut à gauche et le `1, 1` en bas à droite. Essayez de mettre des valeurs sous `0` ou au-delà
-de `1` pour voir l'addressing mode en action!
+de `1` pour voir l'addressing mode en action. Vous pourrez également changer le mode dans la création du sampler pour 
+voir comment ils se comportent.
 
 ## Shaders
 
@@ -182,7 +183,7 @@ void main() {
 ```
 
 Comme pour les couleurs spécifiques aux vertices, les valeurs `fragTexCoord` seront interpolées dans le carré par
-le rasterizer pour créer un gradient lisse. Le résultat de l'interpolation peut être visualisée en utilisant les
+le rasterizer pour créer un gradient lisse. Le résultat de l'interpolation peut être visualisé en utilisant les
 coordonnées comme couleurs :
 
 ```glsl
@@ -204,11 +205,11 @@ Vous devriez avoir un résultat similaire à l'image suivante. N'oubliez pas de 
 ![](/images/texcoord_visualization.png)
 
 Le vert représente l'horizontale et le rouge la verticale. Les coins noirs et jaunes confirment la normalisation des
-valeurs de `0, 0` à `1, 1`. Utiliser les couleurs pour visualiser les valeurs et débugger est similaire à utiliser
-`printf`. C'est peu pratique mais il n'y a pas vraiment d'autre option!
+valeurs de `0, 0` à `1, 1`. Utiliser les couleurs pour visualiser les valeurs et déboguer est similaire à utiliser
+`printf`. C'est peu pratique mais il n'y a pas vraiment d'autre option.
 
-Un descripteur de sampler d'image combinés est représenté dans les shaders par un objet de type `sampler` transmis en
-uniform. Créez donc une variable `texSampler` :
+Un descripteur de sampler d'image combiné est représenté dans les shaders par un objet de type `sampler` placé dans
+une variable uniforme. Créez donc une variable `texSampler` :
 
 ```glsl
 layout(binding = 1) uniform sampler2D texSampler;
@@ -252,7 +253,7 @@ J'ai séparé l'alpha du reste pour ne pas altérer la transparence.
 ![](/images/texture_on_square_colorized.png)
 
 Nous pouvons désormais utiliser des textures dans notre programme! Cette technique est extrèmement puissante et permet
-beaucoup plus que juste afficher des couleurs. Vous pouvez même utiliser les images de la swap chain comme texture et y
+beaucoup plus que juste afficher des couleurs. Vous pouvez même utiliser les images de la swap chain comme textures et y
 appliquer des effets post-processing.
 
 [Code C++](/code/25_texture_mapping.cpp) /
