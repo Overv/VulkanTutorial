@@ -18,17 +18,17 @@ voudrions plutôt qu'il y contribue partiellement.
 ![](/images/aliasing.png)
 
 Le MSAA consiste à utiliser plusieurs points dans un pixel pour déterminer la couleur d'un pixel. Comme on peut s'y
-attendre, plus de points offrent un meilleur résultat, mais nécessitent plus de ressources.
+attendre, plus de points offrent un meilleur résultat, mais consomment plus de ressources.
 
 ![](/images/antialiasing.png)
 
-Nous allons utiliser le maximum de points possible. Si votre application nécessite plus de performances, cette approche
-ne sera pas la meilleure.
+Nous allons utiliser le maximum de points possible. Si votre application nécessite plus de performances, il vous suffira
+de réduire ce nombre.
 
 ## Récupération du nombre maximal de samples
 
 Commençons par déterminer le nombre maximal de samples que la carte graphique supporte. Les GPUs modernes supportent au
-moins 8 points, mais il peut tout de même différer entre modèle. Nous allons stocker ce nombre dans un membre donnée :
+moins 8 points, mais il peut tout de même différer entre modèles. Nous allons stocker ce nombre dans un membre donnée :
 
 ```c++
 ...
@@ -79,9 +79,9 @@ void pickPhysicalDevice() {
 
 Le MSAA consiste à écrire chaque pixel dans un buffer indépendant de l'affichage, dont le contenu est ensuite rendu en
 le résolvant à un framebuffer standard. Cette étape est nécessaire car le premier buffer est une image particulière :
-elle doit supporter plus d'un sample par pixel. Il ne peut pas être utilisé comme framebuffer dans la swap chain. Nous
-allons donc devoir changer notre rendu. Nous n'aurons besoin que d'une cible de rendu, car seule une opération de rendu
-ne peut intervenir à un instant donné. Créez les membres données suivants :
+elle doit supporter plus d'un échatillon par pixel. Il ne peut pas être utilisé comme framebuffer dans la swap chain.
+Nous allons donc devoir changer notre rendu. Nous n'aurons besoin que d'une cible de rendu, car seule une opération
+de rendu n'est autorisée à s'exécuter à un instant donné. Créez les membres données suivants :
 
 ```c++
 ...
@@ -124,7 +124,7 @@ void createColorResources() {
 }
 ```
 
-Pour être cohérent appelez cette fonction juste avant `createDepthResource`.
+Pour une question de cohérence mettons cette fonction juste avant `createDepthResource`.
 
 ```c++
 void initVulkan() {
@@ -148,7 +148,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
         destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     }
     else {
-        throw std::invalid_argument("transitiond'organisation non supportee!");
+        throw std::invalid_argument("transition d'organisation non supportée!");
     }
     ...
 }
@@ -294,23 +294,23 @@ La différence est encore plus visible en zoomant sur un bord :
 
 Notre implémentation du MSAA est limitée, et ces limitations impactent la qualité. Il existe un autre problème
 d'aliasing dû aux shaders qui n'est pas résolu par le MSAA. En effet cette technique ne permet que de lisser les bords
-de la géométrie, mais pas les bords contenus dans les textures. Ces bords internes sont particulièrement visibles dans
+de la géométrie, mais pas les lignes contenus dans les textures. Ces bords internes sont particulièrement visibles dans
 le cas de couleurs qui contrastent beaucoup. Pour résoudre ce problème nous pouvons activer le
 [sample shading](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#primsrast-sampleshading), qui
-améliore encore la qualité de l'image au prix de performances encore résuites.
+améliore encore la qualité de l'image au prix de performances encore réduites.
 
 ```c++
 
 void createLogicalDevice() {
     ...
-    deviceFeatures.sampleRateShading = VK_TRUE; // activation du sample shading pour le device
+    deviceFeatures.sampleRateShading = VK_TRUE; // Activation du sample shading pour le device
     ...
 }
 
 void createGraphicsPipeline() {
     ...
-    multisampling.sampleShadingEnable = VK_TRUE; // activation du sample shading dans la pipeline
-    multisampling.minSampleShading = .2f; // fraction minimale pour le sample shading; plus proche de 1 lisse d'autant plus
+    multisampling.sampleShadingEnable = VK_TRUE; // Activation du sample shading dans la pipeline
+    multisampling.minSampleShading = .2f; // Fraction minimale pour le sample shading; plus proche de 1 lisse d'autant plus
     ...
 }
 ```
@@ -322,16 +322,16 @@ amélioration de la qualité du rendu :
 
 ## Conclusion
 
-Il nous a fallu beaucoup de travail pour en arriver là, mais vous avez maintenant une bonne base sur Vulkan. Vos
-connaissances sont maintenant suffisantes pour explorer d'autres fonctionnalités, dont :
+Il nous a fallu beaucoup de travail pour en arriver là, mais vous avez maintenant une bonne connaissances des bases de 
+Vulkan. Ces connaissances vous permettent maintenant d'explorer d'autres fonctionnalités, comme :
 
 * Push constants
-* Rendu instancié
+* Instanced rendering
 * Uniforms dynamiques
 * Descripteurs d'images et de samplers séparés
-* Pipeline cache
+* Pipeline caching
 * Génération des command buffers depuis plusieurs threads
-* Multiple subpasses
+* Multiples subpasses
 * Compute shaders
 
 Le programme actuel peut être grandement étendu, par exemple en ajoutant l'éclairage Blinn-Phong, des effets en
