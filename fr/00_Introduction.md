@@ -1,4 +1,4 @@
-﻿## À propos
+## À propos
 
 Ce tutoriel vous enseignera les bases de l'utilisation de l'API [Vulkan](https://www.khronos.org/vulkan/) qui expose 
 les graphismes et le calcul sur cartes graphiques. Vulkan est une nouvelle API créée par le

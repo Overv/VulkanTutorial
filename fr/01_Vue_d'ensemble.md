@@ -1,4 +1,4 @@
-﻿Ce chapitre commencera par introduire Vulkan et les problèmes auxquels l'API s’adresse. Nous nous intéresserons ensuite aux
+Ce chapitre commencera par introduire Vulkan et les problèmes auxquels l'API s’adresse. Nous nous intéresserons ensuite aux
 éléments requis pour l'affichage d'un premier triangle. Cela vous donnera une vue d'ensemble pour mieux replacer les
 futurs chapitres dans leur contexte. Nous conclurons sur la structure de Vulkan et la manière dont l'API est communément
 utilisée.
