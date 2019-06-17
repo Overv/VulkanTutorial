@@ -1,8 +1,8 @@
 ## Introduction
 
-Jusqu'à présent nous avons projeté notre géométrieen 3D, mais elle n'est toujours définie qu'en 2D. Nous allons ajouter
+Jusqu'à présent nous avons projeté notre géométrie en 3D, mais elle n'est toujours définie qu'en 2D. Nous allons ajouter
 l'axe Z dans ce chapitre pour permettre l'utilisation de modèles 3D. Nous placerons un carré au-dessus ce celui que nous
-avons déjà, et nous verrons ce qui se passe si la géométrie n'est pas filtrée par profondeur.
+avons déjà, et nous verrons ce qui se passe si la géométrie n'est pas organisée par profondeur.
 
 ## Géométrie en 3D
 
@@ -56,7 +56,7 @@ const std::vector<Vertex> vertices = {
 ```
 
 Si vous lancez l'application vous verrez exactement le même résultat. Il est maintenant temps d'ajouter de la géométrie
-pour rendre la scène plus interressante, et pour montrer le problème évoqué plus haut. Dupliquez les vertices afin qu'un
+pour rendre la scène plus intéressante, et pour montrer le problème évoqué plus haut. Dupliquez les vertices afin qu'un
 second carré soit rendu au-dessus de celui que nous avons maintenant :
 
 ![](/images/extra_square.svg)
@@ -111,9 +111,9 @@ configurer GLM avec `GLM_FORCE_DEPTH_ZERO_TO_ONE` pour qu'elle utilise des valeu
 
 ## Image de pronfondeur et views sur cette image
 
-L'attachement de profondeur est une image. La différence est que celui-ci n'est pas créé par la swap chain. Nous n'avons
-besoin que d'un seul attachement de profondeur, car les opérations sont séquentielles. L'attachement aura encore besoin
-des trois ressources : une image, de la mémoire et une image view.
+L'attachement de profondeur est une image. La différence est que celle-ci n'est pas créée par la swap chain. Nous 
+n'avons besoin que d'un seul attachement de profondeur, car les opérations sont séquentielles. L'attachement aura
+encore besoin des trois mêmes ressources : une image, de la mémoire et une image view.
 
 ```c++
 VkImage depthImage;
@@ -142,7 +142,7 @@ void createDepthResources() {
 La création d'une image de profondeur est assez simple. Elle doit avoir la même résolution que l'attachement de couleur,
 définie par l'étendue de la swap chain. Elle doit aussi être configurée comme image de profondeur, avoir un tiling
 optimal et une mémoire placée sur la carte graphique. Une question persiste : quelle est l'organisation optimale pour
-une image de profondeur? Le format contient un composant de profondeur, indiqué par `_D??_` dans les valeurs de type
+une image de profondeur? Le format contient un composant de profondeur, indiqué par `_Dxx_` dans les valeurs de type
 `VK_FORMAT`.
 
 Au contraire de l'image de texture, nous n'avons pas besoin de déterminer le format requis car nous n'accéderons pas à
@@ -157,7 +157,7 @@ Le composant de stencil est utilisé pour le [test de stencil](https://en.wikipe
 test additionnel qui peut être combiné avec le test de profondeur. Nous y reviendrons dans un futur chapitre.
 
 Nous pourrions nous contenter d'utiliser `VK_FORMAT_D32_SFLOAT` car son support est pratiquement assuré, mais il est
-préférable d'utiliser une fonction pour déterminer le meilleur format localement supporté. Créez ainsi la fonction
+préférable d'utiliser une fonction pour déterminer le meilleur format localement supporté. Créez pour cela la fonction
 `findSupportedFormat`. Elle vérifiera que les formats en argument sont supportés et choisira le meilleur en se basant
 sur leur ordre dans le vecteurs des formats acceptables fourni en argument :
 
@@ -209,11 +209,11 @@ VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTil
         }
     }
 
-    throw std::runtime_error("aucun format n'est supporté!");
+    throw std::runtime_error("aucun des formats demandés n'est supporté!");
 }
 ```
 
-Nous allons utiliser cette fonction pour créer une autre fonction `findDepthFormat`. Elle sélectionnera un format 
+Nous allons utiliser cette fonction depuis une autre fonction `findDepthFormat`. Elle sélectionnera un format 
 avec un composant de profondeur qui supporte d'être un attachement de profondeur :
 
 ```c++
@@ -272,15 +272,16 @@ textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IM
 ```
 
 Voilà tout pour la création de l'image de profondeur. Nous n'avons pas besoin d'y envoyer de données ou quoi que ce soit
-de ce genre, ce qui est très pratique. Il faudra quand même faire changer son organisation, pour qu'il puisse être
-utilisé comme attachement. Nous pourrions faire cette transition dans la render pass comme pour l'attachement de
-couleur, mais j'ai préféré utiliser une barrière de pipeline pour ne faire cette transition qu'une seule fois.
+de ce genre, ce qui est nous simplfie le travail. Il faudra quand même faire changer son organisation, pour qu'elle
+puisse être utilisé comme attachement. Nous pourrions faire cette transition dans la render pass comme pour
+l'attachement de couleur, mais j'ai préféré utiliser une barrière de pipeline pour ne faire cette transition qu'une
+seule fois.
 
 ```c++
 transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 ```
 
-L'organisation indéfinie peut être utilisée comme organisation par défaut, dans la mesure où aucun contenu initial n'a
+L'organisation indéfinie peut être utilisée comme organisation intiale, dans la mesure où aucun contenu d'origine n'a
 d'importance. Nous devons devons faire évaluer la logique de `transitionImageLayout` pour qu'elle puisse utiliser la
 bonne subresource.
 
@@ -321,12 +322,12 @@ if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANS
     sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 } else {
-    throw std::invalid_argument("unsupported layout transition!");
+    throw std::invalid_argument("transition d'organisation non supportée!");
 }
 ```
 
 Le buffer de profondeur sera lu avant d'écrire un fragment, et écrit après qu'un fragment valide soit traité. La lecture
-se passe en `VK_PIPELINE_STAGE_EARL_FRAGMENT_TESTS_BIT` et l'écriture en `VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT`.
+se passe en `VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT` et l'écriture en `VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT`.
 Vous devriez choisir la première des étapes correspondant à l'opération correspondante, afin que tout soit prêt pour
 l'utilisation de l'attachement de profondeur.
 
@@ -348,9 +349,9 @@ depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 ```
 
 La `format` doit être celui de l'image de profondeur. Pour cette fois nous ne garderons pas les données de profondeur,
-car nous n'en avons pas encore besoin après le rendu. Encore une fois le hardware pourra réaliser des optimisations. Et
-de même nous n'avons pas besoin des valeurs du rendu précédent pour le rendu actuel, nous pouvons donc mettre
-`VK_IMAGE_LAYOUT_UNDEFINED` comme valeur pour `initialLayout`.
+car nous n'en avons plus besoin après le rendu. Encore une fois le hardware pourra réaliser des optimisations. Et
+de même nous n'avons pas besoin des valeurs du rendu précédent pour le début du rendu de la frame, nous pouvons donc
+mettre `VK_IMAGE_LAYOUT_UNDEFINED` comme valeur pour `initialLayout`.
 
 ```c++
 VkAttachmentReference depthAttachmentRef = {};
@@ -369,7 +370,7 @@ subpass.pDepthStencilAttachment = &depthAttachmentRef;
 ```
 
 Les subpasses ne peuvent utiliser qu'un seul attachement de profondeur (et de stencil). Réaliser le test de profondeur
-sur plusieurs buffers n'a pas beaucoup de sens.
+sur plusieurs buffers n'a de toute façon pas beaucoup de sens.
 
 ```c++
 std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
@@ -407,8 +408,8 @@ framebufferInfo.layers = 1;
 ```
 
 L'attachement de couleur doit différer pour chaque image de la swap chain, mais l'attachement de profondeur peut être le
-même pour toutes, car il n'est utilisé que par la subpasse, et seule une instance de cette subpasse n'est autorisée à
-tourner.
+même pour toutes, car il n'est utilisé que par la subpasse, et la synchronisation que nous avons mise en place ne permet
+pas l'exécution de plusieurs subpasses en même temps.
 
 Nous devons également déplacer l'appel à `createFramebuffers` pour que la fonction ne soit appelée qu'après la création
 de l'image de profondeur :
@@ -465,8 +466,8 @@ Nous gardons le `<` car il correspond le mieux à la convention employée par Vu
 
 ```c++
 depthStencil.depthBoundsTestEnable = VK_FALSE;
-depthStencil.minDepthBounds = 0.0f; // Optionnel
-depthStencil.maxDepthBounds = 1.0f; // Optionnel
+depthStencil.minDepthBounds = 0.0f; // Optionel
+depthStencil.maxDepthBounds = 1.0f; // Optionel
 ```
 
 Les champs `depthBoundsTestEnable`, `minDepthBounds` et `maxDepthBounds` sont utilisés pour des tests optionnels
@@ -475,11 +476,11 @@ valeurs fournies ici. Nous n'utiliserons pas cette fonctionnalité.
 
 ```c++
 depthStencil.stencilTestEnable = VK_FALSE;
-depthStencil.front = {}; // Optionnel
-depthStencil.back = {}; // Optionnel
+depthStencil.front = {}; // Optionel
+depthStencil.back = {}; // Optionel
 ```
 
-Les trois derniers champs configurent les opérations du buffer stencil, que nous n'utiliserons pas non plus dans ce
+Les trois derniers champs configurent les opérations du buffer de stencil, que nous n'utiliserons pas non plus dans ce
 tutoriel. Si vous voulez l'utiliser, vous devrez vous assurer que le format sélectionné pour la profondeur contient
 aussi un composant pour le stencil.
 
@@ -488,7 +489,8 @@ pipelineInfo.pDepthStencilState = &depthStencil;
 ```
 
 Mettez à jour la création d'une instance de `VkGraphicsPipelineCreateInfo` pour référencer l'état de profondeur et de
-pochoir que nous venons de créer. Un tel état doit être spécifié si la passe contient une de ces fonctionnalités.
+stencil que nous venons de créer. Un tel état doit être spécifié si la passe contient au moins l'une de ces
+fonctionnalités.
 
 Si vous lancez le programme, vous verrez que la géométrie est maintenant correctement rendue :
 
@@ -527,8 +529,8 @@ void cleanupSwapChain() {
 }
 ```
 
-Votre application est maintenant capable de rendre correctement de la géométrie 3D! Nous allons appliquer cette
-capacité pour afficher un modèle dans le prohain chapitre.
+Votre application est maintenant capable de rendre correctement de la géométrie 3D! Nous allons utliser cette
+fonctionnalité pour afficher un modèle dans le prohain chapitre.
 
 [Code C++](/code/26_depth_buffering.cpp) /
 [Vertex shader](/code/26_shader_depth.vert) /
