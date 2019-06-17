@@ -28,7 +28,7 @@
         }
     },
     "ignore": {
-        "files": ["README.md", "build_ebook.py"],
+        "files": ["README.md", "build_ebook.py","daux.patch",".gitignore"],
         "folders": ["ebook"]
     },
     "languages": {"en": "English", "fr": "French"},
