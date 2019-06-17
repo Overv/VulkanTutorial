@@ -218,8 +218,8 @@ Compilez les exemples Vulkan ainsi :
 ./build_examples.sh
 ```
 
-Si la compilation a réussi, vous avez normalement un exécutable "./examples/build/cube". Lancez-le depuis le
-dossier "examples/build" avec la commande "./cube" et assurez-vous que vous obtenez la fenêtre suivante :
+Si la compilation a réussi, vous avez normalement un exécutable "./examples/build/vkcube". Lancez-le depuis le
+dossier "examples/build" avec la commande "./vkcube" et assurez-vous que vous obtenez la fenêtre suivante :
 
 ![](/images/cube_demo_nowindow.png)
 
@@ -313,7 +313,7 @@ int main() {
 
 Nous allons maintenant créer un makefile pour compiler et lancer ce code. Créez un fichier "makefile". Je pars du
 principe que vous connaissez déjà les bases de makefile, dont les variables et les règles. Sinon vous pouvez trouver des
-introductions claires sur internet, par exemple [ici](http://mrbook.org/blog/tutorials/make/).
+introductions claires sur internet, par exemple [ici](https://makefiletutorial.com/).
 
 Nous allons d'abord définir quelques variables pour simplifier le reste du fichier. Définissez `VULKAN_SDK_PATH`, qui se
 réfère à l'emplacement du dossier "x86_64" dans le SDK, par exemple :
@@ -388,7 +388,7 @@ utiliser les validation layers et devons donc lui indiquer leur localisation ave
 
 ```make
 test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/explicit_layer.d ./VulkanTest
+    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./VulkanTest
 ```
 
 Vous devriez désormais avoir un makefile ressemblant à ceci :
@@ -405,7 +405,7 @@ VulkanTest: main.cpp
 .PHONY: test clean
 
 test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/explicit_layer.d ./VulkanTest
+    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./VulkanTest
 
 clean:
     rm -f VulkanTest

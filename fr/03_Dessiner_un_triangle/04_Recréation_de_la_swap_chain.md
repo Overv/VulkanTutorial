@@ -217,7 +217,8 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebu
 }
 ```
 
-Pour détecter les redimensionnements de la fenêtre nous n'avons qu'à mettre en place `glfwSetFrameBufferSizeCallback`
+Il est important de faire cela après `vkQueuePresentKHR` pour que les sémaphores soient dans un état correct. Pour
+détecter les redimensionnements de la fenêtre nous n'avons qu'à mettre en place `glfwSetFrameBufferSizeCallback`
 qui nous informera d'un changement de la taille associée à la fenêtre :
 
 ```c++

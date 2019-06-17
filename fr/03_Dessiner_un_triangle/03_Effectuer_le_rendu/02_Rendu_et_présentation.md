@@ -425,7 +425,7 @@ void drawFrame() {
 En utilisant l'opérateur de modulo `%` nous pouvons nous assurer que l'indice boucle à chaque fois que
 `MAX_FRAMES_IN_FLIGHT` est atteint.
 
-Bien que nous n'ayons pas mis en place les objets facilitant le traitement de plusieurs frames simultanément, encore
+Bien que nous ayons pas en place les objets facilitant le traitement de plusieurs frames simultanément, encore
 maintenant le GPU traite plus de `MAX_FRAMES_IN_FLIGHT` à la fois. Nous n'avons en effet qu'une synchronisation GPU-GPU
 mais pas de synchronisation CPU-GPU. Nous n'avons pas de moyen de savoir que le travail sur telle ou telle frame est
 fini, ce qui a pour conséquence que nous pouvons nous retrouver à afficher une frame alors qu'elle est encore en

@@ -24,13 +24,15 @@ dignostiquer les erreurs lors de l'exécution, par exemple en reconnaissant le n
 s'appelle `VkApplicationInfo` :
 
 ```c++
-VkApplicationInfo appInfo = {};
-appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-appInfo.pApplicationName = "Hello Triangle";
-appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-appInfo.pEngineName = "No Engine";
-appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-appInfo.apiVersion = VK_API_VERSION_1_0;
+void createInstance() {
+    VkApplicationInfo appInfo = {};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pEngineName = "No Engine";
+    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = VK_API_VERSION_1_0;
+}
 ```
 
 Comme mentionné précédemment, la plupart des structures Vulkan vous demandent d'expliciter leur propre type dans le

@@ -57,7 +57,7 @@ layers pour le logical device que pour le physical device, que nous verrons
 
 Nous allons maintenant activer les validations layers fournies par le SDK de LunarG. Comme les extensions, nous devons
 indiquer leurs nom. Au lieu de devoir spécifier les noms de chacune d'entre elles, nous pouvons les activer à l'aide
-d'un nom générique : `VK_LAYER_LUNARG_standard_validation`.
+d'un nom générique : `VK_LAYER_KHRONOS_validation`.
 
 Mais ajoutons d'abord deux variables spécifiant les layers à activer et si le programme doit en effet les activer. J'ai
 choisi d'effectuer ce choix selon si le programme est compilé en mode debug ou non. La macro `NDEBUG` fait partie
@@ -68,7 +68,7 @@ const int WIDTH = 800;
 const int HEIGHT = 600;
 
 const std::vector<const char*> validationLayers = {
-    "VK_LAYER_LUNARG_standard_validation"
+    "VK_LAYER_KHRONOS_validation"
 };
 
 #ifdef NDEBUG
@@ -128,10 +128,8 @@ void createInstance() {
 }
 ```
 
-Lancez maintenant le programme en mode debug et assurez-vous qu'il fonctionne. Si vous obtenez une erreur, vérifiez
-votre installation du SDK. Si aucune layer n'est disponible, ou seulement très peu, vous vous trouvez peut-être dans le
-cas dû à [ce bug](https://vulkan.lunarg.com/app/issues/578e8c8d5698c020d71580fc) (vous aurez besoin d'un compte pour
-voir cette page).
+Lancez maintenant le programme en mode debug et assurez-vous qu'il fonctionne. Si vous obtenez une erreur, référez-vous
+à la FAQ.
 
 Modifions enfin la structure `VkCreateInstanceInfo` pour inclure les noms des validation layers à utiliser lorsqu'elles
 sont activées :
@@ -367,6 +365,62 @@ void cleanup() {
 
 Si vous exécutez le programme maintenant, vous devriez constater que le message n'apparait plus. Si vous voulez voir
 quel fonction a lancé un appel au messager, vous pouvez insérer un point d'arrêt dans la fonction de rappel.
+
+## Déboguer la création et la destruction de l'instance
+
+Même si nous avons mis en place un système de déboguage très efficace, deux fonctions passent sous le radar. Comme il
+est nécessaire d'avoir une instance pour appeler `vkCreateDebugUtilsMessengerEXT`, la création de l'instance n'est pas
+couverte par le messager. Le même problème apparait avec la destruction de l'instance.
+
+En lisant
+[la documentation](https://github.com/KhronosGroup/Vulkan-Docs/blob/master/appendices/VK_EXT_debug_utils.txt#L120) on
+voit qu'il existe un messager spécifiquement créé pour ces deux fonctions. Il suffit de passer un pointeur vers une
+instance de `VkDebugUtilsMessengerCreateInfoEXT` au membre `pNext` de `VkInstanceCreateInfo`. Plaçons le remplissage de
+la structure de création du messager dans une fonction :
+
+```c++
+void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+}
+...
+void setupDebugMessenger() {
+    if (!enableValidationLayers) return;
+    VkDebugUtilsMessengerCreateInfoEXT createInfo;
+    populateDebugMessengerCreateInfo(createInfo);
+    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+        throw std::runtime_error("failed to set up debug messenger!");
+    }
+}
+```
+
+Nous pouvons réutiliser cette fonctin dans `createInstance` :
+
+```c++
+void createInstance() {
+    ...
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    if (enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
+        populateDebugMessengerCreateInfo(debugCreateInfo);
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+    } else {
+        createInfo.enabledLayerCount = 0;
+        
+        createInfo.pNext = nullptr;
+    }
+    ...
+}
+```
+
+La variable `debugCreateInfo` est en-dehors du `if` pour qu'elle ne soit pas détruite avant l'appel à
+`vkCreateInstance`. La structure fournie à la création de l'instance à travers la structure `VkInstanceCreateInfo`
+mènera à la création d'un messager spécifique aux deux fonctions qui sera détruit automatiquement à la destruction de
+l'instance.
 
 ## Configuration
 

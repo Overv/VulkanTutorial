@@ -236,13 +236,13 @@ void initVulkan() {
     ...
     createVertexBuffer();
     createIndexBuffer();
-    createUniformBuffer();
+    createUniformBuffers();
     ...
 }
 
 ...
 
-void createUniformBuffer() {
+void createUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
     uniformBuffers.resize(swapChainImages.size());
@@ -255,20 +255,31 @@ void createUniformBuffer() {
 ```
 
 Nous allons créer une autre fonction qui mettra à jour le buffer en appliquant à son contenu une transformation à chaque
-frame. Nous n'utiliserons donc pas `vkMapMemory` ici. Le buffer doit être détruit à la fin du programme :
+frame. Nous n'utiliserons donc pas `vkMapMemory` ici. Le buffer doit être détruit à la fin du programme. Mais comme il
+dépend du nombre d'images de la swap chain, et que ce nombre peut évoluer lors d'une reécration, nous devons le
+supprimer depuis `cleanupSwapChain` :
 
 ```c++
-void cleanup() {
-    cleanupSwapChain();
-
-    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-
+void cleanupSwapChain() {
+    ...
+    
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
     }
 
     ...
+}
+```
+
+Nous devons également le recréer depuis `recreateSwapChain` :
+
+```c++
+void recreateSwapChain() {
+    ...
+    createFramebuffers();
+    createUniformBuffers();
+    createCommandBuffers();
 }
 ```
 

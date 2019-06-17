@@ -72,12 +72,17 @@ chargement. Lancez le code et vérifiez que votre carte graphique est capable de
 la disponibilité de la queue de présentation implique que l'extension de la swap chain est supportée. Mais soyons 
 tout de mêmes explicites pour cela aussi.
 
-L'activation de l'extension ne requiert qu'un léger changement à la structure de création du logical device :
+## Activation des extensions du device
+
+L'utilisation de la swap chain nécessite l'extension `VK_KHR_swapchain`. Son activation ne requiert qu'un léger
+changement à la structure de création du logical device :
 
 ```c++
 createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 ```
+
+Supprimez bien l'ancienne ligne `createInfo.enabledExtensionCount = 0;`.
 
 ## Récupérer des détails à propos du support de la swap chain
 
@@ -205,17 +210,7 @@ Pour l'espace de couleur nous utiliserons sRGB si possible, car il en résulte
 compliqué donc nous utilserons un espace linéaire pour manipuler les couleurs. Le format le plus commun est
 `VK_FORMAT_B8G8R8A8_UNORM`.
 
-Dans le meilleur des mondes la surface n'a pas de format préféré, ce que Vulkan indique en ne retournant qu'un seul 
-`VkSurfaceFormatKHR` dont la valeur du membre `format` est `VK_FORMAT_UNDEFINED`.
-
-```c++
-if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
-    return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-}
-```
-
-Si nous ne pouvons choisir librement le format, nous itérerons toute la liste et choisirons la meilleure combinaison 
-pour nous si elle est disponible :
+Itérons dans la liste et voyons si le meilleur est disponible :
 
 ```c++
 for (const auto& availableFormat : availableFormats) {
@@ -230,9 +225,6 @@ prendrons le premier format disponible.
 
 ```c++
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-    if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
-        return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-    }
 
     for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -267,7 +259,7 @@ Seul `VK_PRESENT_MODE_FIFO_KHR` est toujours disponible. Nous aurons donc encore
 un choix, car le mode que nous choisirons préférentiellement est `VK_PRESENT_MODE_MAILBOX_KHR` :
 
 ```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 ```
@@ -275,7 +267,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
 Je pense que le triple buffering est un très bon compromis. Vérifions si ce mode est disponible :
 
 ```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
     for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
             return availablePresentMode;
@@ -290,7 +282,7 @@ Malheuresement certains drivers ne supportent pas bien `VK_PRESENT_MODE_FIFO_KHR
 `VK_PRESENT_MODE_IMMEDIATE_MODE` si `VK_PRESENT_MODE_MAILBOX_KHR` n'est pas disponible :
 
 ```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
     VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
 
     for (const auto& availablePresentMode : availablePresentModes) {
@@ -368,20 +360,29 @@ void createSwapChain() {
 }
 ```
 
-Il existe en fait encore une dernière chose que nous devons choisir, mais c'est suffisement simple pour ne pas mériter
-de fonction. Nous devons déterminer le nombre d'images dans la swap chain. L'implémentation spécifie le minimum 
-nécessaire à un bon fonctionnement, et nous essayerons d'en avoir une de plus que ce nombre pour pouvoir implémenter 
-correctement le triple buffering.
+Il nous reste une dernière chose à faire : déterminer le nombre d'images dans la swap chain. L'implémentation décide
+d'un minimum nécessaire pour fonctionner : 
+
+```c++
+uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
+```
+
+Se contenter du minimum pose cependant un problème. Il est possible que le driver fasse attendre notre programme car il
+n'a pas fini certaines opérations, ce que nous ne voulons pas. Il est recommandé d'utiliser au moins une image de plus
+que ce minimum :
 
 ```c++
 uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+```
+
+Il nous faut également prendre en compte le maximum d'images supportées par l'implémentation. La valeur `0` signifie
+qu'il n'y a pas de maximum autre que la mémoire.
+
+```c++
 if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
     imageCount = swapChainSupport.capabilities.maxImageCount;
 }
 ```
-
-La valeur `0` pour `maxImageCount` signifie que la seule limite est la mémoire, c'est pourquoi dans ce cas nous
-laissons `imageCount` à la valeur que nous avons déterminée.
 
 Comme la tradition le veut avec Vulkan, la création d'une swap chain nécessite de remplir une grande structure. Elle 
 commence de manière familière :
@@ -525,17 +526,14 @@ Ces images ont été crées par l'implémentation avec la swap chain et elles se
 destruction de la swap chain, nous n'aurons donc rien à rajouter dans la fonction `cleanup`.
 
 Ajoutons le code nécessaire à la récupération des références à la fin de `createSwapChain`, juste après l'appel à
-`vkCreateSwapchainKHR`. Cette récupération est quasiment identique à la procédure standarde pour récupérer des tableaux
-d'objets.
+`vkCreateSwapchainKHR`. Comme notre logique n'a au final informé Vulkan que d'un minimum pour le nombre d'images dans la
+swap chain, nous devons nous enquérir du nombre d'images avant de redimensionner le conteneur.
 
 ```c++
 vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 swapChainImages.resize(imageCount);
 vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 ```
-
-Notez que lorsque nous avons créé la swap chain nous avons indiqué une valeur `minImageCount`, mais nous ne pouvons 
-nous y fier car l'implémentation peut en créer plus, et c'est pourquoi nous devons demander le nombre d'images.
 
 Une dernière chose : gardez dans des variables le format et le nombre d'images de la swap chain, nous en aurons 
 besoin dans de futurs chapitres.
