@@ -114,4 +114,4 @@ Si vous rencontrez un problème en suivant ce tutoriel, vérifiez d'abord dans l
 n'y sont pas déjà listés. Si vous êtes toujours coincé après cela, demandez de l'aide dans la section des commentaires
 du chapitre le plus en lien avec votre problème.
 
-Prêt à vous lancer dans le futur des API graphiques de haute performance? [Allons-y!](!Overview)
+Prêt à vous lancer dans le futur des API graphiques de haute performance? [Allons-y!](!fr/Introduction)

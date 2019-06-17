@@ -9,10 +9,10 @@ partage les informations vous concernant.
 ## Renseignements
 
 Ce site web collecte des informations sur ses visiteurs à l'aide d'une instance Matomo
-([https://matomo.org/] (https://matomo.org/)) localement hébergée. Il analyse les pages que vous visitez, le type
+([https://matomo.org/](https://matomo.org/)) localement hébergée. Il analyse les pages que vous visitez, le type
 d'appareil et le navigateur que vous utilisez, combien de temps vous restez sur une page et comment vous êtes arrivés
 sur le site. Ces informations sont anonymisées en ne stockant que les deux premiers octets de votre addresse IP (par
-exemple 123.123.xxx.xxx). Ces données sont stockés pour une durée indéterminée.
+exemple `123.123.xxx.xxx`). Ces données sont stockés pour une durée indéterminée.
 
 Les données sont utilisées dans déterminer trois données : la manière dont le site est utilisé, le nombre de visiteurs
 en général et les sites qui mènent à ce site web. Cela permet de mieux engager un contact avec la communauté, et de 

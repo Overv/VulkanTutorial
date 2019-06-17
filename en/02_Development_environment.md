@@ -32,12 +32,12 @@ the `Bin` directory and run the `cube.exe` demo. You should see the following:
 
 If you receive an error message then ensure that your drivers are up-to-date,
 include the Vulkan runtime and that your graphics card is supported. See the
-[introduction chapter](!Introduction) for links to drivers from the major
+[introduction chapter](!en/Introduction) for links to drivers from the major
 vendors.
 
 There is another program in this directory that will be useful for development. The `glslangValidator.exe` program will be used to compile shaders from the
 human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) to
-bytecode. We'll cover this in depth in the [shader modules](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
+bytecode. We'll cover this in depth in the [shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
 chapter. The `Bin` directory also contains the binaries of the Vulkan loader
 and the validation layers, while the `Lib` directory contains the libraries.
 
@@ -194,7 +194,7 @@ and a window pop up like this:
 ![](/images/vs_test_window.png)
 
 The number of extensions should be non-zero. Congratulations, you're all set for
-[playing with Vulkan](!Drawing_a_triangle/Setup/Base_code)!
+[playing with Vulkan](!en/Drawing_a_triangle/Setup/Base_code)!
 
 ## Linux
 
@@ -252,7 +252,7 @@ with `./vkcube` and ensure that you see the following pop up in a window:
 
 If you receive an error message then ensure that your drivers are up-to-date,
 include the Vulkan runtime and that your graphics card is supported. See the
-[introduction chapter](!Introduction) for links to drivers from the major
+[introduction chapter](!en/Introduction) for links to drivers from the major
 vendors.
 
 ### GLFW
@@ -461,14 +461,14 @@ in `main.cpp`.
 
 Before we move on, let's explore the Vulkan SDK a bit more. There is another program in it that will be very useful for development. The `x86_64/bin/glslangValidator` program will be used to compile shaders from
 the human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
-to bytecode. We'll cover this in depth in the [shader modules](!Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
+to bytecode. We'll cover this in depth in the [shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
 chapter.
 
 The `Doc` directory contains useful information about the Vulkan SDK and an
 offline version of the entire Vulkan specification. Feel free to explore the
 other files, but we won't need them for this tutorial.
 
-You are now all set for [the real adventure](!Drawing_a_triangle/Setup/Base_code).
+You are now all set for [the real adventure](!en/Drawing_a_triangle/Setup/Base_code).
 
 ## MacOS
 
@@ -597,4 +597,4 @@ Finally, you should be all set! Now if you run the project (remembering to setti
 
 The number of extensions should be non-zero. The other logs are from the libraries, you might get different messages from those depending on your configuration.
 
-You are now all set for [the real thing](!Drawing_a_triangle/Setup/Base_code).
+You are now all set for [the real thing](!en/Drawing_a_triangle/Setup/Base_code).

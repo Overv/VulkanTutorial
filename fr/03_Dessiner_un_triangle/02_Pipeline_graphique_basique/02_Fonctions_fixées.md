@@ -373,7 +373,7 @@ mais nous sommes au courant de tout ce qui se passe dans la pipeline graphique, 
 comportement imprévu à cause d'un paramètre par défaut oublié.
 
 Il reste cependant encore un objet à créer avant du finaliser la pipeline graphique. Cet objet s'appelle
-[passe de rendu](!Drawing_a_triangle/Graphics_pipeline_basics/Render_passes).
+[passe de rendu](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Render_pass).
 
 [Code C++](/code/10_fixed_functions.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /

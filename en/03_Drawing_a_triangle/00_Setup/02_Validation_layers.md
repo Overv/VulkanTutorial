@@ -62,7 +62,7 @@ deprecated, which means that instance validation layers apply to all Vulkan
 calls. The specification document still recommends that you enable validation
 layers at device level as well for compatibility, which is required by some
 implementations. We'll simply specify the same layers as the instance at logical
-device level, which we'll see [later on](!Drawing_a_triangle/Setup/Logical_device_and_queues).
+device level, which we'll see [later on](!en/Drawing_a_triangle/Setup/Logical_device_and_queues).
 
 ## Using validation layers
 
@@ -448,6 +448,6 @@ assume that you're using the default settings.
 Throughout this tutorial I'll be making a couple of intentional mistakes to show
 you how helpful the validation layers are with catching them and to teach you
 how important it is to know exactly what you're doing with Vulkan. Now it's time
-to look at [Vulkan devices in the system](!Drawing_a_triangle/Setup/Physical_devices_and_queue_families).
+to look at [Vulkan devices in the system](!en/Drawing_a_triangle/Setup/Physical_devices_and_queue_families).
 
 [C++ code](/code/02_validation_layers.cpp)
