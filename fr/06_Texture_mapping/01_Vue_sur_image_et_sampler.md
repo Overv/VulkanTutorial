@@ -5,10 +5,10 @@ est nouvelle, et est liée à la manière dont le shader accédera aux texels de
 ## Vue sur une image texture
 
 Nous avons vu précédemment que les images ne peuvent être accédées qu'à travers une vue. Nous aurons donc besoin de
-créer une vue sur notre nouvelle image.
+créer une vue sur notre nouvelle image texture.
 
-Ajoutez un membre donnée pour stocker la référence à la vue `VkImageView`, puis créez la fonction
-`createTextureImageView` pour la créer.
+Ajoutez un membre donnée pour stocker la référence à la vue de type `VkImageView`. Ajoutez ensuite la fonction
+`createTextureImageView` qui créera cette vue.
 
 ```c++
 VkImageView textureImageView;
@@ -51,7 +51,7 @@ Appellons `vkCreateImageView` pour finaliser la création de la vue :
 
 ```c++
 if (vkCreateImageView(device, &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create texture image view!");
+    throw std::runtime_error("échec de la création d'une vue sur l'image texture!");
 }
 ```
 
@@ -73,7 +73,7 @@ VkImageView createImageView(VkImage image, VkFormat format) {
 
     VkImageView imageView;
     if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-        throw std::runtime_error("erreur lors de la creation de la vue sur une image!");
+        throw std::runtime_error("échec de la creation de la vue sur une image!");
     }
 
     return imageView;
@@ -115,19 +115,19 @@ void cleanup() {
 
 ## Samplers
 
-Il est possible pour les shaders de directement lire les texels de l'image. Ce n'est cependant pas la manière commune
-de faire. Les textures sont communément accédées à travers un sampler (ou échantillonneur) qui filtrera et/ou
-transformera les données afin de calculer la couleur la plus proche pour le pixel.
+Il est possible pour les shaders de directement lire les texels de l'image. Ce n'est cependant pas la technique
+communément utilisée. Les textures sont généralement accédées à travers un sampler (ou échantillonneur) qui filtrera
+et/ou transformera les données afin de calculer la couleur la plus désirable pour le pixel.
 
-Ces filtres sont utiles pour résoudre des problèmes tels que l'oversampling. Supposez une texture liée à de la
-géometrie possédant plus de fragments que la texture n'a de texels. Si le sampler se contentait de prendre le pixel le
-plus proche, ue pixellisation apparaît :
+Ces filtres sont utiles pour résoudre des problèmes tels que l'oversampling. Imaginez une texture que l'on veut mettre
+sur de la géometrie possédant plus de fragments que la texture n'a de texels. Si le sampler se contentait de prendre
+le pixel le plus proche, ue pixellisation apparaît :
 
 ![](/images/texture_filtering.png)
 
 En combinant les 4 texels les plus proches il est possible d'obtenir un rendu lisse comme présenté sur l'image de
 droite. Bien sûr il est possible que votre application cherche plutôt à obtenir le premier résultat (Minecraft), mais
-la seconde option est en général préférée. Un objet sampler applique donc automatiquement ce type d'opérations.
+la seconde option est en général préférée. Un sampler applique alors automatiquement ce type d'opérations.
 
 L'undersampling est le problème inverse. Cela crée des artéfacts particulièrement visibles dans le cas de textures
 répétées vues à un angle aigü :
@@ -136,12 +136,12 @@ répétées vues à un angle aigü :
 
 Comme vous pouvez le voir sur l'image de droite, la texture devient d'autant plus floue que l'angle de vision se réduit.
 La solution à ce problème peut aussi être réalisée par le sampler et s'appelle
-[anisotropic filtering](https://en.wikipedia.org/wiki/Anisotropic_filtering). Elle est par contre plus consommatrice de
+[anisotropic filtering](https://en.wikipedia.org/wiki/Anisotropic_filtering). Elle est par contre plus gourmande en
 ressources.
 
 Au delà de ces filtres le sampler peut aussi s'occuper de transformations. Il évalue ce qui doit se passer quand le
 fragment shader essaie d'accéder à une partie de l'image qui dépasse sa propre taille. Il se base sur le *addressing 
-mode* fourni lors de sa configuration. L'image suivante présente des possiblités :
+mode* fourni lors de sa configuration. L'image suivante présente les différentes possiblités :
 
 ![](/images/texture_addressing.png)
 
@@ -184,13 +184,13 @@ samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 ```
 
-Le addressing mode peut être configurer pour chaque axe. Les axes disponibles sont indiqués ci-dessus ; notez
+Le addressing mode peut être configuré pour chaque axe. Les axes disponibles sont indiqués ci-dessus ; notez
 l'utilisation de U, V et W au lieu de X, Y et Z. C'est une convention dans le contexte des textures. Voilà les
 différents modes possibles :
 
-* `VK_SAMPLER_ADDRESS_MODE_REPEAT`: répéter le texture
-* `VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT`: répète en inversant les coordonnées pour faire un effet mirroir
-* `VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE`: prend la couleur du plus proche côté de l'image
+* `VK_SAMPLER_ADDRESS_MODE_REPEAT`: répète le texture
+* `VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT`: répète en inversant les coordonnées pour réaliser un effet mirroir
+* `VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE`: prend la couleur du pixel de bordure le plus proche
 * `VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE`: prend la couleur de l'opposé du plus proche côté de l'image
 * `VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER`: utilise une couleur fixée
 
@@ -203,10 +203,10 @@ samplerInfo.anisotropyEnable = VK_TRUE;
 samplerInfo.maxAnisotropy = 16;
 ```
 
-Ces deux membres spécifient l'utilisation de l'anistropic filtering. Il n'y a pas vraiment de raison de ne pas
+Ces deux membres paramètrent l'utilisation de l'anistropic filtering. Il n'y a pas vraiment de raison de ne pas
 l'utiliser, sauf si vous manquez de performances. Le champ `maxAnistropy` est le nombre maximal de texels utilisés pour
 calculer la couleur finale. Une plus petite valeur permet d'augmenter les performances, mais résulte évidemment en une
-qualité résuite. Il n'existe à ce jour aucune carte graphique pouvant utiliser plusde 16 texels car la qualité ne
+qualité réduite. Il n'existe à ce jour aucune carte graphique pouvant utiliser plus de 16 texels car la qualité ne
 change quasiment plus.
 
 ```c++
@@ -231,7 +231,7 @@ samplerInfo.compareEnable = VK_FALSE;
 samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 ```
 
-Si une fonction de comparison est activée, les texels seront comparés à une valeur. Le résultat de la comparaison est
+Si une fonction de comparaison est activée, les texels seront comparés à une valeur. Le résultat de la comparaison est
 ensuite utilisé pour une opération de filtrage. Cette fonctionnalité est principalement utilisée pour réaliser
 [un percentage-closer filtering](https://developer.nvidia.com/gpugems/GPUGems/gpugems_chll.html) sur les shadow maps.
 Nous verrons cela dans un futur chapitre.
@@ -246,7 +246,7 @@ samplerInfo.maxLod = 0.0f;
 Tous ces champs sont liés au mipmapping. Nous y reviendrons dans un [prochain chapitre](/Generating_Mipmaps), mais pour
 faire simple, c'est encore un autre type de filtre.
 
-Nous avons maintenant défini le toutes les fonctionalités du sampler. Ajoutez un membre donnée pour stocker la
+Nous avons maintenant paraméteré toutes les fonctionalités du sampler. Ajoutez un membre donnée pour stocker la
 référence à ce sampler, puis créez-le avec `vkCreateSampler` :
 
 ```c++
@@ -259,14 +259,14 @@ void createTextureSampler() {
     ...
 
     if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
-        throw std::runtime_error("erreur lors de la creation d'un sampler!");
+        throw std::runtime_error("échec de la creation d'un sampler!");
     }
 }
 ```
 
 Remarquez que le sampler n'est pas lié à une quelconque `VkImage`. Il ne constitue qu'un objet distinct qui représente
 une interface avec les images. Il peut être appliqué à n'importe quelle image 1D, 2D ou 3D. Cela diffère d'anciens APIs,
-qui combinaient la texture et le filtrage.
+qui combinaient la texture et son filtrage.
 
 Préparons la destruction du sampler à la fin du programme :
 
@@ -320,7 +320,8 @@ samplerInfo.anisotropyEnable = VK_FALSE;
 samplerInfo.maxAnisotropy = 1;
 ```
 
-Dans le prochain chapitre nous exposerons l'image et le sampler aux shaders pour afficher une texture sur le carrré.
+Dans le prochain chapitre nous exposerons l'image et le sampler au fragment shader pour qu'il puisse utiliser la
+texture sur le carré.
 
 [C++ code](/code/24_sampler.cpp) /
 [Vertex shader](/code/21_shader_ubo.vert) /
