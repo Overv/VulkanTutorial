@@ -1,4 +1,4 @@
-Cette page liste quelques problèmes que vous risquez de rencontrer lors du développement d'une application Vulkan.
+Cette page liste quelques problèmes que vous pourriez rencontrer lors du développement d'une application Vulkan.
 
 * **J'obtiens un erreur de violation d'accès dans les validations layers** : assurez-vous que MSI Afterburner /
 RivaTuner Statistics Server ne tournent pas, car ils possèdent des problèmes de compatibilité avec Vulkan.
