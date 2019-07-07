@@ -7,7 +7,7 @@
         "clean_urls": true
     },
     "html": {
-        "theme": "daux-blue",
+        "theme": "vulkan-vulkan",
         "auto_landing": false,
         "breadcrumbs": true,
         "breadcrumb_separator": "Chevrons",
