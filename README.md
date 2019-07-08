@@ -4,9 +4,7 @@ Vulkan tutorial
 This repository hosts the contents of [vulkan-tutorial.com](https://vulkan-tutorial.com).
 The website itself is based on [daux.io](https://github.com/dauxio/daux.io),
 which supports [GitHub flavored Markdown](https://help.github.com/articles/basic-writing-and-formatting-syntax/).
-A few changes were made to daux.io and its themes, which are included in
-`daux.patch` and are licensed as [MIT](https://opensource.org/licenses/MIT). The
-patch is based on commit `d45ccff`.
+The actual site runs daux.io with a custom theme and a few modifications (https://github.com/Overv/daux.io) and this is built into a [Docker image](https://hub.docker.com/r/overv/vulkan-tutorial).
 
 Use issues and pull requests to provide feedback related to the website. If you
 have a problem with your code, then use the comments section in the related
