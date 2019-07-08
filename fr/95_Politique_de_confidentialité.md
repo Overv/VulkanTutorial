@@ -1,5 +1,3 @@
-# Politique de confidentialité
-
 ## Généralités
 
 Cette politique de confidentialité concerne les informations collectées quand vous utilisez vulkan-tutorial.com ou 
