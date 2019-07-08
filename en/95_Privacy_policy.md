@@ -1,5 +1,3 @@
-# Privacy Policy
-
 ## General
 
 This privacy policy applies to the information that is collected when you use vulkan-tutorial.com or any of its subdomains. It describes how the owner of this website, Alexander Overvoorde, collects, uses and shares information about you.
