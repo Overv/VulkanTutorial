@@ -162,10 +162,9 @@ If the check was successful then `vkCreateInstance` should not ever return a
 
 ## Message callback
 
-Unfortunately just enabling the layers doesn't help much, because they currently
-have no way to relay the debug messages back to our program. To receive those
-messages we have to set up a debug messenger with a callback, which requires the `VK_EXT_debug_utils`
-extension.
+The validation layers will print debug messages to the standard output by default, but we can also handle them ourselves by providing an explicit callback in our program. This will also allow you to decide which kind of messages you would like to see, because not all are necessarily (fatal) errors. If you don't want to do that right now then you may skip to the last section in this chapter.
+
+To set up a callback in the program to handle messages and the associated details, we have to set up a debug messenger with a callback using the `VK_EXT_debug_utils` extension.
 
 We'll first create a `getRequiredExtensions` function that will return the
 required list of extensions based on whether validation layers are enabled or
@@ -423,7 +422,7 @@ void createInstance() {
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
     } else {
         createInfo.enabledLayerCount = 0;
-        
+
         createInfo.pNext = nullptr;
     }
 
