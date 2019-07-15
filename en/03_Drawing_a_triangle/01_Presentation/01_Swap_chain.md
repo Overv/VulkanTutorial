@@ -309,26 +309,6 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
 }
 ```
 
-Unfortunately some drivers currently don't properly support
-`VK_PRESENT_MODE_FIFO_KHR`, so we should prefer `VK_PRESENT_MODE_IMMEDIATE_KHR`
-if `VK_PRESENT_MODE_MAILBOX_KHR` is not available:
-
-```c++
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-    VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
-
-    for (const auto& availablePresentMode : availablePresentModes) {
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            return availablePresentMode;
-        } else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-            bestMode = availablePresentMode;
-        }
-    }
-
-    return bestMode;
-}
-```
-
 ### Swap extent
 
 That leaves only one major property, for which we'll add one last function:
