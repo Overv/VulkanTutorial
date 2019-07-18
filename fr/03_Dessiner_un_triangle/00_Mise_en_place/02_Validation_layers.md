@@ -149,9 +149,9 @@ pas.
 
 ## Fonction de rappel des erreurs
 
-Malheureusement, activer les validation layers ne nous aide pas beaucoup car elles n'ont pour l'instant aucun moyen de
-nous envoyer les messages. Pour les recevoir nous aurons besoin d'une fonction de rappel qui nécessite l'extension
-`VK_EXT_debug_utils`.
+Les validation layers affichent leur messages dans la console par défaut, mais on peut s'occuper de l'affichage nous-même en fournissant un callback explicite dans notre programme. Ceci nous permet également de choisir quels types de message afficher, car tous ne sont pas des erreurs (fatales). Si vous ne voulez pas vous occuper de ça maintenant, vous pouvez sauter à la dernière section de ce chapitre.
+
+Pour configurer un callback permettant de s'occuper des messages et des détails associés, nous devons mettre en place un debug messenger avec un callback en utilisant l'extension `VK_EXT_debug_utils`.
 
 Créons d'abord une fonction `getRequiredExtensions`. Elle nous fournira les extensions nécessaires selon que nous
 activons les validation layers ou non :
