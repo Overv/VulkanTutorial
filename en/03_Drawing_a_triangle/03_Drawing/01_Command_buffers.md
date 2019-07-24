@@ -164,7 +164,7 @@ details about the usage of this specific command buffer.
 for (size_t i = 0; i < commandBuffers.size(); i++) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    beginInfo.flags = 0; // Optional
     beginInfo.pInheritanceInfo = nullptr; // Optional
 
     if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
@@ -183,10 +183,10 @@ command buffer that will be entirely within a single render pass.
 * `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`: The command buffer can be
 resubmitted while it is also already pending execution.
 
-We have used the last flag because we may already be scheduling the drawing
-commands for the next frame while the last frame is not finished yet. The
-`pInheritanceInfo` parameter is only relevant for secondary command buffers. It
-specifies which state to inherit from the calling primary command buffers.
+None of these flags are applicable for us right now.
+
+The `pInheritanceInfo` parameter is only relevant for secondary command buffers.
+It specifies which state to inherit from the calling primary command buffers.
 
 If the command buffer was already recorded once, then a call to
 `vkBeginCommandBuffer` will implicitly reset it. It's not possible to append
