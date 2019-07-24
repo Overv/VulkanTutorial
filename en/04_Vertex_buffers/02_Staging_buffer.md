@@ -169,9 +169,7 @@ beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 vkBeginCommandBuffer(commandBuffer, &beginInfo);
 ```
 
-The `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT` flag that we used for the
-drawing command buffers is not necessary here, because we're only going to use
-the command buffer once and wait with returning from the function until the copy
+We're only going to use the command buffer once and wait with returning from the function until the copy
 operation has finished executing. It's good practice to tell the driver about
 our intent using `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`.
 
