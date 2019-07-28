@@ -20,9 +20,7 @@ has released their own vendor-independent compiler that compiles GLSL to SPIR-V.
 This compiler is designed to verify that your shader code is fully standards
 compliant and produces one SPIR-V binary that you can ship with your program.
 You can also include this compiler as a library to produce SPIR-V at runtime,
-but we won't be doing that in this tutorial. The compiler is already included
-with the LunarG SDK as `glslangValidator.exe`, so you don't need to download
-anything extra.
+but we won't be doing that in this tutorial. Although we can use this compiler directly via `glslangValidator.exe`, we will be using `glslc.exe` by Google instead. The advantage of `glslc` is that it uses the same parameter format as well-known compilers like GCC and Clang and includes some extra functionality like *includes*. Both of them are already included in the Vulkan SDK, so you don't need to download anything extra.
 
 GLSL is a shading language with a C-style syntax. Programs written in it have a
 `main` function that is invoked for every object. Instead of using parameters
@@ -234,19 +232,19 @@ void main() {
 ```
 
 We're now going to compile these into SPIR-V bytecode using the
-`glslangValidator` program.
+`glslc` program.
 
 **Windows**
 
 Create a `compile.bat` file with the following contents:
 
 ```bash
-C:/VulkanSDK/x.x.x.x/Bin32/glslangValidator.exe -V shader.vert
-C:/VulkanSDK/x.x.x.x/Bin32/glslangValidator.exe -V shader.frag
+C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.vert -o vert.spv
+C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.frag -o frag.spv
 pause
 ```
 
-Replace the path to `glslangValidator.exe` with the path to where you installed
+Replace the path to `glslc.exe` with the path to where you installed
 the Vulkan SDK. Double click the file to run it.
 
 **Linux**
@@ -254,21 +252,16 @@ the Vulkan SDK. Double click the file to run it.
 Create a `compile.sh` file with the following contents:
 
 ```bash
-/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslangValidator -V shader.vert
-/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslangValidator -V shader.frag
+/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslc shader.vert -o vert.spv
+/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslc shader.frag -o frag.spv
 ```
 
-Replace the path to `glslangValidator` with the path to where you installed the
+Replace the path to `glslc` with the path to where you installed the
 Vulkan SDK. Make the script executable with `chmod +x compile.sh` and run it.
 
 **End of platform-specific instructions**
 
-These two commands invoke the compiler with the `-V` flag, which tells it to
-compile the GLSL source files to SPIR-V bytecode. When you run the compile
-script, you'll see that two SPIR-V binaries are created: `vert.spv` and
-`frag.spv`. The names are automatically derived from the type of shader, but you
-can rename them to anything you like. You may get a warning about some missing
-features when compiling your shaders, but you can safely ignore that.
+These two commands tell the compiler to read the GLSL source file and output a SPIR-V bytecode file using the `-o` (output) flag.
 
 If your shader contains a syntax error then the compiler will tell you the line
 number and problem, as you would expect. Try leaving out a semicolon for example
