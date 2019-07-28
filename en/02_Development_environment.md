@@ -35,7 +35,7 @@ include the Vulkan runtime and that your graphics card is supported. See the
 [introduction chapter](!en/Introduction) for links to drivers from the major
 vendors.
 
-There is another program in this directory that will be useful for development. The `glslangValidator.exe` program will be used to compile shaders from the
+There is another program in this directory that will be useful for development. The `glslangValidator.exe` and `glslc.exe` programs will be used to compile shaders from the
 human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) to
 bytecode. We'll cover this in depth in the [shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
 chapter. The `Bin` directory also contains the binaries of the Vulkan loader
@@ -459,7 +459,7 @@ You can now use this directory as a template for your Vulkan projects. Make a
 copy, rename it to something like `HelloTriangle` and remove all of the code
 in `main.cpp`.
 
-Before we move on, let's explore the Vulkan SDK a bit more. There is another program in it that will be very useful for development. The `x86_64/bin/glslangValidator` program will be used to compile shaders from
+Before we move on, let's explore the Vulkan SDK a bit more. There is another program in it that will be very useful for development. The `x86_64/bin/glslangValidator` and `x86_64/bin/glslc` programs will be used to compile shaders from
 the human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 to bytecode. We'll cover this in depth in the [shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
 chapter.
