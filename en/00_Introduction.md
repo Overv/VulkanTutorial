@@ -33,7 +33,7 @@ tutorial:
 
 * A graphics card and driver compatible with Vulkan ([NVIDIA](https://developer.nvidia.com/vulkan-driver), [AMD](http://www.amd.com/en-us/innovations/software-technologies/technologies-gaming/vulkan), [Intel](https://software.intel.com/en-us/blogs/2016/03/14/new-intel-vulkan-beta-1540204404-graphics-driver-for-windows-78110-1540))
 * Experience with C++ (familiarity with RAII, initializer lists)
-* A compiler compatible with C++11 (Visual Studio 2013+, GCC 4.8+)
+* A compiler with decent support of C++17 features (Visual Studio 2017+, GCC 7+, Or Clang 5+)
 * Some existing experience with 3D computer graphics
 
 This tutorial will not assume knowledge of OpenGL or Direct3D concepts, but it
