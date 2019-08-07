@@ -413,6 +413,12 @@ We can now re-use this in the `createInstance` function:
 void createInstance() {
     ...
 
+    VkInstanceCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo = &appInfo;
+
+    ...
+
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -426,7 +432,9 @@ void createInstance() {
         createInfo.pNext = nullptr;
     }
 
-    ...
+    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create instance!");
+    }
 }
 ```
 
