@@ -48,8 +48,8 @@ mis en place pour qu'elles fonctionnent.
 Il a existé deux formes de validation layers : les layers spécifiques à l'instance et celles spécifiques au physical
 device (gpu). Elles ne vérifiaient ainsi respectivement que les appels aux fonctions d'ordre global et les appels aux
 fonctions spécifiques au GPU. Les layers spécifiques du GPU sont désormais dépréciées. Les autres portent désormais sur
-tous les appels. Cependant la spécification recommande encore que nous activions les validations layers au niveau du 
-logical device, car cela est requis par certaines implémentations. Nous nous contenterons de spécifier les mêmes 
+tous les appels. Cependant la spécification recommande encore que nous activions les validations layers au niveau du
+logical device, car cela est requis par certaines implémentations. Nous nous contenterons de spécifier les mêmes
 layers pour le logical device que pour le physical device, que nous verrons
 [plus tard](!fr/Dessiner_un_triangle/Mise_en_place/Logical_device_et_queues).
 
@@ -144,7 +144,7 @@ if (enableValidationLayers) {
 ```
 
 Si l'appel à la fonction `checkValidationLayerSupport` est un succès, `vkCreateInstance` ne devrait jamais retourner
-`VK_ERROR_LAYER_NOT_PRESENT`, mais exécutez tout de même le programme pour être sûr que d'autres erreurs n'apparaissent 
+`VK_ERROR_LAYER_NOT_PRESENT`, mais exécutez tout de même le programme pour être sûr que d'autres erreurs n'apparaissent
 pas.
 
 ## Fonction de rappel des erreurs
@@ -293,7 +293,7 @@ Vous pouvez optionnellement ajouter un pointeur sur une donnée de votre choix g
 fait partie des paramètres de la fonction de rappel.
 
 Notez qu'il existe de nombreuses autres manières de configurer des messagers auprès des validation layers, mais nous
-avons ici une bonne base pour ce tutoriel. Référez-vous à la 
+avons ici une bonne base pour ce tutoriel. Référez-vous à la
 [spécification de l'extension](www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VK_EXT_debug_utils)
 pour plus d'informations sur ces possibilités.
 
@@ -325,15 +325,15 @@ if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &callback) != V
 
 Le troisième paramètre est l'invariable allocateur optionnel que nous laissons `nullptr`. Les autres paramètres sont
 assez logiques. La fonction de rappel est spécifique de l'instance et des validation layers, nous devons donc passer
-l'instance en premier argument. Lancez le programme et vérifiez qu'il fonctionne. Vous devriez avoir le résultat 
+l'instance en premier argument. Lancez le programme et vérifiez qu'il fonctionne. Vous devriez avoir le résultat
 suivant :
 
 ![](/images/validation_layer_test.png)
 
-qui indique déjà un bug dans notre application! En effet l'objet `VkDebugUtilsMessengerEXT` doit être libéré 
-explicitement à l'aide de la fonction `vkDestroyDebugUtilsMessagerEXT`. De même qu'avec 
-`vkCreateDebugUtilsMessangerEXT` nous devons charger dynamiquement cette fonction. Notez qu'il est normal que le 
-message s'affiche plusieurs fois; il y a plusieurs validation layers, et dans certains cas leurs domaines d'expertise 
+qui indique déjà un bug dans notre application! En effet l'objet `VkDebugUtilsMessengerEXT` doit être libéré
+explicitement à l'aide de la fonction `vkDestroyDebugUtilsMessagerEXT`. De même qu'avec
+`vkCreateDebugUtilsMessangerEXT` nous devons charger dynamiquement cette fonction. Notez qu'il est normal que le
+message s'affiche plusieurs fois; il y a plusieurs validation layers, et dans certains cas leurs domaines d'expertise
 se recoupent.
 
 Créez une autre fonction proxy en-dessous de `CreateDebugUtilsMessengerEXT` :
@@ -402,6 +402,13 @@ Nous pouvons réutiliser cette fonctin dans `createInstance` :
 ```c++
 void createInstance() {
     ...
+
+    VkInstanceCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo = &appInfo;
+
+    ...
+
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -410,10 +417,13 @@ void createInstance() {
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
     } else {
         createInfo.enabledLayerCount = 0;
-        
+
         createInfo.pNext = nullptr;
     }
-    ...
+
+    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create instance!");
+    }
 }
 ```
 
