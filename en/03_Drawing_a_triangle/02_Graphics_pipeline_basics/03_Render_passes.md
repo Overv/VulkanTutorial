@@ -11,7 +11,7 @@ which we'll create a new `createRenderPass` function. Call this function from
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

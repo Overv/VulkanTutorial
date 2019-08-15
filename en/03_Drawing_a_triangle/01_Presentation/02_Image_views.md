@@ -20,7 +20,7 @@ creation.
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

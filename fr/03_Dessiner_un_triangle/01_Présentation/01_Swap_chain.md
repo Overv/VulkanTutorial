@@ -325,7 +325,7 @@ depuis `initVulkan` après la création du logical device.
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

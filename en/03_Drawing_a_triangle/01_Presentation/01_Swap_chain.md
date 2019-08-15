@@ -360,7 +360,7 @@ calls and make sure to call it from `initVulkan` after logical device creation.
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

@@ -17,7 +17,7 @@ Créez la fonction `createImageViews` et appelez-la juste après la création de
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

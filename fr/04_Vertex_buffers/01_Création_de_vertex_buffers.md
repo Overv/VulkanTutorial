@@ -12,7 +12,7 @@ Créez la fonction `createVertexBuffer` et appelez-la depuis `initVulkan` juste 
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

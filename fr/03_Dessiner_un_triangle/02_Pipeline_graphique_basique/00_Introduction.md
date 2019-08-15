@@ -65,7 +65,7 @@ travaillerons sur cette fonction dans les chapitres suivants.
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

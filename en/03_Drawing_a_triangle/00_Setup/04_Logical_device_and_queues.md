@@ -18,7 +18,7 @@ Next, add a `createLogicalDevice` function that is called from `initVulkan`.
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     pickPhysicalDevice();
     createLogicalDevice();
 }

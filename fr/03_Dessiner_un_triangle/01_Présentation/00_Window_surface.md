@@ -71,7 +71,7 @@ dans `initVulkan` après la création de l'instance et du messager :
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
