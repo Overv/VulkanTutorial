@@ -23,7 +23,7 @@ that is called from `initVulkan` right after creating the graphics pipeline:
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

@@ -19,7 +19,7 @@ Créez ensuite la fonction `createCommandPool` et appelez-la depuis `initVulkan`
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
@@ -98,7 +98,7 @@ buffers pour chacune des images de la swap chain.
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

@@ -19,7 +19,7 @@ Nous allons remplir ce `vector` depuis une nouvelle fonction `createFramebuffers
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

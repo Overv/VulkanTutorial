@@ -11,7 +11,7 @@ We'll add a function `pickPhysicalDevice` and add a call to it in the
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     pickPhysicalDevice();
 }
 

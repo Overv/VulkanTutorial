@@ -10,7 +10,7 @@ Ajoutez la fonction `pickPhysicalDevice` et appelez la depuis `initVulkan` :
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     pickPhysicalDevice();
 }
 

@@ -254,15 +254,15 @@ membre donnée pour le messager sous l'instance :
 VkDebugUtilsMessengerEXT callback;
 ```
 
-Ajoutez ensuite une fonction `setupDebugCallback` et appelez la dans `initVulkan` après `createInstance` :
+Ajoutez ensuite une fonction `setupDebugMessenger` et appelez la dans `initVulkan` après `createInstance` :
 
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
 }
 
-void setupDebugCallback() {
+void setupDebugMessenger() {
     if (!enableValidationLayers) return;
 
 }

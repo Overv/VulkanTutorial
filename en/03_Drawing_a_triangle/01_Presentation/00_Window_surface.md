@@ -73,12 +73,12 @@ with X11.
 The `glfwCreateWindowSurface` function performs exactly this operation with a
 different implementation for each platform. We'll now integrate it into our
 program. Add a function `createSurface` to be called from `initVulkan` right
-after instance creation and `setupDebugCallback`.
+after instance creation and `setupDebugMessenger`.
 
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();

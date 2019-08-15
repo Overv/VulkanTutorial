@@ -9,7 +9,7 @@ ces informations sont contenues dans un objet appelé *render pass*. Pour le con
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
