@@ -253,8 +253,8 @@ chapter.
 
 If you run your program now, then you'll notice that unfortunately nothing is
 visible. The problem is that because of the Y-flip we did in the projection
-matrix, the vertices are now being drawn in clockwise order instead of
-counter-clockwise order. This causes backface culling to kick in and prevents
+matrix, the vertices are now being drawn in counter-clockwise order instead of
+clockwise order. This causes backface culling to kick in and prevents
 any geometry from being drawn. Go to the `createGraphicsPipeline` function and
 modify the `frontFace` in `VkPipelineRasterizationStateCreateInfo` to correct
 this:
