@@ -330,8 +330,12 @@ case we'll pick the resolution that best matches the window within the
 `minImageExtent` and `maxImageExtent` bounds.
 
 ```c++
+#include <cstdint> // Necessary for UINT32_MAX
+
+...
+
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+    if (capabilities.currentExtent.width != UINT32_MAX) {
         return capabilities.currentExtent;
     } else {
         VkExtent2D actualExtent = {WIDTH, HEIGHT};
