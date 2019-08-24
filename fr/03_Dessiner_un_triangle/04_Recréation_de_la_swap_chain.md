@@ -115,7 +115,7 @@ associé pour s'assurer que les images de la swap chain ont bien la nouvelle tai
 
 ```c++
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+    if (capabilities.currentExtent.width != UINT32_MAX) {
         return capabilities.currentExtent;
     } else {
         int width, height;
@@ -148,7 +148,7 @@ utilisée pour l'affichage, ce qui arrive en général avec un rendimensionnemen
 caractéristiques de la surface de fenêtre ne correspondent plus à celles de la swap chain
 
 ```c++
-VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     recreateSwapChain();
