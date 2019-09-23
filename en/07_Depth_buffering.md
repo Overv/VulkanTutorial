@@ -298,10 +298,17 @@ textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IM
 
 That's it for creating the depth image. We don't need to map it or copy another
 image to it, because we're going to clear it at the start of the render pass
-like the color attachment. However, it still needs to be transitioned to a
-layout that is suitable for depth attachment usage. We could do this in the
-render pass like the color attachment, but here I've chosen to use a pipeline
-barrier because the transition only needs to happen once:
+like the color attachment.
+
+### Explicitly transitioning the depth image
+
+We don't need to explicitly transition the layout of the image to a depth
+attachment because we'll take care of this in the render pass. However, for
+completeness I'll still describe the process in this section. You may skip it if
+you like.
+
+Make a call to `transitionImageLayout` at the end of the `createDepthResources`
+function like so:
 
 ```c++
 transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
