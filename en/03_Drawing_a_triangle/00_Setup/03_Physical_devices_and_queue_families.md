@@ -302,7 +302,7 @@ family that supports `VK_QUEUE_GRAPHICS_BIT`.
 ```c++
 int i = 0;
 for (const auto& queueFamily : queueFamilies) {
-    if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
         indices.graphicsFamily = i;
     }
 
