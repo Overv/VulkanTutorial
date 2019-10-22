@@ -226,14 +226,14 @@ std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 ```
 
-La structure `VkQueueFamilyProperties` contient des informations sur la queue family, et en particulier le type 
-d'opérations qu'elle supporte et le nombre de queues que l'on peut instancier à partir de cette famille. Nous devons 
+La structure `VkQueueFamilyProperties` contient des informations sur la queue family, et en particulier le type
+d'opérations qu'elle supporte et le nombre de queues que l'on peut instancier à partir de cette famille. Nous devons
 trouver au moins une queue supportant `VK_QUEUE_GRAPHICS_BIT` :
 
 ```c++
 int i = 0;
 for (const auto& queueFamily : queueFamilies) {
-    if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
         indices.graphicsFamily = i;
     }
 
@@ -245,7 +245,7 @@ for (const auto& queueFamily : queueFamilies) {
 }
 ```
 
-Nous pouvons maintenant utiliser cette fonction dans `isDeviceSuitable` pour s'assurer que le physical device peut 
+Nous pouvons maintenant utiliser cette fonction dans `isDeviceSuitable` pour s'assurer que le physical device peut
 recevoir les commandes que nous voulons lui envoyer :
 
 ```c++
@@ -256,7 +256,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-Bien, c'est tout ce dont nous aurons besoin pour choisir le bon physical device! La prochaine étape est de [créer un 
+Bien, c'est tout ce dont nous aurons besoin pour choisir le bon physical device! La prochaine étape est de [créer un
 logical device](!fr/Dessiner_un_triangle/Mise_en_place/Logical_device_et_queues) pour créer une interface avec la carte.
 
 [Code C++](/code/03_physical_device_selection.cpp)

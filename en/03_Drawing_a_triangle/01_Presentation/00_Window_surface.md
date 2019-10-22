@@ -156,7 +156,7 @@ Then simply check the value of the boolean and store the presentation family
 queue index:
 
 ```c++
-if (queueFamily.queueCount > 0 && presentSupport) {
+if (presentSupport) {
     indices.presentFamily = i;
 }
 ```
