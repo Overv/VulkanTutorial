@@ -235,7 +235,8 @@ subpass. The special value `VK_SUBPASS_EXTERNAL` refers to the implicit subpass
 before or after the render pass depending on whether it is specified in
 `srcSubpass` or `dstSubpass`. The index `0` refers to our subpass, which is the
 first and only one. The `dstSubpass` must always be higher than `srcSubpass` to
-prevent cycles in the dependency graph.
+prevent cycles in the dependency graph (unless one of the subpasses is
+`VK_SUBPASS_EXTERNAL`).
 
 ```c++
 dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
