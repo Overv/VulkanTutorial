@@ -539,8 +539,58 @@ void createSyncObjects() {
 }
 ```
 
-Le programme devrait maintenant fonctionner normalement et la perte de mémoire ne devrait plus exister! Et nous avons 
-maintenant implémenté tout ce qu'il faut pour s'assurer que nous n'avons jamais plus de deux frames en vol!
+La fuite de mémoire n'est plus, mais le programme ne fonctionne pas encore correctement. Si `MAX_FRAMES_IN_FLIGHT` est
+plus grand que le nombre d'images de la swapchain ou que `vkAcquireNextImageKHR` ne retourne pas les images dans l'ordre,
+alors il est possible que nous lancions le rendu dans une image qui est déjà *en vol*. Pour éviter ça, nous devons pour
+chaque image de la swapchain si une frame en vol est en train d'utiliser celle-ci. Cette correspondance permettra de suivre
+les images en vol par leur fences respective, de cette façon nous aurons immédiatement un objet de synchronisation à attendre
+avant qu'une nouvelle frame puisse utiliser cette image.
+
+Tout d'abord, ajoutez une nouvelle liste nommée `imagesInFlight`:
+
+```c++
+std::vector<VkFence> inFlightFences;
+std::vector<VkFence> imagesInFlight;
+size_t currentFrame = 0;
+```
+
+Préparez-la dans `CreateSyncObjects`:
+
+```c++
+void createSyncObjects() {
+    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    imagesInFlight.resize(swapChainImages.size(), VK_NULL_HANDLE);
+
+    ...
+}
+```
+
+Initiallement aucune frame n'utilise d'image, donc on peut explicitement l'initialiser à *pas de fence*. Maintenant, nous allons modifier
+`drawFrame` pour attendre la fin de n'importe quelle frame qui serait en train d'utiliser l'image qu'on nous assigné pour la nouvelle frame.
+
+```c++
+void drawFrame() {
+    ...
+
+    vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+    // Vérifier si une frame précédente est en train d'utiliser cette image (il y a une fence à attendre)
+    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    }
+    // Marque l'image comme étant à nouveau utilisée par cette frame
+    imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+
+    ...
+}
+```
+
+Nous avons implémenté tout ce qui est nécessaire à la synchronisation pour certifier qu'il n'y a pas plus de deux frames de travail
+dans la queue et que ces frames n'utilise pas accidentellement la même image. Notez qu'il est tout à fait normal pour d'autre parties du code,
+comme le nettoyage final, de se reposer sur des mécanismes de synchronisation plus durs comme `vkDeviceWaitIdle`. Vous devriez décider
+de la bonne approche à utiliser en vous basant sur vos besoins de performances.
 
 Pour en apprendre plus sur la synchronisation rendez vous sur
 [ces exemples complets](https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples#swapchain-image-acquire-and-present)
