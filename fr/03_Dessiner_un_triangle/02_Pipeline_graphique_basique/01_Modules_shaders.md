@@ -11,9 +11,13 @@ compilateurs étaient très laxistes par rapport à la spécification qui leur �
 complexe, il pouvait être accepté par l'un et pas par l'autre, ou pire s'éxécuter différemment. Avec le format de
 plus bas niveau qu'est SPIR-V, ces problèmes seront normalement éliminés.
 
-Cela ne veut cependant pas dire que nous devrons écrire ces bytecodes à la main. Khronos fournit lui-même un 
+Cela ne veut cependant pas dire que nous devrons écrire ces bytecodes à la main. Khronos fournit même un 
 compilateur transformant GLSL en SPIR-V. Ce compilateur standard vérifiera que votre code correspond à la spécification.
-Le compilateur est fourni avec le SDK et s'appelle `glslangValidator`, vous n'aurez donc rien de plus à télécharger.
+Vous pouvez également l'inclure comme une bibliothèque pour produire du SPIR-V au runtime, mais nous ne ferons pas cela dans ce tutoriel.
+Le compilateur est fourni avec le SDK et s'appelle `glslangValidator`, mais nous allons utiliser un autre compilateur 
+nommé `glslc`, écrit par Google. L'avantage de ce dernier est qu'il utilise le même format d'options que GCC ou Clang, 
+et inclu quelques fonctionnalités supplémentaires comme les *includes*. Les deux compilateurs sont fournis dans le SDK, 
+vous n'avez donc rien de plus à télécharger.
 
 GLSL est un language possédant une syntaxe proche du C. Les programmes y ont une fonction `main` invoquée pour chaque 
 objet à traiter. Plutôt que d'utiliser des paramètres et des valeurs de retour, GLSL utilise des variables globales 
@@ -201,19 +205,19 @@ void main() {
 }
 ```
 
-Nous allons maintenant compiler ces shaders en bytecode SPIR-V à l'aide du programme `glslangValidator`.
+Nous allons maintenant compiler ces shaders en bytecode SPIR-V à l'aide du programme `glslc`.
 
 **Windows**
 
 Créez un fichier `compile.bat` et copiez ceci dedans :
 
 ```bash
-C:/VulkanSDK/x.x.x.x/Bin32/glslangValidator.exe -V shader.vert
-C:/VulkanSDK/x.x.x.x/Bin32/glslangValidator.exe -V shader.frag
+C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.vert -o vert.spv
+C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.frag -o frag.spv
 pause
 ```
 
-Corrigez le chemin vers `glslangValidator.exe` pour que le .bat pointe effectivement là où le vôtre se trouve. 
+Corrigez le chemin vers `glslc.exe` pour que le .bat pointe effectivement là où le vôtre se trouve. 
 Double-cliquez pour lancer ce script.
 
 **Linux**
@@ -221,20 +225,17 @@ Double-cliquez pour lancer ce script.
 Créez un fichier `compile.sh` et copiez ceci dedans :
 
 ```bash
-/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslangValidator -V shader.vert
-/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslangValidator -V shader.frag
+/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslc shader.vert -o vert.spv
+/home/user/VulkanSDK/x.x.x.x/x86_64/bin/glslc shader.frag -o frag.spv
 ```
 
-Corrigez le chemin menant au `glslangValidator` pour qu'il pointe là où il est. Rendez le script exécutable avec la 
+Corrigez le chemin menant au `glslc` pour qu'il pointe là où il est. Rendez le script exécutable avec la 
 commande `chmod +x compile.sh` et lancez-le.
 
 **Fin des instructions spécifiques**
 
-Ces deux commmandes invoquent le programme avec l'argument `-V`. Celui-ci indique au programme de compiler les sources 
-GLSL en bytecode SPIR-V, sinon le programme se contenterait de vérifier que les sources correspondent au standard. 
-Une fois le script exécuté vous vous retrouverez avec deux nouveaux fichiers : `vert.spv` et `frag.spv`. Les noms 
-sont automatiquement dérivés du type de shader, mais vous pouvez les renommer si vous le souhaitez. Vous aurez 
-peut-être un message parlant de fonctionnalités manquantes mais vous pouvez l'ignorer sans problème.
+Ces deux commandes instruisent le compilateur de lire le code GLSL source contenu dans un fichier et d'écrire 
+le bytecode SPIR-V dans un fichier grâce à l'option `-o` (output).
 
 Si votre shader contient une erreur de syntaxe le compilateur vous indiquera le problème et la ligne à laquelle il 
 apparait. Essayez de retirer un point-virgule et voyez l'efficacité du debogueur. Essayez également de voir les 
