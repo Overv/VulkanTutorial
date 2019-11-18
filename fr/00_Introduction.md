@@ -31,7 +31,7 @@ Cela étant dit, présentons quelques prérequis pour ce tutoriel:
 [AMD](https://www.amd.com/en/technologies/vulkan),
 [Intel](https://software.intel.com/en-us/blogs/2017/02/10/intel-announces-that-we-are-moving-from-beta-support-to-full-official-support-for))
 * De l'expérience avec le C++ (familiarité avec RAII, listes d'initialisation, et autres fonctionnalités modernes)
-* Un compilateur compatible C++11 (Visual Studio 2013+, GCC 4.8+)
+* Un compilateur avec un support décent des fonctionnalités du C++17 (Visual Studio 2017+, GCC 7+ ou Clang 5+)
 * Un minimum d'expérience dans le domaine de la programmation graphique
 
 Ce tutoriel ne considérera pas comme acquis les concepts d'OpenGL et de Direct3D, mais il requiert que vous connaissiez
