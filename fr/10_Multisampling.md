@@ -38,15 +38,16 @@ VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 Par défaut nous n'utilisons qu'un point, ce qui correspond à ne pas utiliser de multisampling. Le nombre maximal est
 inscrit dans la structure de type `VkPhysicalDeviceProperties` associée au GPU. Comme nous utilisons un buffer de
-profondeur, nous devons prendre en compte le nombre de samples pour la couleur et pour la profondeur. Le plus petit des
-deux sera le nombre que nous utiliserons. Créez une fonction dans laquelle les informations seront récupérées :
+profondeur, nous devons prendre en compte le nombre de samples pour la couleur et pour la profondeur. Le plus haut taux
+de samples supporté par les deux (&) sera celui que nous utiliserons. Créez une fonction dans laquelle les informations
+seront récupérées :
 
 ```c++
 VkSampleCountFlagBits getMaxUsableSampleCount() {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-    VkSampleCountFlags counts = std::min(physicalDeviceProperties.limits.framebufferColorSampleCounts, physicalDeviceProperties.limits.framebufferDepthSampleCounts);
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
     if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
