@@ -587,6 +587,23 @@ void drawFrame() {
 }
 ```
 
+Parce que nous avons maintenant plus d'appels à `vkWaitForFences`, les apples à `vkResetFences` doivent être **déplacés**. Le mieux reste
+de simplement l'appeler juste avant d'utiliser la fence:
+
+```c++
+void drawFrame() {
+    ...
+
+    vkResetFences(device, 1, &inFlightFences[currentFrame]);
+
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+        throw std::runtime_error("échec de l'envoi d'un command buffer!");
+    }
+
+    ...
+}
+```
+
 Nous avons implémenté tout ce qui est nécessaire à la synchronisation pour certifier qu'il n'y a pas plus de deux frames de travail
 dans la queue et que ces frames n'utilise pas accidentellement la même image. Notez qu'il est tout à fait normal pour d'autre parties du code,
 comme le nettoyage final, de se reposer sur des mécanismes de synchronisation plus durs comme `vkDeviceWaitIdle`. Vous devriez décider

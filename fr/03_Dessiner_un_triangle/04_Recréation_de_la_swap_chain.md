@@ -162,18 +162,6 @@ Si la swap chain se trouve être dépassée quand nous essayons d'acquérir une 
 de présenter un quelconque résultat. Nous devons de ce fait aussitôt recréer la swap chain et tenter la présentation
 avec la frame suivante.
 
-Cepedant si nous interrompons le rendu à ce moment alors la fence synchronisant la présentation ne sera jamais envoyée
-à `vkQueueSubmit` et elle nous fera attendre éternellement la boucle suivante. Nous pourrions recréer les fences avec
-la swap chain, mais il est plus simple de déplacer l'appel à `vkResetFence` :
-
-```c++
-vkResetFences(device, 1, &inFlightFences[currentFrame]);
-
-if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
-    throw std::runtime_error("échec de l'envoi d'un command buffer!");
-}
-```
-
 Vous pouvez aussi décider de recréer la swap chain si sa configuration n'est plus optimale, mais j'ai choisi de ne pas
 le faire ici car nous avons de toute façon déjà acquis l'image. Ainsi `VK_SUCCES` et `VK_SUBOPTIMAL_KHR` sont considérés
 comme des indicateurs de succès.
