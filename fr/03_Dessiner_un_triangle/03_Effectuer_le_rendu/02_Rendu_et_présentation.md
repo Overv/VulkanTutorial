@@ -211,7 +211,7 @@ Les deux premiers champs permettent de fournir l'indice de la subpasse d'origine
 particulière `VK_SUBPASS_EXTERNAL` réfère à la subpass implicite soit avant soit après la render pass, selon que
 cette valeur est indiquée dans respectivement `srcSubpass` ou `dstSubpass`. L'indice `0` correspond à notre 
 seule et unique subpasse. La valeur fournie à `dstSubpass` doit toujours être supérieure à `srcSubpass` car sinon une
-boucle infinie peut apparaître.
+boucle infinie peut apparaître (sauf si une des subpasse est `VK_SUBPASS_EXTERNAL`).
 
 ```c++
 dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
