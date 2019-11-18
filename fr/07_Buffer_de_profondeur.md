@@ -272,10 +272,15 @@ textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IM
 ```
 
 Voilà tout pour la création de l'image de profondeur. Nous n'avons pas besoin d'y envoyer de données ou quoi que ce soit
-de ce genre, ce qui est nous simplfie le travail. Il faudra quand même faire changer son organisation, pour qu'elle
-puisse être utilisé comme attachement. Nous pourrions faire cette transition dans la render pass comme pour
-l'attachement de couleur, mais j'ai préféré utiliser une barrière de pipeline pour ne faire cette transition qu'une
-seule fois.
+de ce genre, car nous allons l'initialiser au début de la render pass tout comme l'attachement de couleur.
+
+### Explicitement transitionner l'image de profondeur
+
+Nous n'avons pas besoin de faire explicitement la transition du layout de l'image vers un attachement de profondeur parce
+qu'on s'en occupe directement dans la render pass. En revanche, pour l'exhaustivité je vais quand même vous décrire le processus
+dans cette section. Vous pouvez sauter cette étape si vous le souhaitez.
+
+Faites un appel à `transitionImageLayout` à la fin de `createDepthResources` comme ceci:
 
 ```c++
 transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
