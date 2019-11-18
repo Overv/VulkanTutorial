@@ -155,7 +155,7 @@ command buffer.
 for (size_t i = 0; i < commandBuffers.size(); i++) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    beginInfo.flags = 0; // Optionnel
     beginInfo.pInheritanceInfo = nullptr; // Optionel
 
     if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
@@ -173,9 +173,10 @@ unique render pass
 * `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT` : le command buffer peut être ré-envoyé à la queue alors qu'il y est
 déjà et/ou est en cours d'exécution
 
-Nous devons utiliser la dernière valeur pour le cas où nous préparons l'affichage de la frame suivante alors que la
-frame actuelle n'est pas finie. Le paramètre `pInheritanceInfo` n'a de sens que pour les command buffers secondaires. Il
-indique l'état à hériter de l'appel par le command buffer primaire.
+Nous n'avons pas besoin de ces flags ici.
+
+Le paramètre `pInheritanceInfo` n'a de sens que pour les command buffers secondaires.
+Il indique l'état à hériter de l'appel par le command buffer primaire.
 
 Si un command buffer est déjà prêt un appel à `vkBeginCommandBuffer` le regénèrera implicitement. Il n'est pas possible
 d'enregistrer un command buffer en plusieurs fois.

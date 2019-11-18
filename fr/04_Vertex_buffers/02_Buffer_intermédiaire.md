@@ -155,10 +155,9 @@ beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 vkBeginCommandBuffer(commandBuffer, &beginInfo);
 ```
 
-La valeur `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT` que nous avons utilisé pour les command buffers des opérations
-graphiques n'est pas nécessaire ici car nous n'allons en utiliser qu'un à la fois, en attendant que la copie soit
+Nous allons utiliser le Command Buffer une fois seulement, et attendre que la copie soit
 terminée avant de sortir de la fonction. Il est alors préférable d'informer le driver de cela à l'aide de
-`VK_COMMAND_BUFFER_USAGE_ONE_YIME_SUBMIT_BIT`.
+`VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`.
 
 ```c++
 VkBufferCopy copyRegion = {};
