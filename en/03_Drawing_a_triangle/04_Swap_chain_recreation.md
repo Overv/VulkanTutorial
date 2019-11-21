@@ -255,6 +255,7 @@ There is another case where a swap chain may become out of data and that is a sp
 ```c++
 void recreateSwapChain() {
     int width = 0, height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
     while (width == 0 || height == 0) {
         glfwGetFramebufferSize(window, &width, &height);
         glfwWaitEvents();
@@ -265,6 +266,8 @@ void recreateSwapChain() {
     ...
 }
 ```
+
+The initial call to `glfwGetFramebufferSize` handles the case where the size is already correct and `glfwWaitEvents` would have nothing to wait on.
 
 Congratulations, you've now finished your very first well-behaved Vulkan
 program! In the next chapter we're going to get rid of the hardcoded vertices in
