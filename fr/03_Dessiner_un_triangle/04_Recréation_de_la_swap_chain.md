@@ -257,6 +257,7 @@ jusqu'à ce que la fenêtre soit remise en avant-plan. À ce moment-là nous rec
 ```c++
 void recreateSwapChain() {
     int width = 0, height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
     while (width == 0 || height == 0) {
         glfwGetFramebufferSize(window, &width, &height);
         glfwWaitEvents();
@@ -267,6 +268,8 @@ void recreateSwapChain() {
     ...
 }
 ```
+
+L'appel initial à `glfwGetFramebufferSize` prend en charge le cas où la taille est déjà correcte et `glfwWaitEvents` n'aurait rien à attendre.
 
 Félicitations, vous avez codé un programme fonctinnel avec Vulkan! Dans le prochain chapitre nous allons supprimer les 
 sommets du vertex shader et mettre en place un vertex buffer.
