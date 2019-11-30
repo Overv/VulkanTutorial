@@ -16,7 +16,7 @@ rien laisser au hasard, et il n'y a aucune structure, aucun environnement créé
 recréer à partir de rien. Le travail du driver graphique sera ainsi considérablement réduit, ce qui implique un plus 
 grand travail de votre part pour assurer un comportement correct.
 
-Le message véhiculé ici est que Vulkan n'est pas fait pour tout le monde. Cet API est conçu pour les programmeurs 
+Le message véhiculé ici est que Vulkan n'est pas fait pour tout le monde. Cette API est conçue pour les programmeurs 
 concernés par la programmation avec GPU de haute performance, et qui sont prêts à y travailler sérieusement. Si vous
 êtes intéressées dans le développement de jeux vidéos, et moins dans les graphismes eux-mêmes, vous devriez plutôt
 continuer d'utiliser OpenGL et DirectX, qui ne seront pas dépréciés en faveur de Vulkan avant un certain temps. Une
@@ -31,7 +31,7 @@ Cela étant dit, présentons quelques prérequis pour ce tutoriel:
 [AMD](https://www.amd.com/en/technologies/vulkan),
 [Intel](https://software.intel.com/en-us/blogs/2017/02/10/intel-announces-that-we-are-moving-from-beta-support-to-full-official-support-for))
 * De l'expérience avec le C++ (familiarité avec RAII, listes d'initialisation, et autres fonctionnalités modernes)
-* Un compilateur compatible C++11 (Visual Studio 2013+, GCC 4.8+)
+* Un compilateur avec un support décent des fonctionnalités du C++17 (Visual Studio 2017+, GCC 7+ ou Clang 5+)
 * Un minimum d'expérience dans le domaine de la programmation graphique
 
 Ce tutoriel ne considérera pas comme acquis les concepts d'OpenGL et de Direct3D, mais il requiert que vous connaissiez

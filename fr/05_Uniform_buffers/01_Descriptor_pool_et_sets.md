@@ -228,9 +228,9 @@ paramètres sont des décalages utilisés pour les descripteurs dynamiques. Nous
 chapitre.
 
 Si vous lanciez le programme vous verrez que rien ne s'affiche. Le problème est que l'inversion de la coordonnée Y dans
-la matrice induit l'évaluation des vertices dans le sens des aiguilles d'une montre, alors que nous voudrions le
-contraire. En effet, les systèmes actuels utilisent ce sens de rotation pour détermnier la face de devant. Le face de
-derrière est ensuite simplement ignorée. C'est pourquoi notre géométrie n'est pas rendue. C'est le *backface culling*.
+la matrice induit l'évaluation des vertices dans le sens inverse des aiguilles d'une montre (*counter-clockwise* en anglais),
+alors que nous voudrions le contraire. En effet, les systèmes actuels utilisent ce sens de rotation pour détermnier la face de devant.
+La face de derrière est ensuite simplement ignorée. C'est pourquoi notre géométrie n'est pas rendue. C'est le *backface culling*.
 Changez le champ `frontface` de la structure `VkPipelineRasterizationStateCreateInfo` dans la fonction
 `createGraphicsPipeline` de la manière suivante :
 
