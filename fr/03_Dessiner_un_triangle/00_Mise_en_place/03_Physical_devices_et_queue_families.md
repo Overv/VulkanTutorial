@@ -186,27 +186,81 @@ traite que les commandes de calcul et qu'une autre ne supporte que les commandes
 
 Nous devons analyser quelles queue families existent sur le système et lesquelles correspondent aux commandes que nous
 souhaitons utiliser. Nous allons donc créer la fonction `findQueueFamilies` dans laquelle nous chercherons les
-commandes nous intéressant. Nous allons commencer par ne chercher qu'une queue supportant les commandes graphiques, mais
-nous étendrons cela plus tard dans le tutoriel.
+commandes nous intéressant.
 
-Cette fonction retournera les indices des queue families satisfaisant les propriétés que nous désirons. La meilleure
-manière de faire cela est d'utiliser une structure dans laquelle les valeurs seront contenues dans des `std::optional`.
-De cette manière il sera facile de voir quelles queues ont été trouvées.
+Nous allons chercher une queue qui supporte les commandes graphiques, la fonction pourrait ressembler à ça:
+
+```c++
+uint32_t findQueueFamilies(VkPhysicalDevice device) {
+    // Code servant à trouver la famille de queue "graphique"
+}
+```
+
+Mais dans un des prochains chapitres, nous allons avoir besoin d'une autre famille de queues, il est donc plus intéressant
+de s'y préparer dès maintenant en empactant plusieurs indices dans une structure:
 
 ```c++
 struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-
-    bool isComplete() {
-        return graphicsFamily.has_value();
-    }
+    uint32_t graphicsFamily;
 };
+
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+    // Code pour trouver les indices de familles à ajouter à la structure
+    return indices
+}
 ```
 
-Il est nécessaire d'inclure `optional`. Nous pouvons dès maintenant implémenter `findQueueFamilies` :
+Que se passe-t-il si une famille n'est pas disponible ? On pourrait lancer une exception dans `findQueueFamilies`,
+mais cette fonction n'est pas vraiment le bon endroit pour prendre des decisions concernant le choix du bon Device.
+Par exemple, on pourrait *préférer* des Devices avec une queue de transfert dédiée, sans toutefois le requérir.
+Par conséquent nous avons besoin d'indiquer si une certaine famille de queues à été trouvé.
+
+Ce n'est pas très pratique d'utiliser une valeur magique pour indiquer la non-existence d'une famille, comme n'importe
+quelle valeur de `uint32_t` peut théoriquement être une valeur valide d'index de famille, incluant `0`.
+Heureusement, le C++17 introduit un type qui permet la distinction entre le cas où la valeur existe et celui
+où elle n'existe pas:
 
 ```c++
+#include <optional>
+
+...
+
+std::optional<uint32_t> graphicsFamily;
+
+std::cout << std::boolalpha << graphicsFamily.has_value() << std::endl; // faux
+
+graphicsFamily = 0;
+
+std::cout << std::boolalpha << graphicsFamily.has_value() << std::endl; // vrai
+```
+
+`std::optional` est un wrapper qui ne contient aucune valeur tant que vous ne lui en assignez pas une.
+Vous pouvez, quelque soit le moment, lui demander si il contient une valeur ou non en appelant sa fonction membre
+`has_value()`. On peut donc changer le code comme suit:
+
+```c++
+#include <optional>
+
+...
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+};
+
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+
+    // Assigne l'index aux familles qui ont pu être trouvées
+
+    return indices;
+}
+```
+
+On peut maintenant commencer à implémenter `findQueueFamilies`:
+
+```c++
+QueueFamilyIndices findQueueFamily(VkPhysicalDevice) {
     QueueFamilyIndices indices;
 
     ...
@@ -237,10 +291,6 @@ for (const auto& queueFamily : queueFamilies) {
         indices.graphicsFamily = i;
     }
 
-    if (indices.isComplete()) {
-        break;
-    }
-
     i++;
 }
 ```
@@ -252,7 +302,41 @@ recevoir les commandes que nous voulons lui envoyer :
 bool isDeviceSuitable(VkPhysicalDevice device) {
     QueueFamilyIndices indices = findQueueFamilies(device);
 
+    return indices.graphicsFamily.has_value();
+}
+```
+
+Pour que ce soit plus pratique, nous allons aussi ajouté une fonction générique à la structure:
+
+```c++
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
+...
+
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    QueueFamilyIndices indices = findQueueFamilies(device);
+
     return indices.isComplete();
+}
+```
+
+On peut également utiliser ceci pour sortitr plus tôt de `findQueueFamilies`:
+
+```c++
+for (const auto& queueFamily : queueFamilies) {
+    ...
+
+    if (indices.isComplete()) {
+        break;
+    }
+
+    i++;
 }
 ```
 

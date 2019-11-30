@@ -38,15 +38,16 @@ VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 Par défaut nous n'utilisons qu'un point, ce qui correspond à ne pas utiliser de multisampling. Le nombre maximal est
 inscrit dans la structure de type `VkPhysicalDeviceProperties` associée au GPU. Comme nous utilisons un buffer de
-profondeur, nous devons prendre en compte le nombre de samples pour la couleur et pour la profondeur. Le plus petit des
-deux sera le nombre que nous utiliserons. Créez une fonction dans laquelle les informations seront récupérées :
+profondeur, nous devons prendre en compte le nombre de samples pour la couleur et pour la profondeur. Le plus haut taux
+de samples supporté par les deux (&) sera celui que nous utiliserons. Créez une fonction dans laquelle les informations
+seront récupérées :
 
 ```c++
 VkSampleCountFlagBits getMaxUsableSampleCount() {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-    VkSampleCountFlags counts = std::min(physicalDeviceProperties.limits.framebufferColorSampleCounts, physicalDeviceProperties.limits.framebufferDepthSampleCounts);
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
     if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
@@ -119,8 +120,6 @@ void createColorResources() {
 
     createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
     colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
-    transitionImageLayout(colorImage, colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
 }
 ```
 
@@ -131,25 +130,6 @@ void initVulkan() {
     ...
     createColorResources();
     createDepthResources();
-    ...
-}
-```
-
-Remarquez la transition de `VK_IMAGE_LAYOUT_UNDEFINED` vers `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`, que nous devons
-gérer d'une nouvelle façon. Mettons à jour la fonction `transitionImageLayout` :
-
-```c++
-void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
-    ...
-    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    }
-    else {
-        throw std::invalid_argument("transition d'organisation non supportée!");
-    }
     ...
 }
 ```

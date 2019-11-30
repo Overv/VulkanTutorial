@@ -28,9 +28,9 @@ carte graphique supporte Vulkan. Allez dans le dossier d'installation du SDK, ou
 Si vous recevez un message d'erreur assurez-vous que votre driver est à jour, inclut Vulkan et que votre carte graphique
 est supportée. Référez-vous au [chapitre introductif](!fr/Introduction) pour les liens vers les principaux constructeurs.
 
-Il y a un autre programme dans ce dossier qui vous sera utile : "glslangValidator.exe". Nous en aurons besoin pour la
-compilation des shaders. Il transforme un code compréhensible facilement et semblable au C (le 
-[GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)) en byte code.
+Il y a d'autres programmes dans ce dossier qui vous seront utiles : "glslangValidator.exe" et "glslc.exe". Nous en aurons besoin pour la
+compilation des shaders. Ils transforment un code compréhensible facilement et semblable au C (le 
+[GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)) en bytecode.
 Nous couvrirons cela dans le chapitre des [modules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 Le dossier "Bin" contient aussi les fichiers binaires du loader Vulkan et des validation layers. Le dossier "Lib" en
 contient les librairies.
@@ -414,9 +414,9 @@ clean:
 Vous pouvez désormais utiliser ce dossier comme exemple pour vos futurs projets Vulkan. Faites-en une copie, changez le
 nom du projet et tout sera prêt!
 
-Avant d'avancer, regardons le SDK plus en détail. Il y a un autre programme dans ce dossier qui vous sera utile :
-"glslangValidator". Nous nous en servirons pour compiler les shaders. Il transforme un code lisible par l'homme
-écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en byte code. Nous couvrirons cela dans le
+Avant d'avancer, regardons le SDK plus en détail. Il y a d'autres programmes dans ce dossier qui vous seront utiles :
+"glslangValidator" et "glslc". Nous nous en servirons pour compiler les shaders. Ils transforment un code lisible par l'homme
+écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en bytecode. Nous couvrirons cela dans le
 chapitre [modeules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 
 
