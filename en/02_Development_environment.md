@@ -26,7 +26,7 @@ be useful to you.
 Proceed through the installation and pay attention to the install location of
 the SDK. The first thing we'll do is verify that your graphics card and driver
 properly support Vulkan. Go to the directory where you installed the SDK, open
-the `Bin` directory and run the `cube.exe` demo. You should see the following:
+the `Bin` directory and run the `vkcube.exe` demo. You should see the following:
 
 ![](/images/cube_demo.png)
 
@@ -484,7 +484,7 @@ The SDK can be downloaded from [the LunarG website](https://vulkan.lunarg.com/) 
 
 The SDK version for MacOS internally uses [MoltenVK](https://moltengl.com/). There is no native support for Vulkan on MacOS, so what MoltenVK does is actually act as a layer that translates Vulkan API calls to Apple's Metal graphics framework. With this you can take advantage of debugging and performance benefits of Apple's Metal framework.
 
-After downloading it, simply extract the contents to a folder of your choice (keep in mind you will need to reference it when creating your projects on Xcode). Inside the extracted folder, in the `Applications` folder you should have some executable files that will run a few demos using the SDK. Run the `cube` executable and you will see the following:
+After downloading it, simply extract the contents to a folder of your choice (keep in mind you will need to reference it when creating your projects on Xcode). Inside the extracted folder, in the `Applications` folder you should have some executable files that will run a few demos using the SDK. Run the `vkcube` executable and you will see the following:
 
 ![](/images/cube_demo_mac.png)
 

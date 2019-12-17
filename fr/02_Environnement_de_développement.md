@@ -21,7 +21,7 @@ utile.
 
 Réalisez l'installation et notez l'emplacement du SDK. La première chose que nous allons faire est vérifier que votre
 carte graphique supporte Vulkan. Allez dans le dossier d'installation du SDK, ouvrez le dossier "Bin" et lancez
-"cube.exe". Vous devriez voire la fenêtre suivante :
+"vkcube.exe". Vous devriez voire la fenêtre suivante :
 
 ![](/images/cube_demo.png)
 
@@ -29,7 +29,7 @@ Si vous recevez un message d'erreur assurez-vous que votre driver est à jour, i
 est supportée. Référez-vous au [chapitre introductif](!fr/Introduction) pour les liens vers les principaux constructeurs.
 
 Il y a d'autres programmes dans ce dossier qui vous seront utiles : "glslangValidator.exe" et "glslc.exe". Nous en aurons besoin pour la
-compilation des shaders. Ils transforment un code compréhensible facilement et semblable au C (le 
+compilation des shaders. Ils transforment un code compréhensible facilement et semblable au C (le
 [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)) en bytecode.
 Nous couvrirons cela dans le chapitre des [modules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 Le dossier "Bin" contient aussi les fichiers binaires du loader Vulkan et des validation layers. Le dossier "Lib" en
@@ -231,7 +231,7 @@ graphique est supportée. Référez-vous au [chapitre introductif](!fr/Introduct
 Comme dit précédemment, Vulkan ignore la plateforme sur laquelle il opère, et n'inclut pas d'outil de création
 de fenêtre où afficher les résultats de notre travail. Pour bien exploiter les possibilités cross-platform de
 Vulkan, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer une fenêtre sur Windows, Linux
-ou MacOS indifféremment. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à 
+ou MacOS indifféremment. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à
 l'avantage d'abstraire d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
 Nous allons installer GLFW à partir des sources, car Vulkan nécessite une version récente. Vous pouvez trouvez ces
@@ -450,7 +450,7 @@ Vous pouvez ainsi exploiter pleinement les possibilités de cet API automatiquem
 
 
 Une fois téléchargé, extrayez-en le contenu où vous le souhaitez. Dans le dossier extrait, il devrait y avoir un
-sous-dossier "Applications" comportant des exécutables lançant des démos du SDK. Lancez "cube" pour vérifier que vous
+sous-dossier "Applications" comportant des exécutables lançant des démos du SDK. Lancez "vkcube" pour vérifier que vous
 obtenez ceci :
 
 ![](/images/cube_demo_mac.png)
@@ -536,7 +536,7 @@ int main() {
 }
 ```
 
-Gardez à l'esprit que vous n'avez pas à comprendre tout ce que le code fait, dans la mesure où il se contente 
+Gardez à l'esprit que vous n'avez pas à comprendre tout ce que le code fait, dans la mesure où il se contente
 d'appeler quelques fonctions de l'API pour s'assurer que tout fonctionne. Nous verrons toutes ces fonctions en détail
 plus tard.
 
