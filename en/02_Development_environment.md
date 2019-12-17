@@ -41,10 +41,7 @@ bytecode. We'll cover this in depth in the [shader modules](!en/Drawing_a_triang
 chapter. The `Bin` directory also contains the binaries of the Vulkan loader
 and the validation layers, while the `Lib` directory contains the libraries.
 
-The `Doc` directory contains useful information about the Vulkan SDK and an
-offline version of the entire Vulkan specification. Lastly, there's the
-`Include` directory that contains the Vulkan headers. Feel free to explore the
-other files, but we won't need them for this tutorial.
+Lastly, there's the `Include` directory that contains the Vulkan headers. Feel free to explore the other files, but we won't need them for this tutorial.
 
 ### GLFW
 
@@ -464,9 +461,7 @@ the human-readable [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)
 to bytecode. We'll cover this in depth in the [shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules)
 chapter.
 
-The `Doc` directory contains useful information about the Vulkan SDK and an
-offline version of the entire Vulkan specification. Feel free to explore the
-other files, but we won't need them for this tutorial.
+Feel free to explore the other files, but we won't need them for this tutorial.
 
 You are now all set for [the real adventure](!en/Drawing_a_triangle/Setup/Base_code).
 

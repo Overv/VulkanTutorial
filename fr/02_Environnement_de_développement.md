@@ -35,8 +35,7 @@ Nous couvrirons cela dans le chapitre des [modules shader](!fr/Dessiner_un_trian
 Le dossier "Bin" contient aussi les fichiers binaires du loader Vulkan et des validation layers. Le dossier "Lib" en
 contient les librairies.
 
-Le dossier "Doc" contient des informations pouvant vous être utiles sur le SDK et une version offline de la
-spécification de Vulkan. Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
+Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
 fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
 
 ### GLFW
@@ -420,8 +419,7 @@ Avant d'avancer, regardons le SDK plus en détail. Il y a d'autres programmes da
 chapitre [modeules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 
 
-Le dossier "Doc" contient des informations pouvant vous être utiles sur le SDK et une version offline de la
-spécification de Vulkan. Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
+Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
 fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
 
 Bravo, vous êtes fin prêts à vous [lancer avec Vulkan!](!fr/Dessiner_un_triangle/Mise_en_place/Code_de_base)
