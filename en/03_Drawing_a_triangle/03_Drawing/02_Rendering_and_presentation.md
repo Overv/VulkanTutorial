@@ -349,8 +349,7 @@ when closing the window.
 
 ## Frames in flight
 
-If you run your application with validation layers enabled and you monitor the
-memory usage of your application, you may notice that it is slowly growing. The reason for this is that the application is rapidly submitting work in the `drawFrame` function, but doesn't actually check if any of it finishes. If the CPU is submitting work faster than the GPU can keep up with then the queue will slowly fill up with work. Worse, even, is that we are reusing the `imageAvailableSemaphore` and `renderFinishedSemaphore` for multiple frames at the same time.
+If you run your application with validation layers enabled now you may either get errors or notice that the memory usage slowly grows. The reason for this is that the application is rapidly submitting work in the `drawFrame` function, but doesn't actually check if any of it finishes. If the CPU is submitting work faster than the GPU can keep up with then the queue will slowly fill up with work. Worse, even, is that we are reusing the `imageAvailableSemaphore` and `renderFinishedSemaphore` semaphores, along with the command buffers, for multiple frames at the same time!
 
 The easy way to solve this is to wait for work to finish right after submitting it, for example by using `vkQueueWaitIdle`:
 
