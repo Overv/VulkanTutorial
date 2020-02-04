@@ -332,21 +332,13 @@ The second to last parameter is again the optional allocator callback that we
 set to `nullptr`, other than that the parameters are fairly straightforward.
 Since the debug messenger is specific to our Vulkan instance and its layers, it
 needs to be explicitly specified as first argument. You will also see this
-pattern with other *child* objects later on. Let's see if it works... Run the
-program and close the window once you're fed up with staring at the blank
-window. You'll see that the following messages are printed to the command prompt:
+pattern with other *child* objects later on.
 
-![](/images/validation_layer_test.png)
-
->If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.1.106.0/windows/getting_started.html#user-content-verify-the-installation).
-
-Oops, it has already spotted a bug in our program! The
-`VkDebugUtilsMessengerEXT` object needs to be cleaned up with a call to
+The `VkDebugUtilsMessengerEXT` object also needs to be cleaned up with a call to
 `vkDestroyDebugUtilsMessengerEXT`. Similarly to `vkCreateDebugUtilsMessengerEXT`
-the function needs to be explicitly loaded. Note that it is normal for this message to be printed multiple times. This happens because multiple validation layers check for the deletion of the debug messenger.
+the function needs to be explicitly loaded.
 
-Create another proxy function right
-below `CreateDebugUtilsMessengerEXT`:
+Create another proxy function right below `CreateDebugUtilsMessengerEXT`:
 
 ```c++
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
@@ -373,10 +365,6 @@ void cleanup() {
     glfwTerminate();
 }
 ```
-
-When you run the program again you'll see that the error message has
-disappeared. If you want to see which call triggered a message, you can add a
-breakpoint to the message callback and look at the stack trace.
 
 ## Debugging instance creation and destruction
 
@@ -439,6 +427,16 @@ void createInstance() {
 ```
 
 The `debugCreateInfo` variable is placed outside the if statement to ensure that it is not destroyed before the `vkCreateInstance` call. By creating an additional debug messenger this way it will automatically be used during `vkCreateInstance` and `vkDestroyInstance` and cleaned up after that.
+
+## Testing
+
+Now let's intentionally make a mistake to see the validation layers in action. Temporarily remove the call to `DestroyDebugUtilsMessengerEXT` in the `cleanup` function and run your program. Once it exits you should see something like this:
+
+![](/images/validation_layer_test.png)
+
+>If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.2.131.1/windows/getting_started.html#user-content-verify-the-installation).
+
+If you want to see which call triggered a message, you can add a breakpoint to the message callback and look at the stack trace.
 
 ## Configuration
 
