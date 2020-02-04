@@ -317,11 +317,13 @@ mais très inefficace. Le programme devrait maintenant se terminer sans problèm
 
 ## Frames en vol
 
-Si vous lancez l'application avec les validation layers et que vous analysez l'utilisation de la mémoire vous allez
-vous rendre compte qu'elle augmente, lentement mais sûrement. Si le CPU envoie plus de commandes que le GPU ne peut en
-exécuter, ce qui est le cas car nous envoyons nos command buffer de manière totalement débridée, la queue de graphismes
-va progressivement se remplir de travail à effectuer. Pire encore, nous utilisons `imageAvailableSemaphore` et
-`renderFinishedSemaphore` pour plusieurs frames en même temps.
+Si vous lancez l'application avec les validation layers maintenant, vous pouvez soit avoir des erreurs soit vous remarquerez
+que l'utilisation de la mémoire augmente, lentement mais sûrement. La raison est que l'application soumet rapidement du
+travail dans la fonction `drawframe`, mais que l'on ne vérifie pas si ces rendus sont effectivement terminés.
+Si le CPU envoie plus de commandes que le GPU ne peut en exécuter, ce qui est le cas car nous envoyons nos command buffers
+de manière totalement débridée, la queue de graphismes va progressivement se remplir de travail à effectuer.
+Pire encore, nous utilisons `imageAvailableSemaphore` et `renderFinishedSemaphore`  ainsi que nos command buffers pour
+plusieurs frames en même temps.
 
 Le plus simple est d'attendre que le logical device n'aie plus de travail à effectuer avant de lui en envoyer de
 nouveau, par exemple à l'aide de `vkQueueIdle` :
