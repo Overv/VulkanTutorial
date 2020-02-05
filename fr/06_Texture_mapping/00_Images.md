@@ -190,7 +190,7 @@ comme un plan dans un espace en 3D, nous devons indiquer `1` au champ `depth`. F
 tableau, et nous verrons le mipmapping plus tard.
 
 ```c++
-imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
 ```
 
 Vulkan supporte de nombreux formats, mais nous devons utiliser le même format que les données présentes dans le buffer.
@@ -258,7 +258,7 @@ if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS) {
 ```
 
 L'image est créée par la fonction `vkCreateImage`, qui ne possède pas d'argument particulièrement intéressant. Il est
-possible que le format `VK_FORMAT_R8G8B8A8_UNORM` ne soit pas supporté par la carte graphique, mais c'est tellement peu
+possible que le format `VK_FORMAT_R8G8B8A8_SRGB` ne soit pas supporté par la carte graphique, mais c'est tellement peu
 probable que nous ne verrons pas comment y remédier. En effet utiliser un autre format demanderait de réaliser plusieurs
 conversions compliquées. Nous reviendrons sur ces conversions dans le chapitre sur le buffer de profondeur.
 
@@ -349,7 +349,7 @@ void createTextureImage() {
 
     stbi_image_free(pixels);
 
-    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 }
 ```
 
@@ -565,7 +565,7 @@ texture. Notre prochaine étape est donc d'y placer les pixels en les copiant de
 C'est simple à réaliser avec les fonctions que nous venons de créer :
 
 ```c++
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 ```
 
@@ -575,7 +575,7 @@ Pour ensuite pouvoir échantilloner la texture depuis le framgment shader nous d
 qui la préparera à être accédée depuis un shader :
 
 ```c++
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 ```
 
 ## Derniers champs de la barrière de transition
@@ -659,7 +659,7 @@ d'implémenter ceci attendez que nous ayons fait fonctionner l'échantillonage.
 Complétez la fonction `createImageTexture` en libérant le buffer intermédiaire et en libérant la mémoire :
 
 ```c++
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);

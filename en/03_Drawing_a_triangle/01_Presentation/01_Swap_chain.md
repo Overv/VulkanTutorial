@@ -222,22 +222,20 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 
 Each `VkSurfaceFormatKHR` entry contains a `format` and a `colorSpace` member. The
 `format` member specifies the color channels and types. For example,
-`VK_FORMAT_B8G8R8A8_UNORM` means that we store the B, G, R and alpha channels in
+`VK_FORMAT_B8G8R8A8_SRGB` means that we store the B, G, R and alpha channels in
 that order with an 8 bit unsigned integer for a total of 32 bits per pixel. The
 `colorSpace` member indicates if the SRGB color space is supported or not using
 the `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR` flag. Note that this flag used to be
 called `VK_COLORSPACE_SRGB_NONLINEAR_KHR` in old versions of the specification.
 
-For the color space we'll use SRGB if it is available, because it [results in more accurate perceived colors](http://stackoverflow.com/questions/12524623/).
-Working directly with SRGB colors is a little bit challenging, so we'll use
-standard RGB for the color format, of which one of the most common ones is
-`VK_FORMAT_B8G8R8A8_UNORM`.
+For the color space we'll use SRGB if it is available, because it [results in more accurate perceived colors](http://stackoverflow.com/questions/12524623/). It is also pretty much the standard color space for images, like the textures we'll use later on.
+Because of that we should also use an SRGB color format, of which one of the most common ones is `VK_FORMAT_B8G8R8A8_SRGB`.
 
 Let's go through the list and see if the preferred combination is available:
 
 ```c++
 for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
         return availableFormat;
     }
 }
@@ -250,7 +248,7 @@ format that is specified.
 ```c++
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
     for (const auto& availableFormat : availableFormats) {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             return availableFormat;
         }
     }
