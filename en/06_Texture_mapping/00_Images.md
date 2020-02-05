@@ -214,7 +214,7 @@ many texels there are on each axis. That's why `depth` must be `1` instead of
 `0`. Our texture will not be an array and we won't be using mipmapping for now.
 
 ```c++
-imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
 ```
 
 Vulkan supports many possible image formats, but we should use the same format
@@ -295,7 +295,7 @@ if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS) {
 ```
 
 The image is created using `vkCreateImage`, which doesn't have any particularly
-noteworthy parameters. It is possible that the `VK_FORMAT_R8G8B8A8_UNORM` format
+noteworthy parameters. It is possible that the `VK_FORMAT_R8G8B8A8_SRGB` format
 is not supported by the graphics hardware. You should have a list of acceptable
 alternatives and go with the best one that is supported. However, support for
 this particular format is so widespread that we'll skip this step. Using
@@ -392,7 +392,7 @@ void createTextureImage() {
 
     stbi_image_free(pixels);
 
-    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 }
 ```
 
@@ -631,7 +631,7 @@ buffer to the texture image. This involves two steps:
 This is easy to do with the functions we just created:
 
 ```c++
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 ```
 
@@ -644,7 +644,7 @@ To be able to start sampling from the texture image in the shader, we need one
 last transition to prepare it for shader access:
 
 ```c++
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 ```
 
 ## Transition barrier masks
@@ -741,7 +741,7 @@ Finish the `createTextureImage` function by cleaning up the staging buffer and
 its memory at the end:
 
 ```c++
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);

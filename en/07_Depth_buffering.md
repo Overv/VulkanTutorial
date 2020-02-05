@@ -293,7 +293,7 @@ swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageForma
 ...
 depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 ...
-textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 ```
 
 That's it for creating the depth image. We don't need to map it or copy another
