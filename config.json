@@ -23,7 +23,8 @@
             "Vulkan Quick Reference": "https://www.khronos.org/files/vulkan10-reference-guide.pdf",
             "LunarG Vulkan SDK": "https://lunarg.com/vulkan-sdk/",
             "Vulkan Hardware Database": "http://vulkan.gpuinfo.org/",
-            "Tutorial for Rust": "https://github.com/bwasty/vulkan-tutorial-rs"
+            "Tutorial for Rust": "https://github.com/bwasty/vulkan-tutorial-rs",
+            "Tutorial for Java": "https://github.com/Naitsirc98/Vulkan-Tutorial-Java"
         }
     },
     "ignore": {
