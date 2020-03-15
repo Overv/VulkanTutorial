@@ -317,6 +317,8 @@ something resembling the following when you run your program:
 
 ![](/images/triangle.png)
 
+>This colored triangle may look a bit different from the one you're used to seeing in graphics tutorials. That's because this tutorial lets the shader interpolate in linear color space and converts to sRGB color space afterwards. See [this blog post](https://medium.com/@heypete/hello-triangle-meet-swift-and-wide-color-6f9e246616d9) for a discussion of the difference.
+
 Yay! Unfortunately, you'll see that when validation layers are enabled, the
 program crashes as soon as you close it. The messages printed to the terminal
 from `debugCallback` tell us why:
