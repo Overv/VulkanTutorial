@@ -250,11 +250,11 @@ the color attachment output stage itself.
 
 ```c++
 dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 ```
 
 The operations that should wait on this are in the color attachment stage and
-involve the reading and writing of the color attachment. These settings will
+involve the writing of the color attachment. These settings will
 prevent the transition from happening until it's actually necessary (and
 allowed): when we want to start writing colors to it.
 
