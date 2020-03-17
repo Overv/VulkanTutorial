@@ -225,11 +225,11 @@ qu'à attendre à cette étape.
 
 ```c++
 dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 ```
 
 Nous indiquons ici que les opérations qui doivent attendre pendant l'étape liée à l'attachement de couleur sont celles
-ayant trait à la lecture et à l'écriture. Ces paramètres permettent de faire attendre la transition jusqu'à ce qu'elle
+ayant trait à l'écriture. Ces paramètres permettent de faire attendre la transition jusqu'à ce qu'elle
 soit possible, ce qui correspond au moment où la passe accède à cet attachement puisqu'elle est elle-même configurée
 pour attendre ce moment.
 
