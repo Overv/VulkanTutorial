@@ -4,8 +4,9 @@ Cependant les étapes pour les installer diffèrent un peu, d'où les sections s
 
 ## Windows
 
-Si vous développez pour Windows, je partirai du principe que vous utilisez Visual Studio 2017 pour ce projet. Vous
-pouvez aussi utiliser VS 2013 ou 2015, mais les étapes sont un peu différentes.
+Si vous développez pour Windows, je partirai du principe que vous utilisez Visual Studio pour ce projet.
+Pour un support complet de C++17, il vous faut Visual Studio 2017 or 2019. Les étapes décrites ci-dessous
+ont été écrites pour VS 2017.
 
 ### SDK Vulkan
 
@@ -49,8 +50,7 @@ l'avantage d'abstraire d'autres aspects spécifiques à la plateforme requis par
 Vous pouvez trouver la dernière version de GLFW sur leur site officiel. Nous utiliserons la version 64 bits, mais vous
 pouvez également utiliser la version 32 bits. Dans ce cas assurez-vous de bien lier le dossier "Lib32" dans le SDK et
 non "Lib". Après avoir téléchargé GLFW, extrayez l'archive à l'emplacement qui vous convient. J'ai choisi de créer un
-dossier "Librairies" dans le dossier de Visual Studio. Il est normal qu'il n'y ait pas de dossier "libvc-2017", le
-dossier "libvc-2015" est toujours compatible.
+dossier "Librairies" dans le dossier de Visual Studio.
 
 ![](/images/glfw_directory.png)
 
@@ -179,7 +179,7 @@ Si le nombre d'extensions est nul, il y a un problème avec la configuration de 
 
 Ces instructions sont conçues pour les utilisateurs d'Ubuntu, mais vous devriez pouvoir suivre ces instructions depuis
 une autre distribution si vous recompilez vous-même le SDK et adaptez les commandes "apt" à votre propre gestionnaire de
-packages. Installez si ne n'est pas déjà fait gcc 4.8 ou plus récent. Vous aurez égamelent besoin de make et de CMake.
+packages. Il vous faut un compilateur qui supporte C++17 (GCC 7+ ou Clang 5+). Vous aurez également besoin de make et de CMake.
 
 ### Le SDK Vulkan
 

@@ -7,7 +7,8 @@ separately here.
 ## Windows
 
 If you're developing for Windows, then I will assume that you are using Visual
-Studio 2017 to compile your code. You may also use Visual Studio 2013 or 2015, but the steps may be a bit different.
+Studio to compile your code. For complete C++17 support, you need to use either
+Visual Studio 2017 or 2019. The steps outlined below were written for VS 2017.
 
 ### Vulkan SDK
 
@@ -59,8 +60,7 @@ In this tutorial we'll be using the 64-bit binaries, but you can of course also
 choose to build in 32 bit mode. In that case make sure to link with the Vulkan
 SDK binaries in the `Lib32` directory instead of `Lib`. After downloading it, extract the archive
 to a convenient location. I've chosen to create a `Libraries` directory in the
-Visual Studio directory under documents. Don't worry about there not being a
-`libvc-2017` folder, the `libvc-2015` one is compatible.
+Visual Studio directory under documents.
 
 ![](/images/glfw_directory.png)
 
@@ -197,9 +197,9 @@ The number of extensions should be non-zero. Congratulations, you're all set for
 
 These instructions will be aimed at Ubuntu users, but you may be able to follow
 along by compiling the LunarG SDK yourself and changing the `apt` commands to
-the package manager commands that are appropriate for you. You should already
-have a version of GCC installed that supports modern C++ (4.8 or later). You
-also need both CMake and make.
+the package manager commands that are appropriate for you. You should have a
+compiler that supports C++17 (GCC 7+ or Clang 5+). You also need both CMake and
+make.
 
 ### Vulkan SDK
 
