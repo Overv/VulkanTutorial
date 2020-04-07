@@ -160,8 +160,8 @@ because we'll be referring to these values a couple of times in the future. I've
 added the following lines above the `HelloTriangleApplication` class definition:
 
 ```c++
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
 ```
 
 and replaced the window creation call with
