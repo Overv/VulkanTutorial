@@ -55,8 +55,8 @@ dossier appelé `models`, et placez l'image dans le dossier `textures`.
 Ajoutez deux variables de configuration pour la localisation du modèle et de la texture :
 
 ```c++
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
 
 const std::string MODEL_PATH = "models/chalet.obj";
 const std::string TEXTURE_PATH = "textures/chalet.jpg";

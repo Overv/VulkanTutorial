@@ -145,8 +145,8 @@ Nous devrions plutôt utiliser des constantes pour la hauteur et la largeur dans
 valeurs dans le futur. J'ai donc ajouté ceci au-dessus de la définition de la classe `HelloTriangleApplication` :
 
 ```c++
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
 ```
 
 et remplacé la création de la fenêtre par :
