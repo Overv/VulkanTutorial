@@ -398,7 +398,7 @@ void createGraphicsPipeline() {
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 ```
 
-The cleanup should then happen at the end of the function by adding two calls to `vkDestroyShaderModule`. ALl of the remaining code in this chapter will be inserted before these lines.
+The cleanup should then happen at the end of the function by adding two calls to `vkDestroyShaderModule`. All of the remaining code in this chapter will be inserted before these lines.
 
 ```c++
     ...
