@@ -5,7 +5,7 @@ an *instance*. The instance is the connection between your application and the
 Vulkan library and creating it involves specifying some details about your
 application to the driver.
 
-Start by adding a `createInstance` function and add a call to it in the
+Start by adding a `createInstance` function and invoking it in the
 `initVulkan` function.
 
 ```c++
@@ -14,7 +14,7 @@ void initVulkan() {
 }
 ```
 
-Additionally add a class member to hold the handle to the instance:
+Additionally add a data member to hold the handle to the instance:
 
 ```c++
 private:
@@ -23,13 +23,13 @@ VkInstance instance;
 
 Now, to create an instance we'll first have to fill in a struct with some
 information about our application. This data is technically optional, but it may
-provide some useful information to the driver to optimize for our specific
-application, for example because it uses a well-known graphics engine with
-certain special behavior. This struct is called `VkApplicationInfo`:
+provide some useful information to the driver in order to optimize our specific
+application (e.g. because it uses a well-known graphics engine with
+certain special behavior). This struct is called `VkApplicationInfo`:
 
 ```c++
 void createInstance() {
-    VkApplicationInfo appInfo = {};
+    VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Hello Triangle";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -42,7 +42,7 @@ void createInstance() {
 As mentioned before, many structs in Vulkan require you to explicitly specify
 the type in the `sType` member. This is also one of the many structs with a
 `pNext` member that can point to extension information in the future. We're
-using default initialization here to leave it as `nullptr`.
+using value initialization here to leave it as `nullptr`.
 
 A lot of information in Vulkan is passed through structs instead of function
 parameters and we'll have to fill in one more struct to provide sufficient
@@ -150,10 +150,10 @@ extension. We can list them with a simple for loop (`\t` is a tab for
 indentation):
 
 ```c++
-std::cout << "available extensions:" << std::endl;
+std::cout << "available extensions:\n";
 
 for (const auto& extension : extensions) {
-    std::cout << "\t" << extension.extensionName << std::endl;
+    std::cout << '\t' << extension.extensionName << '\n';
 }
 ```
 
