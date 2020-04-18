@@ -282,7 +282,7 @@ There are two ways to deal with that problem:
 
 * Use a memory heap that is host coherent, indicated with
 `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`
-* Call `vkFlushMappedMemoryRanges` to after writing to the mapped memory, and
+* Call `vkFlushMappedMemoryRanges` after writing to the mapped memory, and
 call `vkInvalidateMappedMemoryRanges` before reading from the mapped memory
 
 We went for the first approach, which ensures that the mapped memory always
