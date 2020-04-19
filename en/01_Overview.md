@@ -229,7 +229,7 @@ uses structs to provide parameters to functions. For example, object creation
 generally follows this pattern:
 
 ```c++
-VkXXXCreateInfo createInfo = {};
+VkXXXCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_XXX_CREATE_INFO;
 createInfo.pNext = nullptr;
 createInfo.foo = ...;

@@ -95,7 +95,7 @@ struct Vertex {
     glm::vec3 color;
 
     static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription = {};
+        VkVertexInputBindingDescription bindingDescription{};
 
         return bindingDescription;
     }
@@ -107,7 +107,7 @@ vertices. It specifies the number of bytes between data entries and whether to
 move to the next data entry after each vertex or after each instance.
 
 ```c++
-VkVertexInputBindingDescription bindingDescription = {};
+VkVertexInputBindingDescription bindingDescription{};
 bindingDescription.binding = 0;
 bindingDescription.stride = sizeof(Vertex);
 bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -137,7 +137,7 @@ to `Vertex` to fill in these structs.
 ...
 
 static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
 
     return attributeDescriptions;
 }

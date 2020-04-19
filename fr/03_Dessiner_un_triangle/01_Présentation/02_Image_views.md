@@ -51,7 +51,7 @@ Les paramètres pour la création d'image views se spécifient dans la structure
 premiers paramètres sont assez simples :
 
 ```c++
-VkImageViewCreateInfo createInfo = {};
+VkImageViewCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 createInfo.image = swapChainImages[i];
 ```

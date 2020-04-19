@@ -14,7 +14,7 @@ Trouvez la fonction `createDescriptorSetLayout` et créez une instance de `VkDes
 structure correspond aux descripteurs d'image combinés. Nous n'avons quasiment que l'indice du binding à y mettre :
 
 ```c++
-VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 samplerLayoutBinding.binding = 1;
 samplerLayoutBinding.descriptorCount = 1;
 samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -22,7 +22,7 @@ samplerLayoutBinding.pImmutableSamplers = nullptr;
 samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
-VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+VkDescriptorSetLayoutCreateInfo layoutInfo{};
 layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 layoutInfo.pBindings = bindings.data();
@@ -39,13 +39,13 @@ fonction `createDescriptorPool` pour qu'elle inclue une structure `VkDesciptorPo
 descripteur :
 
 ```c++
-std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+std::array<VkDescriptorPoolSize, 2> poolSizes{};
 poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 
-VkDescriptorPoolCreateInfo poolInfo = {};
+VkDescriptorPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 poolInfo.pPoolSizes = poolSizes.data();
@@ -57,12 +57,12 @@ La dernière étape consiste à lier l'image et le sampler aux descripteurs du s
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
-    VkDescriptorBufferInfo bufferInfo = {};
+    VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformBuffers[i];
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
 
-    VkDescriptorImageInfo imageInfo = {};
+    VkDescriptorImageInfo imageInfo{};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfo.imageView = textureImageView;
     imageInfo.sampler = textureSampler;
@@ -76,7 +76,7 @@ une structure de type `VkDescriptorImageInfo`. Cela est similaire à la créatio
 que nous avons créés dans les chapitres précédents s'assemblent enfin!
 
 ```c++
-std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
 descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 descriptorWrites[0].dstSet = descriptorSets[i];
@@ -112,7 +112,7 @@ struct Vertex {
     glm::vec2 texCoord;
 
     static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription = {};
+        VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
         bindingDescription.stride = sizeof(Vertex);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -121,7 +121,7 @@ struct Vertex {
     }
 
     static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;

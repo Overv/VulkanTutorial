@@ -15,7 +15,7 @@ Tout cela combiné définit le fonctionnement de la pipeline graphique. Nous pou
 Commençons par référencer le tableau de `VkPipelineShaderStageCreateInfo`.
 
 ```c++
-VkGraphicsPipelineCreateInfo pipelineInfo = {};
+VkGraphicsPipelineCreateInfo pipelineInfo{};
 pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 pipelineInfo.stageCount = 2;
 pipelineInfo.pStages = shaderStages;

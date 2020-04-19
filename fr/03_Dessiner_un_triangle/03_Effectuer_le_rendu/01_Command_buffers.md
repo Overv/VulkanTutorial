@@ -43,7 +43,7 @@ La création d'une command pool ne nécessite que deux paramètres :
 ```c++
 QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-VkCommandPoolCreateInfo poolInfo = {};
+VkCommandPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 poolInfo.flags = 0; // Optionel
@@ -123,7 +123,7 @@ type `VkCommandBufferAllocateInfo`. Cette structure spécifie la command pool et
 celle-ci :
 
 ```c++
-VkCommandBufferAllocateInfo allocInfo = {};
+VkCommandBufferAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 allocInfo.commandPool = commandPool;
 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -153,7 +153,7 @@ command buffer.
 
 ```c++
 for (size_t i = 0; i < commandBuffers.size(); i++) {
-    VkCommandBufferBeginInfo beginInfo = {};
+    VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0; // Optionnel
     beginInfo.pInheritanceInfo = nullptr; // Optionel
@@ -187,7 +187,7 @@ L'affichage commence par le lancement de la render pass réalisé par `vkCmdBegi
 à l'aide des paramètres remplis dans une structure de type `VkRenderPassBeginInfo`.
 
 ```c++
-VkRenderPassBeginInfo renderPassInfo = {};
+VkRenderPassBeginInfo renderPassInfo{};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 renderPassInfo.renderPass = renderPass;
 renderPassInfo.framebuffer = swapChainFramebuffers[i];

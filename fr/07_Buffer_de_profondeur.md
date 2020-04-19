@@ -18,7 +18,7 @@ struct Vertex {
     ...
 
     static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
@@ -342,7 +342,7 @@ Nous allons modifier `createRenderPass` pour inclure l'attachement de profondeur
 `VkAttachementDescription` :
 
 ```c++
-VkAttachmentDescription depthAttachment = {};
+VkAttachmentDescription depthAttachment{};
 depthAttachment.format = findDepthFormat();
 depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -359,7 +359,7 @@ de même nous n'avons pas besoin des valeurs du rendu précédent pour le début
 mettre `VK_IMAGE_LAYOUT_UNDEFINED` comme valeur pour `initialLayout`.
 
 ```c++
-VkAttachmentReference depthAttachmentRef = {};
+VkAttachmentReference depthAttachmentRef{};
 depthAttachmentRef.attachment = 1;
 depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 ```
@@ -367,7 +367,7 @@ depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 Ajoutez une référence à l'attachement dans notre seule et unique subpasse :
 
 ```c++
-VkSubpassDescription subpass = {};
+VkSubpassDescription subpass{};
 subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 subpass.colorAttachmentCount = 1;
 subpass.pColorAttachments = &colorAttachmentRef;
@@ -379,7 +379,7 @@ sur plusieurs buffers n'a de toute façon pas beaucoup de sens.
 
 ```c++
 std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
-VkRenderPassCreateInfo renderPassInfo = {};
+VkRenderPassCreateInfo renderPassInfo{};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 renderPassInfo.pAttachments = attachments.data();
@@ -402,7 +402,7 @@ std::array<VkImageView, 2> attachments = {
     depthImageView
 };
 
-VkFramebufferCreateInfo framebufferInfo = {};
+VkFramebufferCreateInfo framebufferInfo{};
 framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 framebufferInfo.renderPass = renderPass;
 framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -434,7 +434,7 @@ Comme nous avons plusieurs attachements avec `VK_ATTACHMENT_LOAD_OP_CLEAR`, nous
 suppression. Allez à `createCommandBuffers` et créez un tableau de `VkClearValue` :
 
 ```c++
-std::array<VkClearValue, 2> clearValues = {};
+std::array<VkClearValue, 2> clearValues{};
 clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
 clearValues[1].depthStencil = {1.0f, 0};
 
@@ -452,7 +452,7 @@ L'attachement de profondeur est prêt à être utilisé, mais le test de profond
 configuré à l'aide d'une structure de type `VkPipelineDepthStencilStateCreateInfo`.
 
 ```c++
-VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+VkPipelineDepthStencilStateCreateInfo depthStencil{};
 depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 depthStencil.depthTestEnable = VK_TRUE;
 depthStencil.depthWriteEnable = VK_TRUE;
@@ -482,8 +482,8 @@ valeurs fournies ici. Nous n'utiliserons pas cette fonctionnalité.
 
 ```c++
 depthStencil.stencilTestEnable = VK_FALSE;
-depthStencil.front = {}; // Optionel
-depthStencil.back = {}; // Optionel
+depthStencil.front{}; // Optionel
+depthStencil.back{}; // Optionel
 ```
 
 Les trois derniers champs configurent les opérations du buffer de stencil, que nous n'utiliserons pas non plus dans ce

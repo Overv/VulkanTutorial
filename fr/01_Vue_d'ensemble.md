@@ -190,7 +190,7 @@ Les fonctions sont préfixées par ‘vk’, les types comme les énumération e
 fonctions. Par exemple la création d’objet suit généralement le schéma suivant :
 
 ```c++
-VkXXXCreateInfo createInfo = {};
+VkXXXCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_XXX_CREATE_INFO;
 createInfo.pNext = nullptr;
 createInfo.foo = ...;

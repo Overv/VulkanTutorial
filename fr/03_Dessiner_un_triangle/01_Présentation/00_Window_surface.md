@@ -41,7 +41,7 @@ Une window surface est un objet Vulkan comme un autre et nécessite donc de remp
 à la fenêtre et au processus courant.
 
 ```c++
-VkWin32SurfaceCreateInfoKHR createInfo = {};
+VkWin32SurfaceCreateInfoKHR createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 createInfo.hwnd = glfwGetWin32Window(window);
 createInfo.hinstance = GetModuleHandle(nullptr);
@@ -177,7 +177,7 @@ std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indice
 
 float queuePriority = 1.0f;
 for (uint32_t queueFamily : uniqueQueueFamilies) {
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
+    VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = queueFamily;
     queueCreateInfo.queueCount = 1;

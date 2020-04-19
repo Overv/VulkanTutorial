@@ -328,7 +328,7 @@ aient un alignement compatible avec `uint32_t`. Heuresement pour nous l'objet al
 s'assure que les données satisfont le pire cas d'alignement.
 
 ```c++
-VkShaderModuleCreateInfo createInfo = {};
+VkShaderModuleCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 createInfo.codeSize = code.size();
 createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
@@ -387,7 +387,7 @@ Nous allons d'abord remplir cette structure pour le vertex shader, une fois de p
 `createGraphicsPipeline`.
 
 ```c++
-VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
+VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 ```
@@ -414,7 +414,7 @@ constante mettez ce paramètre à `nullptr`.
 Modifier la structure pour qu'elle corresponde au fragment shader est très simple :
 
 ```c++
-VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
+VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 fragShaderStageInfo.module = fragShaderModule;

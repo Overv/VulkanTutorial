@@ -32,7 +32,7 @@ Dans notre cas nous aurons un seul attachement de couleur, et c'est une image de
 
 ```c++
 void createRenderPass() {
-    VkAttachmentDescription colorAttachment = {};
+    VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapChainImageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 }
@@ -107,7 +107,7 @@ Chacune d'entre elle référence un ou plusieurs attachements décrits par les s
 précédemment. Ces références sont elles-mêmes des structures du type `VkAttachmentReference` et ressemblent à cela :
 
 ```c++
-VkAttachmentReference colorAttachmentRef = {};
+VkAttachmentReference colorAttachmentRef{};
 colorAttachmentRef.attachment = 0;
 colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 ```
@@ -122,7 +122,7 @@ commence. Nous voulons que l'attachement soit un color buffer, et pour cela la m
 La subpasse est décrite dans la structure `VkSubpassDescription` :
 
 ```c++
-VkSubpassDescription subpass = {};
+VkSubpassDescription subpass{};
 subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 ```
 
@@ -160,7 +160,7 @@ laquelle nous devons remplir un tableau d'attachements et de subpasses. Les obje
 les attachements en utilisant les indices de ce tableau.
 
 ```c++
-VkRenderPassCreateInfo renderPassInfo = {};
+VkRenderPassCreateInfo renderPassInfo{};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 renderPassInfo.attachmentCount = 1;
 renderPassInfo.pAttachments = &colorAttachment;

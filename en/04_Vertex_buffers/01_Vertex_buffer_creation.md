@@ -41,7 +41,7 @@ void createVertexBuffer() {
 Creating a buffer requires us to fill a `VkBufferCreateInfo` structure.
 
 ```c++
-VkBufferCreateInfo bufferInfo = {};
+VkBufferCreateInfo bufferInfo{};
 bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 bufferInfo.size = sizeof(vertices[0]) * vertices.size();
 ```
@@ -79,7 +79,7 @@ VkBuffer vertexBuffer;
 ...
 
 void createVertexBuffer() {
-    VkBufferCreateInfo bufferInfo = {};
+    VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = sizeof(vertices[0]) * vertices.size();
     bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -201,7 +201,7 @@ We now have a way to determine the right memory type, so we can actually
 allocate the memory by filling in the `VkMemoryAllocateInfo` structure.
 
 ```c++
-VkMemoryAllocateInfo allocInfo = {};
+VkMemoryAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 allocInfo.allocationSize = memRequirements.size;
 allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);

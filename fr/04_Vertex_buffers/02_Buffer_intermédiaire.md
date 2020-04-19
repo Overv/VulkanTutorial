@@ -36,7 +36,7 @@ Comme nous allons créer plusieurs buffers, il serait judicieux de placer la log
 
 ```c++
 void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
-    VkBufferCreateInfo bufferInfo = {};
+    VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
     bufferInfo.usage = usage;
@@ -49,7 +49,7 @@ void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyF
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo = {};
+    VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
@@ -134,7 +134,7 @@ création de la command pool, car les commands buffers ne seront utilisés qu'un
 
 ```c++
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-    VkCommandBufferAllocateInfo allocInfo = {};
+    VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandPool = commandPool;
@@ -148,7 +148,7 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 Enregistrez ensuite le command buffer :
 
 ```c++
-VkCommandBufferBeginInfo beginInfo = {};
+VkCommandBufferBeginInfo beginInfo{};
 beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
@@ -160,7 +160,7 @@ terminée avant de sortir de la fonction. Il est alors préférable d'informer l
 `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`.
 
 ```c++
-VkBufferCopy copyRegion = {};
+VkBufferCopy copyRegion{};
 copyRegion.srcOffset = 0; // Optionel
 copyRegion.dstOffset = 0; // Optionel
 copyRegion.size = size;
@@ -180,7 +180,7 @@ Ce command buffer ne sert qu'à réaliser les copies des buffers, nous pouvons d
 maintenant. Exécutez le command buffer pour compléter le transfert :
 
 ```c++
-VkSubmitInfo submitInfo = {};
+VkSubmitInfo submitInfo{};
 submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 submitInfo.commandBufferCount = 1;
 submitInfo.pCommandBuffers = &commandBuffer;

@@ -36,7 +36,7 @@ The code for this function can be based directly on `createImageViews`. The only
 two changes you have to make are the `format` and the `image`:
 
 ```c++
-VkImageViewCreateInfo viewInfo = {};
+VkImageViewCreateInfo viewInfo{};
 viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 viewInfo.image = textureImage;
 viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -63,7 +63,7 @@ to abstract it into a new `createImageView` function:
 
 ```c++
 VkImageView createImageView(VkImage image, VkFormat format) {
-    VkImageViewCreateInfo viewInfo = {};
+    VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -177,7 +177,7 @@ Samplers are configured through a `VkSamplerCreateInfo` structure, which
 specifies all filters and transformations that it should apply.
 
 ```c++
-VkSamplerCreateInfo samplerInfo = {};
+VkSamplerCreateInfo samplerInfo{};
 samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 samplerInfo.magFilter = VK_FILTER_LINEAR;
 samplerInfo.minFilter = VK_FILTER_LINEAR;
@@ -319,7 +319,7 @@ That's because anisotropic filtering is actually an optional device feature. We
 need to update the `createLogicalDevice` function to request it:
 
 ```c++
-VkPhysicalDeviceFeatures deviceFeatures = {};
+VkPhysicalDeviceFeatures deviceFeatures{};
 deviceFeatures.samplerAnisotropy = VK_TRUE;
 ```
 

@@ -368,7 +368,7 @@ Comme la tradition le veut avec Vulkan, la création d'une swap chain nécessite
 commence de manière familière :
 
 ```c++
-VkSwapchainCreateInfoKHR createInfo = {};
+VkSwapchainCreateInfoKHR createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 createInfo.surface = surface;
 ```

@@ -157,7 +157,7 @@ copier vers le vecteur des vertices finales :
 ```c++
 for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-        Vertex vertex = {};
+        Vertex vertex{};
 
         vertices.push_back(vertex);
         indices.push_back(indices.size());
@@ -219,11 +219,11 @@ manière simple de procéder consiste à utiliser une `unoredered_map` pour suiv
 
 ...
 
-std::unordered_map<Vertex, uint32_t> uniqueVertices = {};
+std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
 for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-        Vertex vertex = {};
+        Vertex vertex{};
 
         ...
 
