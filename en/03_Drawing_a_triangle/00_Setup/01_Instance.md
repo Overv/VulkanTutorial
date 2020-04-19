@@ -52,7 +52,7 @@ Global here means that they apply to the entire program and not a specific
 device, which will become clear in the next few chapters.
 
 ```c++
-VkInstanceCreateInfo createInfo = {};
+VkInstanceCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 createInfo.pApplicationInfo = &appInfo;
 ```

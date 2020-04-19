@@ -171,7 +171,7 @@ VkDeviceMemory textureImageMemory;
 Les paramètre pour la création d'une image sont indiqués dans une structure de type `VkImageCreateInfo` :
 
 ```c++
-VkImageCreateInfo imageInfo = {};
+VkImageCreateInfo imageInfo{};
 imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 imageInfo.imageType = VK_IMAGE_TYPE_2D;
 imageInfo.extent.width = static_cast<uint32_t>(texWidth);
@@ -266,7 +266,7 @@ conversions compliquées. Nous reviendrons sur ces conversions dans le chapitre 
 VkMemoryRequirements memRequirements;
 vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
 
-VkMemoryAllocateInfo allocInfo = {};
+VkMemoryAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 allocInfo.allocationSize = memRequirements.size;
 allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -288,7 +288,7 @@ donc la fonction `createImage` :
 
 ```c++
 void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
-    VkImageCreateInfo imageInfo = {};
+    VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
     imageInfo.extent.width = width;
@@ -310,7 +310,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     VkMemoryRequirements memRequirements;
     vkGetImageMemoryRequirements(device, image, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo = {};
+    VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
@@ -360,7 +360,7 @@ judicieux de placer cette logique dans une autre fonction :
 
 ```c++
 VkCommandBuffer beginSingleTimeCommands() {
-    VkCommandBufferAllocateInfo allocInfo = {};
+    VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandPool = commandPool;
@@ -369,7 +369,7 @@ VkCommandBuffer beginSingleTimeCommands() {
     VkCommandBuffer commandBuffer;
     vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 
-    VkCommandBufferBeginInfo beginInfo = {};
+    VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
@@ -381,7 +381,7 @@ VkCommandBuffer beginSingleTimeCommands() {
 void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
 
-    VkSubmitInfo submitInfo = {};
+    VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
@@ -399,7 +399,7 @@ Le code de ces fonctions est basé sur celui de `copyBuffer`. Vous pouvez mainte
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-    VkBufferCopy copyRegion = {};
+    VkBufferCopy copyRegion{};
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
@@ -424,7 +424,7 @@ de pipeline est en général utilisée pour synchroniser l'accès à une ressour
 existe au passage un équivalent pour les buffers : une barrière pour mémoire de buffer.
 
 ```c++
-VkImageMemoryBarrier barrier = {};
+VkImageMemoryBarrier barrier{};
 barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 barrier.oldLayout = oldLayout;
 barrier.newLayout = newLayout;
@@ -510,7 +510,7 @@ Comme avec les recopies de buffers, nous devons indiquer les parties du buffer �
 écrire. Ces données doivent être placées dans une structure de type `VkBufferImageCopy`.
 
 ```c++
-VkBufferImageCopy region = {};
+VkBufferImageCopy region{};
 region.bufferOffset = 0;
 region.bufferRowLength = 0;
 region.bufferImageHeight = 0;

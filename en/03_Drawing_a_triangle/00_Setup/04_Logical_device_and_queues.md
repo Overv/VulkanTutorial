@@ -38,7 +38,7 @@ Right now we're only interested in a queue with graphics capabilities.
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-VkDeviceQueueCreateInfo queueCreateInfo = {};
+VkDeviceQueueCreateInfo queueCreateInfo{};
 queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
 queueCreateInfo.queueCount = 1;
@@ -68,7 +68,7 @@ everything to `VK_FALSE`. We'll come back to this structure once we're about to
 start doing more interesting things with Vulkan.
 
 ```c++
-VkPhysicalDeviceFeatures deviceFeatures = {};
+VkPhysicalDeviceFeatures deviceFeatures{};
 ```
 
 ## Creating the logical device
@@ -77,7 +77,7 @@ With the previous two structures in place, we can start filling in the main
 `VkDeviceCreateInfo` structure.
 
 ```c++
-VkDeviceCreateInfo createInfo = {};
+VkDeviceCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 ```
 

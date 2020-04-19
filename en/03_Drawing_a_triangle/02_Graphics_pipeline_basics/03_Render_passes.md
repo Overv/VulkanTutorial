@@ -35,7 +35,7 @@ of the images from the swap chain.
 
 ```c++
 void createRenderPass() {
-    VkAttachmentDescription colorAttachment = {};
+    VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapChainImageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 }
@@ -126,7 +126,7 @@ using the structure in the previous sections. These references are themselves
 `VkAttachmentReference` structs that look like this:
 
 ```c++
-VkAttachmentReference colorAttachmentRef = {};
+VkAttachmentReference colorAttachmentRef{};
 colorAttachmentRef.attachment = 0;
 colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 ```
@@ -143,7 +143,7 @@ us the best performance, as its name implies.
 The subpass is described using a `VkSubpassDescription` structure:
 
 ```c++
-VkSubpassDescription subpass = {};
+VkSubpassDescription subpass{};
 subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 ```
 
@@ -184,7 +184,7 @@ The `VkAttachmentReference` objects reference attachments using the indices of
 this array.
 
 ```c++
-VkRenderPassCreateInfo renderPassInfo = {};
+VkRenderPassCreateInfo renderPassInfo{};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 renderPassInfo.attachmentCount = 1;
 renderPassInfo.pAttachments = &colorAttachment;

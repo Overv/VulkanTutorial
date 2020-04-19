@@ -166,7 +166,7 @@ You'll notice that we have changed the finalLayout from `VK_IMAGE_LAYOUT_PRESENT
 
 ```c++
     ...
-    VkAttachmentDescription colorAttachmentResolve = {};
+    VkAttachmentDescription colorAttachmentResolve{};
     colorAttachmentResolve.format = swapChainImageFormat;
     colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -182,7 +182,7 @@ The render pass now has to be instructed to resolve multisampled color image int
 
 ```c++
     ...
-    VkAttachmentReference colorAttachmentResolveRef = {};
+    VkAttachmentReference colorAttachmentResolveRef{};
     colorAttachmentResolveRef.attachment = 2;
     colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     ...

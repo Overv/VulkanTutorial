@@ -17,7 +17,7 @@ Dans la mesure où nous avons écrit les coordonnées directement dans le vertex
 en indiquant qu'il n'y a aucune donnée à charger. Nous y reviendrons dans le chapitre sur les vertex buffers.
 
 ```c++
-VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 vertexInputInfo.vertexBindingDescriptionCount = 0;
 vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optionel
@@ -54,7 +54,7 @@ Nous n'afficherons que des triangles dans ce tutoriel, nous nous contenterons do
 cette manière :
 
 ```c++
-VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 inputAssembly.primitiveRestartEnable = VK_FALSE;
@@ -66,7 +66,7 @@ Un viewport décrit simplement la région d'un framebuffer sur laquelle le rendu
 pratique quasiment toujours la totalité du framebuffer, et ce sera le cas dans ce tutoriel.
 
 ```c++
-VkViewport viewport = {};
+VkViewport viewport{};
 viewport.x = 0.0f;
 viewport.y = 0.0f;
 viewport.width = (float) swapChainExtent.width;
@@ -95,7 +95,7 @@ Dans ce tutoriel nous voulons dessiner sur la totalité du framebuffer, et ce sa
 définirons donc un rectangle de ciseaux couvrant tout le frambuffer :
 
 ```c++
-VkRect2D scissor = {};
+VkRect2D scissor{};
 scissor.offset = {0, 0};
 scissor.extent = swapChainExtent;
 ```
@@ -106,7 +106,7 @@ et rectangles de ciseaux, c'est pourquoi la structure permet d'envoyer des table
 L'utilisation de cette possibilité nécessite de l'activer au préalable lors de la création du logical device.
 
 ```c++
-VkPipelineViewportStateCreateInfo viewportState = {};
+VkPipelineViewportStateCreateInfo viewportState{};
 viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 viewportState.viewportCount = 1;
 viewportState.pViewports = &viewport;
@@ -125,7 +125,7 @@ bien ne remplissant que les cotés (wireframe rendering). Tout cela se configure
 `VkPipelineRasterizationStateCreateInfo`.
 
 ```c++
-VkPipelineRasterizationStateCreateInfo rasterizer = {};
+VkPipelineRasterizationStateCreateInfo rasterizer{};
 rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 rasterizer.depthClampEnable = VK_FALSE;
 ```
@@ -192,7 +192,7 @@ polygone correspond à un pixel, cette approche est beaucoup plus efficace que d
 Son utilisation nécessite son activation au niveau du GPU.
 
 ```c++
-VkPipelineMultisampleStateCreateInfo multisampling = {};
+VkPipelineMultisampleStateCreateInfo multisampling{};
 multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 multisampling.sampleShadingEnable = VK_FALSE;
 multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -225,7 +225,7 @@ Il y a deux types de structures pour configurer le color blending. La première,
 n'avons qu'un seul framebuffer :
 
 ```c++
-VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 colorBlendAttachment.blendEnable = VK_FALSE;
 colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optionel
@@ -283,7 +283,7 @@ La seconde structure doit posséder une référence aux structures spécifiques 
 indiquer des constantes utilisables lors des opérations de mélange que nous venons de voir.
 
 ```c++
-VkPipelineColorBlendStateCreateInfo colorBlending = {};
+VkPipelineColorBlendStateCreateInfo colorBlending{};
 colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 colorBlending.logicOpEnable = VK_FALSE;
 colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optionel
@@ -314,7 +314,7 @@ VkDynamicState dynamicStates[] = {
     VK_DYNAMIC_STATE_LINE_WIDTH
 };
 
-VkPipelineDynamicStateCreateInfo dynamicState = {};
+VkPipelineDynamicStateCreateInfo dynamicState{};
 dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 dynamicState.dynamicStateCount = 2;
 dynamicState.pDynamicStates = dynamicStates;
@@ -343,7 +343,7 @@ VkPipelineLayout pipelineLayout;
 Créons maintenant l'objet dans la fonction `createGraphicsPipline` :
 
 ```c++
-VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 pipelineLayoutInfo.setLayoutCount = 0;            // Optionel
 pipelineLayoutInfo.pSetLayouts = nullptr;         // Optionel

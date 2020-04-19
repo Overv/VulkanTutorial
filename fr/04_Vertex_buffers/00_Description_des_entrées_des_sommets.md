@@ -94,7 +94,7 @@ struct Vertex {
     glm::vec3 color;
 
     static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription = {};
+        VkVertexInputBindingDescription bindingDescription{};
 
         return bindingDescription;
     }
@@ -106,7 +106,7 @@ données et la manière de passer d'un ensemble de données (par exemple une coo
 de savoir comment extraire chaque jeu de données correspondant à une invocation du vertex shader du vertex buffer.
 
 ```c++
-VkVertexInputBindingDescription bindingDescription = {};
+VkVertexInputBindingDescription bindingDescription{};
 bindingDescription.binding = 0;
 bindingDescription.stride = sizeof(Vertex);
 bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -134,7 +134,7 @@ instances depuis une fonction membre de `Vertex` :
 ...
 
 static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
 
     return attributeDescriptions;
 }

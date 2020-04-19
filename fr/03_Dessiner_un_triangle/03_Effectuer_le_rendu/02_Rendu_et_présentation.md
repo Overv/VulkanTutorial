@@ -84,7 +84,7 @@ structure ne requiert pour l'instant rien d'autre que le membre `sType` :
 
 ```c++
 void createSemaphores() {
-    VkSemaphoreCreateInfo semaphoreInfo = {};
+    VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 }
 ```
@@ -138,7 +138,7 @@ L'envoi à la queue et la synchronisation de celle-ci sont configurés à l'aide
 `VkSubmitInfo` que nous allons remplir.
 
 ```c++
-VkSubmitInfo submitInfo = {};
+VkSubmitInfo submitInfo{};
 submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
@@ -202,7 +202,7 @@ Celles-ci sont décrites dans une structure de type `VkSubpassDependency`. Crée
 `createRenderPass` :
 
 ```c++
-VkSubpassDependency dependency = {};
+VkSubpassDependency dependency{};
 dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 dependency.dstSubpass = 0;
 ```
@@ -247,7 +247,7 @@ La dernière étape pour l'affichage consiste à envoyer le résultat à la swap
 une structure de type `VkPresentInfoKHR`, et nous ferons cela à la fin de la fonction `drawFrame`.
 
 ```c++
-VkPresentInfoKHR presentInfo = {};
+VkPresentInfoKHR presentInfo{};
 presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
 presentInfo.waitSemaphoreCount = 1;
@@ -364,7 +364,7 @@ void createSemaphores() {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
-    VkSemaphoreCreateInfo semaphoreInfo = {};
+    VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -454,10 +454,10 @@ void createSyncObjects() {
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
-    VkSemaphoreCreateInfo semaphoreInfo = {};
+    VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VkFenceCreateInfo fenceInfo = {};
+    VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -533,7 +533,7 @@ et ce dès leur création :
 void createSyncObjects() {
     ...
 
-    VkFenceCreateInfo fenceInfo = {};
+    VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 

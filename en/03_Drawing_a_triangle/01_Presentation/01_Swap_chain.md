@@ -402,7 +402,7 @@ As is tradition with Vulkan objects, creating the swap chain object requires
 filling in a large structure. It starts out very familiarly:
 
 ```c++
-VkSwapchainCreateInfoKHR createInfo = {};
+VkSwapchainCreateInfoKHR createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 createInfo.surface = surface;
 ```

@@ -17,7 +17,7 @@ the end of the `createGraphicsPipeline` function. But before the calls to
 `vkDestroyShaderModule` because these are still to be used during the creation.
 
 ```c++
-VkGraphicsPipelineCreateInfo pipelineInfo = {};
+VkGraphicsPipelineCreateInfo pipelineInfo{};
 pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 pipelineInfo.stageCount = 2;
 pipelineInfo.pStages = shaderStages;

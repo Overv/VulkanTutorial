@@ -90,7 +90,7 @@ current version of the API it doesn't actually have any required fields besides
 
 ```c++
 void createSemaphores() {
-    VkSemaphoreCreateInfo semaphoreInfo = {};
+    VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 }
 ```
@@ -152,7 +152,7 @@ Queue submission and synchronization is configured through parameters in the
 `VkSubmitInfo` structure.
 
 ```c++
-VkSubmitInfo submitInfo = {};
+VkSubmitInfo submitInfo{};
 submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
@@ -225,7 +225,7 @@ Subpass dependencies are specified in `VkSubpassDependency` structs. Go to the
 `createRenderPass` function and add one:
 
 ```c++
-VkSubpassDependency dependency = {};
+VkSubpassDependency dependency{};
 dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 dependency.dstSubpass = 0;
 ```
@@ -273,7 +273,7 @@ to have it eventually show up on the screen. Presentation is configured through
 a `VkPresentInfoKHR` structure at the end of the `drawFrame` function.
 
 ```c++
-VkPresentInfoKHR presentInfo = {};
+VkPresentInfoKHR presentInfo{};
 presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
 presentInfo.waitSemaphoreCount = 1;
@@ -387,7 +387,7 @@ void createSemaphores() {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
-    VkSemaphoreCreateInfo semaphoreInfo = {};
+    VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -467,10 +467,10 @@ void createSyncObjects() {
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
-    VkSemaphoreCreateInfo semaphoreInfo = {};
+    VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VkFenceCreateInfo fenceInfo = {};
+    VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -534,7 +534,7 @@ That means that we're waiting for a fence that has not been submitted. The probl
 void createSyncObjects() {
     ...
 
-    VkFenceCreateInfo fenceInfo = {};
+    VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 

@@ -362,7 +362,7 @@ Lucky for us, the data is stored in an `std::vector` where the default allocator
 already ensures that the data satisfies the worst case alignment requirements.
 
 ```c++
-VkShaderModuleCreateInfo createInfo = {};
+VkShaderModuleCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 createInfo.codeSize = code.size();
 createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
@@ -415,7 +415,7 @@ We'll start by filling in the structure for the vertex shader, again in the
 `createGraphicsPipeline` function.
 
 ```c++
-VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
+VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 ```
@@ -448,7 +448,7 @@ does automatically.
 Modifying the structure to suit the fragment shader is easy:
 
 ```c++
-VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
+VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 fragShaderStageInfo.module = fragShaderModule;

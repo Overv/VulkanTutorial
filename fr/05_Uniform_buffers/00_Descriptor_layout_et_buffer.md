@@ -131,7 +131,7 @@ Chaque `binding` doit être décrit à l'aide d'une structure de type `VkDescrip
 
 ```c++
 void createDescriptorSetLayout() {
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uboLayoutBinding.descriptorCount = 1;
@@ -172,7 +172,7 @@ structure de type `VkDescriptorSetLayoutCreateInfo`. Elle contient un tableau co
 bindings :
 
 ```c++
-VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+VkDescriptorSetLayoutCreateInfo layoutInfo{};
 layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 layoutInfo.bindingCount = 1;
 layoutInfo.pBindings = &uboLayoutBinding;
@@ -186,7 +186,7 @@ Nous devons fournir cette structure à Vulkan durant la création de la pipeline
 structure `VkPipelineLayoutCreateInfo`. Modifiez ainsi la création de cette structure :
 
 ```c++
-VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 pipelineLayoutInfo.setLayoutCount = 1;
 pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
@@ -299,7 +299,7 @@ void drawFrame() {
 
     updateUniformBuffer(imageIndex);
 
-    VkSubmitInfo submitInfo = {};
+    VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     ...
@@ -345,7 +345,7 @@ Nous allons ensuite définir les matrices model, view et projection stockées da
 comme une simple rotation autour de l'axe Z en fonction de la variable `time` :
 
 ```c++
-UniformBufferObject ubo = {};
+UniformBufferObject ubo{};
 ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 ```
 

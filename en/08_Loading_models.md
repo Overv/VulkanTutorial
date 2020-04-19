@@ -182,7 +182,7 @@ straight into our `vertices` vector:
 ```c++
 for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-        Vertex vertex = {};
+        Vertex vertex{};
 
         vertices.push_back(vertex);
         indices.push_back(indices.size());
@@ -254,11 +254,11 @@ keep track of the unique vertices and respective indices:
 
 ...
 
-std::unordered_map<Vertex, uint32_t> uniqueVertices = {};
+std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
 for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
-        Vertex vertex = {};
+        Vertex vertex{};
 
         ...
 

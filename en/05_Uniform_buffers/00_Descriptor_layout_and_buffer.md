@@ -138,7 +138,7 @@ struct.
 
 ```c++
 void createDescriptorSetLayout() {
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uboLayoutBinding.descriptorCount = 1;
@@ -182,7 +182,7 @@ We can then create it using `vkCreateDescriptorSetLayout`. This function accepts
 a simple `VkDescriptorSetLayoutCreateInfo` with the array of bindings:
 
 ```c++
-VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+VkDescriptorSetLayoutCreateInfo layoutInfo{};
 layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 layoutInfo.bindingCount = 1;
 layoutInfo.pBindings = &uboLayoutBinding;
@@ -198,7 +198,7 @@ specified in the pipeline layout object. Modify the `VkPipelineLayoutCreateInfo`
 to reference the layout object:
 
 ```c++
-VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 pipelineLayoutInfo.setLayoutCount = 1;
 pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
@@ -310,7 +310,7 @@ void drawFrame() {
 
     updateUniformBuffer(imageIndex);
 
-    VkSubmitInfo submitInfo = {};
+    VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     ...
@@ -362,7 +362,7 @@ uniform buffer object. The model rotation will be a simple rotation around the
 Z-axis using the `time` variable:
 
 ```c++
-UniformBufferObject ubo = {};
+UniformBufferObject ubo{};
 ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 ```
 

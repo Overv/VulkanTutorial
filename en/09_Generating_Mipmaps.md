@@ -106,7 +106,7 @@ We're now going to write the function that generates the mipmaps:
 void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
     
-    VkImageMemoryBarrier barrier = {};
+    VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = image;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -150,7 +150,7 @@ vkCmdPipelineBarrier(commandBuffer,
 First, we transition level `i - 1` to `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. This transition will wait for level `i - 1` to be filled, either from the previous blit command, or from `vkCmdCopyBufferToImage`. The current blit command will wait on this transition.
 
 ```c++
-VkImageBlit blit = {};
+VkImageBlit blit{};
 blit.srcOffsets[0] = { 0, 0, 0 };
 blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
 blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

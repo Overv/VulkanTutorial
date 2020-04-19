@@ -133,7 +133,7 @@ Nous allons maintenant écrire la fonction qui génèrera les mipmaps.
 void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
     
-    VkImageMemoryBarrier barrier = {};
+    VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = image;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -181,7 +181,7 @@ attendra que le niveau de mipmap soit prêt, que ce soit par copie depuis le buf
 `vkCmdBlitImage`. La commande de génération de la mipmap suivante attendra donc la fin de la précédente.
 
 ```c++
-VkImageBlit blit = {};
+VkImageBlit blit{};
 blit.srcOffsets[0] = { 0, 0, 0 };
 blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
 blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

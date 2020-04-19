@@ -25,7 +25,7 @@ s'appelle `VkApplicationInfo` :
 
 ```c++
 void createInstance() {
-    VkApplicationInfo appInfo = {};
+    VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Hello Triangle";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -48,7 +48,7 @@ de manière globale. Globale siginifie ici que ces données ne serons pas spéci
 la signification de cela dans les chapitres suivants.
 
 ```c++
-VkInstanceCreateInfo createInfo = {};
+VkInstanceCreateInfo createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 createInfo.pApplicationInfo = &appInfo;
 ```

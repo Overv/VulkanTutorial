@@ -53,7 +53,7 @@ for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         swapChainImageViews[i]
     };
 
-    VkFramebufferCreateInfo framebufferInfo = {};
+    VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferInfo.renderPass = renderPass;
     framebufferInfo.attachmentCount = 1;

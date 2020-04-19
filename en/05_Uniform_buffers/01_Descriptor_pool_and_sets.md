@@ -31,7 +31,7 @@ We first need to describe which descriptor types our descriptor sets are going
 to contain and how many of them, using `VkDescriptorPoolSize` structures.
 
 ```c++
-VkDescriptorPoolSize poolSize = {};
+VkDescriptorPoolSize poolSize{};
 poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 poolSize.descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 ```
@@ -40,7 +40,7 @@ We will allocate one of these descriptors for every frame. This
 pool size structure is referenced by the main `VkDescriptorPoolCreateInfo`:
 
 ```c++
-VkDescriptorPoolCreateInfo poolInfo = {};
+VkDescriptorPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 poolInfo.poolSizeCount = 1;
 poolInfo.pPoolSizes = &poolSize;
@@ -132,7 +132,7 @@ descriptor sets to allocate, and the descriptor layout to base them on:
 
 ```c++
 std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), descriptorSetLayout);
-VkDescriptorSetAllocateInfo allocInfo = {};
+VkDescriptorSetAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 allocInfo.descriptorPool = descriptorPool;
 allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImages.size());
@@ -177,7 +177,7 @@ for the descriptor.
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
-    VkDescriptorBufferInfo bufferInfo = {};
+    VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformBuffers[i];
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
@@ -188,7 +188,7 @@ If you're overwriting the whole buffer, like we are in this case, then it is is 
 function, which takes an array of `VkWriteDescriptorSet` structs as parameter.
 
 ```c++
-VkWriteDescriptorSet descriptorWrite = {};
+VkWriteDescriptorSet descriptorWrite{};
 descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 descriptorWrite.dstSet = descriptorSets[i];
 descriptorWrite.dstBinding = 0;

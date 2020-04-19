@@ -34,7 +34,7 @@ Le code de cette fonction peut être basé sur `createImageViews`. Les deux seul
 `image` :
 
 ```c++
-VkImageViewCreateInfo viewInfo = {};
+VkImageViewCreateInfo viewInfo{};
 viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 viewInfo.image = textureImage;
 viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -60,7 +60,7 @@ donc `createImageView` :
 
 ```c++
 VkImageView createImageView(VkImage image, VkFormat format) {
-    VkImageViewCreateInfo viewInfo = {};
+    VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -168,7 +168,7 @@ Les samplers se configurent avec une structure de type `VkSamplerCreateInfo`. El
 transformations à appliquer.
 
 ```c++
-VkSamplerCreateInfo samplerInfo = {};
+VkSamplerCreateInfo samplerInfo{};
 samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 samplerInfo.magFilter = VK_FILTER_LINEAR;
 samplerInfo.minFilter = VK_FILTER_LINEAR;
@@ -291,7 +291,7 @@ En effet, l'anistropic filtering est une fonctionnalité du device qui doit êtr
 la fonction `createLogicalDevice` :
 
 ```c++
-VkPhysicalDeviceFeatures deviceFeatures = {};
+VkPhysicalDeviceFeatures deviceFeatures{};
 deviceFeatures.samplerAnisotropy = VK_TRUE;
 ```
 
