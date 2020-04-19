@@ -134,19 +134,19 @@ Nous pouvons désormais accéder aux détails des extensions :
 vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 ```
 
-Chacune des structure `VkExtensionProperties` contient le nom et la version maximale supportée de l'extension. Nous 
+Chacune des structure `VkExtensionProperties` contient le nom et la version maximale supportée de l'extension. Nous
 pouvons les afficher à l'aide d'une boucle `for` toute simple (`\t` représente une tabulation) :
 
 ```c++
-std::cout << "Extensions disponibles :" << std::endl;
+std::cout << "Extensions disponibles :\n";
 
 for (const auto& extension : extensions) {
-    std::cout << "\t" << extension.extensionName << std::endl;
+    std::cout << '\t' << extension.extensionName << '\n';
 }
 ```
 
 Vous pouvez ajouter ce code dans la fonction `createInstance` si vous voulez indiquer des informations à propos du
-support Vulkan sur la machine. Petit challenge : programmez une fonction vérifiant si les extension dont vous avez 
+support Vulkan sur la machine. Petit challenge : programmez une fonction vérifiant si les extension dont vous avez
 besoin (en particulier celles indiquées par GLFW) sont disponibles.
 
 ## Libération des ressources
