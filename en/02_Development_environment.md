@@ -579,8 +579,8 @@ Your Xcode configuration should look like:
 
 The last thing you need to setup are a couple of environment variables. On Xcode toolbar go to `Product` > `Scheme` > `Edit Scheme...`, and in the `Arguments` tab add the two following environment variables:
 
-* VK_ICD_FILENAMES = `vulkansdk/macOS/etc/vulkan/icd.d/MoltenVK_icd.json`
-* VK_LAYER_PATH = `vulkansdk/macOS/etc/vulkan/explicit_layer.d`
+* VK_ICD_FILENAMES = `vulkansdk/macOS/share/vulkan/icd.d/MoltenVK_icd.json`
+* VK_LAYER_PATH = `vulkansdk/macOS/share/vulkan/explicit_layer.d`
 
 It should look like so:
 
