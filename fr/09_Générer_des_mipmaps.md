@@ -107,7 +107,7 @@ createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TI
 ```
 
 Comme pour les autres opérations sur les images, la commande `vkCmdBlitImage` dépend de l'organisation de l'image sur
-laquelle elle opère. Nous pourrions transitionner l'image vers `VK_IMAGE_LAYOUT_GENERAL`, mais les opérations 
+laquelle elle opère. Nous pourrions transitionner l'image vers `VK_IMAGE_LAYOUT_GENERAL`, mais les opérations
 prendraient beaucoup de temps. En fait il est possible de transitionner les niveaux de mipmaps indépendemment les uns
 des autres. Nous pouvons donc mettre l'image initiale à `VK_IMAGE_LAYOUT_TRANSFER_SCR_OPTIMAL` et la chaîne de mipmaps
 à `VK_IMAGE_LAYOUT_DST_OPTIMAL`. Nous pourrons réaliser les transitions à la fin de chaque opération.
@@ -132,7 +132,7 @@ Nous allons maintenant écrire la fonction qui génèrera les mipmaps.
 ```c++
 void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-    
+
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = image;
@@ -142,7 +142,7 @@ void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
     barrier.subresourceRange.levelCount = 1;
-    
+
     endSingleTimeCommands(commandBuffer);
 }
 ```
@@ -391,7 +391,7 @@ différences.
 
 ![](/images/mipmaps_comparison.png)
 
-La différence la plus évidente est le texte sur le paneau, plus lisse avec les mipmaps.
+La différence la plus évidente est l'écriture sur le paneau, plus lisse avec les mipmaps.
 
 Vous pouvez modifier les paramètres du sampler pour voir l'impact sur le rendu. Par exemple vous pouvez empêcher le
 sampler d'utiliser le plus haut nivau de mipmap en ne lui indiquant pas le niveau le plus bas :
