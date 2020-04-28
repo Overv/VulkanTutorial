@@ -41,11 +41,11 @@ Nous n'allons pas utiliser de lumières pour l'instant. Il est donc préférable
 ombres pour que nous ayons un rendu plus intéressant. Vous pouvez trouver de tels modèles sur
 [Sketchfab](https://sketchfab.com/).
 
-Pour ce tutoriel j'ai choisi d'utiliser le [Chalet Hippolyte Chassande Baroz](https://skfb.ly/HDVU) créé par Escadrone.
+Pour ce tutoriel j'ai choisi d'utiliser le [Viking room](https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38) créé par [nigelgoh](https://sketchfab.com/nigelgoh) ([CC BY 4.0](https://web.archive.org/web/20200428202538/https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)).
 J'en ai changé la taille et l'orientation pour l'utiliser comme remplacement de notre géométrie actuelle :
 
-* [chalet.obj](/resources/chalet.obj.zip)
-* [chalet.jpg](/resources/chalet.jpg)
+* [viking_room.obj](/resources/viking_room.obj)
+* [viking_room.png](/resources/viking_room.png)
 
 Il possède un demi-million de triangles, ce qui fera un bon test pour notre application. Vous pouvez utiliser un
 autre modèle si vous le désirez, mais assurez-vous qu'il ne comprend qu'un seul matériau et que ses dimensions sont
@@ -58,8 +58,8 @@ Ajoutez deux variables de configuration pour la localisation du modèle et de la
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
-const std::string MODEL_PATH = "models/chalet.obj";
-const std::string TEXTURE_PATH = "textures/chalet.jpg";
+const std::string MODEL_PATH = "models/viking_room.obj";
+const std::string TEXTURE_PATH = "textures/viking_room.png";
 ```
 
 Changez la fonction `createTextureImage` pour qu'elle utilise cette seconde constante pour charger la texture.

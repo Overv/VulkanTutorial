@@ -262,7 +262,7 @@ Lançez votre programme et vous devriez voir ceci :
 ![](/images/multisampling.png)
 
 Comme pour le mipmapping, la différence n'est pas forcément visible immédiatement. En y regardant de plus près, vous
-pouvez normalement voir que, par exemple, les bords du toit sont beaucoup plus lisses qu'avant.
+pouvez normalement voir que, par exemple, les bords sont beaucoup plus lisses qu'avant.
 
 ![](/images/multisampling_comparison.png)
 
@@ -302,7 +302,7 @@ amélioration de la qualité du rendu :
 
 ## Conclusion
 
-Il nous a fallu beaucoup de travail pour en arriver là, mais vous avez maintenant une bonne connaissances des bases de 
+Il nous a fallu beaucoup de travail pour en arriver là, mais vous avez maintenant une bonne connaissances des bases de
 Vulkan. Ces connaissances vous permettent maintenant d'explorer d'autres fonctionnalités, comme :
 
 * Push constants

@@ -232,7 +232,7 @@ Now run your program and you should see the following:
 
 ![](/images/multisampling.png)
 
-Just like with mipmapping, the difference may not be apparent straight away. On a closer look you'll notice that the edges on the roof are not as jagged anymore and the whole image seems a bit smoother compared to the original.
+Just like with mipmapping, the difference may not be apparent straight away. On a closer look you'll notice that the edges are not as jagged anymore and the whole image seems a bit smoother compared to the original.
 
 ![](/images/multisampling_comparison.png)
 

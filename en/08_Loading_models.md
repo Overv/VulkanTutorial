@@ -48,14 +48,13 @@ model that has lighting baked into the texture. An easy way to find such models
 is to look for 3D scans on [Sketchfab](https://sketchfab.com/). Many of the
 models on that site are available in OBJ format with a permissive license.
 
-For this tutorial I've decided to go with the [Chalet Hippolyte Chassande Baroz](https://skfb.ly/HDVU)
-model by Escadrone. I tweaked the size and orientation of the model to use it
+For this tutorial I've decided to go with the [Viking room](https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)
+model by [nigelgoh](https://sketchfab.com/nigelgoh) ([CC BY 4.0](https://web.archive.org/web/20200428202538/https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)). I tweaked the size and orientation of the model to use it
 as a drop in replacement for the current geometry:
 
-* [chalet.obj](/resources/chalet.obj.zip)
-* [chalet.jpg](/resources/chalet.jpg)
+* [viking_room.obj](/resources/viking_room.obj)
+* [viking_room.png](/resources/viking_room.png)
 
-It has half a million triangles, so it's a nice benchmark for our application.
 Feel free to use your own model, but make sure that it only consists of one
 material and that is has dimensions of about 1.5 x 1.5 x 1.5 units. If it is
 larger than that, then you'll have to change the view matrix. Put the model file
@@ -69,8 +68,8 @@ texture paths:
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
-const std::string MODEL_PATH = "models/chalet.obj";
-const std::string TEXTURE_PATH = "textures/chalet.jpg";
+const std::string MODEL_PATH = "models/viking_room.obj";
+const std::string TEXTURE_PATH = "textures/viking_room.png";
 ```
 
 And update `createTextureImage` to use this path variable:
