@@ -101,7 +101,7 @@ this parameter in the tutorial and always pass `nullptr` as argument.
 
 ## Integrating GLFW
 
-Vulkan works perfectly fine without a creating a window if you want to use it
+Vulkan works perfectly fine without creating a window if you want to use it for
 off-screen rendering, but it's a lot more exciting to actually show something!
 First replace the `#include <vulkan/vulkan.h>` line with
 
