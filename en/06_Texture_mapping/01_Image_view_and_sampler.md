@@ -218,7 +218,7 @@ floors and walls.
 
 ```c++
 samplerInfo.anisotropyEnable = VK_TRUE;
-samplerInfo.maxAnisotropy = 16;
+samplerInfo.maxAnisotropy = 16.0f;
 ```
 
 These two fields specify if anisotropic filtering should be used. There is no
@@ -346,7 +346,7 @@ possible to simply not use it by conditionally setting:
 
 ```c++
 samplerInfo.anisotropyEnable = VK_FALSE;
-samplerInfo.maxAnisotropy = 1;
+samplerInfo.maxAnisotropy = 1.0f;
 ```
 
 In the next chapter we will expose the image and sampler objects to the shaders
