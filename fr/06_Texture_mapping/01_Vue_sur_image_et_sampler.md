@@ -200,7 +200,7 @@ même carré à la pipeline, pour dessiner un pavage au sol par exemple.
 
 ```c++
 samplerInfo.anisotropyEnable = VK_TRUE;
-samplerInfo.maxAnisotropy = 16;
+samplerInfo.maxAnisotropy = 16.0f;
 ```
 
 Ces deux membres paramètrent l'utilisation de l'anistropic filtering. Il n'y a pas vraiment de raison de ne pas
@@ -317,7 +317,7 @@ conditionnellement activer ou pas l'anistropic filtering :
 
 ```c++
 samplerInfo.anisotropyEnable = VK_FALSE;
-samplerInfo.maxAnisotropy = 1;
+samplerInfo.maxAnisotropy = 1.0f;
 ```
 
 Dans le prochain chapitre nous exposerons l'image et le sampler au fragment shader pour qu'il puisse utiliser la
