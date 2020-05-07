@@ -372,15 +372,15 @@ Pour voir les résultats de ce chapitre, nous devons choisir les valeurs pour `t
 void createTextureSampler() {
     ...
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.minLod = 0;
+    samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = static_cast<float>(mipLevels);
-    samplerInfo.mipLodBias = 0; // Optionel
+    samplerInfo.mipLodBias = 0.0f; // Optionel
     ...
 }
 ```
 
-Pour utiliser la totalité des niveaux de mipmaps, nous mettons `minLod` à `0` et `maxLod` au nombre de niveaux de
-mipmaps. Nous n'avons aucune raison d'altérer `lod` avec `mipLodBias`, alors nous pouvons le mettre à `0`.
+Pour utiliser la totalité des niveaux de mipmaps, nous mettons `minLod` à `0.0f` et `maxLod` au nombre de niveaux de
+mipmaps. Nous n'avons aucune raison d'altérer `lod` avec `mipLodBias`, alors nous pouvons le mettre à `0.0f`.
 
 Lancez votre programme et vous devriez voir ceci :
 
