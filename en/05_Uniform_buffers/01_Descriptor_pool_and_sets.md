@@ -51,7 +51,7 @@ also need to specify the maximum number of descriptor sets that may be
 allocated:
 
 ```c++
-poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());;
+poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
 ```
 
 The structure has an optional flag similar to command pools that determines if
