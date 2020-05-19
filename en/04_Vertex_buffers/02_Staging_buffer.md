@@ -24,7 +24,7 @@ specifically for transfer operations. It will require you to make the following
 modifications to your program:
 
 * Modify `QueueFamilyIndices` and `findQueueFamilies` to explicitly look for a
-queue family with the `VK_QUEUE_TRANSFER` bit, but not the
+queue family with the `VK_QUEUE_TRANSFER_BIT` bit, but not the
 `VK_QUEUE_GRAPHICS_BIT`.
 * Modify `createLogicalDevice` to request a handle to the transfer queue
 * Create a second command pool for command buffers that are submitted on the
