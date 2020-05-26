@@ -13,7 +13,7 @@ coordonnées passent de l'espace du modèle (model space) à l'espace de l'écra
 données à la suite de la pipeline.
 
 Les _tesselation shaders_ permettent de subdiviser la géométrie selon des règles paramétrables afin d'améliorer la 
-qualité du rendu. Ce procédé est notemment utilisé pour que des surface comme les murs de briques ou les escaliers 
+qualité du rendu. Ce procédé est notamment utilisé pour que des surface comme les murs de briques ou les escaliers 
 aient l'air moins plats lorsque l'on s'en approche.
 
 Le _geometry shader_ est invoqué pour chaque primitive (triangle, ligne, points...) et peut les détruire ou en créer
@@ -21,8 +21,8 @@ de nouvelles, du même type ou non. Ce travail est similaire au tesselation shad
 flexible. Il n'est cependant pas beaucoup utilisé à cause de performances assez moyennes sur les cartes graphiques
 (avec comme exception les GPUs intégrés d'Intel).
 
-La _rasterization_ transforme les primitives en _fragments_. Ce sont les pixels auquels les primitives correspondent
-sur le frambuffer. Tout fragment en dehors de l'écran est abandonné. Les attributs sortant du vertex shader 
+La _rasterization_ transforme les primitives en _fragments_. Ce sont les pixels auxquels les primitives correspondent
+sur le framebuffer. Tout fragment en dehors de l'écran est abandonné. Les attributs sortant du vertex shader 
 sont interpolés lorsqu'ils sont donnés aux étapes suivantes. Les fragments cachés par d'autres fragments sont aussi 
 quasiment toujours éliminés grâce au test de profondeur (depth testing).
 

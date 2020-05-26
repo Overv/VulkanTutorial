@@ -12,7 +12,7 @@ Nous allons ici implémenter le [multisample anti-aliasing](https://en.wikipedia
 terme condensé en MSAA.
 
 Dans un rendu standard, la couleur d'un pixel est déterminée à partir d'un unique sample, en général le centre du pixel.
-Si un ligne passe partiellement par un pixel sans en toucher le centre, sa contribution à la couleur sera nulle. Nous
+Si une ligne passe partiellement par un pixel sans en toucher le centre, sa contribution à la couleur sera nulle. Nous
 voudrions plutôt qu'il y contribue partiellement.
 
 ![](/images/aliasing.png)
@@ -80,7 +80,7 @@ void pickPhysicalDevice() {
 
 Le MSAA consiste à écrire chaque pixel dans un buffer indépendant de l'affichage, dont le contenu est ensuite rendu en
 le résolvant à un framebuffer standard. Cette étape est nécessaire car le premier buffer est une image particulière :
-elle doit supporter plus d'un échatillon par pixel. Il ne peut pas être utilisé comme framebuffer dans la swap chain.
+elle doit supporter plus d'un échantillon par pixel. Il ne peut pas être utilisé comme framebuffer dans la swap chain.
 Nous allons donc devoir changer notre rendu. Nous n'aurons besoin que d'une cible de rendu, car seule une opération
 de rendu n'est autorisée à s'exécuter à un instant donné. Créez les membres données suivants :
 
@@ -257,7 +257,7 @@ void createGraphicsPipeline() {
 }
 ```
 
-Lançez votre programme et vous devriez voir ceci :
+Lancez votre programme et vous devriez voir ceci :
 
 ![](/images/multisampling.png)
 

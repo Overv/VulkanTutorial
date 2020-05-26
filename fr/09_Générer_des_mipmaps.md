@@ -6,7 +6,7 @@ laisse au programmeur un control quasiment total sur leur génération.
 
 Les mipmaps sont des versions de qualité réduite précalculées d'une texture. Chacune de ces versions est deux fois
 moins haute et large que l'originale. Les objets plus distants de la caméra peuvent utiliser ces versions pour le
-sampling de la texture. Le rendu est alors plus rapide et plus lisse. Voici un exemple de mipmpas :
+sampling de la texture. Le rendu est alors plus rapide et plus lisse. Voici un exemple de mipmaps :
 
 ![](/images/mipmaps_example.jpg)
 
@@ -41,7 +41,7 @@ dimensions, bien que dans la pratique les textures seront toujours carrées. Ens
 les dimensions peuvent être divisées par deux. La fonction `floor` gère le cas où la dimension n'est pas un multiple
 de deux (ce qui est déconseillé). `1` est finalement rajouté pour que l'image originale soit aussi comptée.
 
-Pour utiliser cette valeur nous devons changer les fonctions `createImage`, `createImageView` et
+Pour utiliser cette valeur nous devons changer les fonctions `createImage`, `createImageView` et 
 `transitionImageLayout`. Nous devrons y indiquer le nombre de mipmaps. Ajoutez donc cette donnée en paramètre à toutes
 ces fonctions :
 
@@ -113,7 +113,7 @@ des autres. Nous pouvons donc mettre l'image initiale à `VK_IMAGE_LAYOUT_TRANSF
 à `VK_IMAGE_LAYOUT_DST_OPTIMAL`. Nous pourrons réaliser les transitions à la fin de chaque opération.
 
 La fonction `transitionImageLayout` ne peut réaliser une transition d'organisation que sur l'image entière. Nous allons
-donc devoir écrire quelque commandes liées aux barrières de pipeline. Supprimez la transition vers
+donc devoir écrire quelque commandes liées aux barrières de pipeline. Supprimez la transition vers 
 `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` dans `createTextureImage` :
 
 ```c++
@@ -177,7 +177,7 @@ vkCmdPipelineBarrier(commandBuffer,
 ```
 
 Tout d'abord nous transitionnons le `i-1`ième niveau vers `VK_IMAGE_LAYOUT_TRANSFER_SCR_OPTIMAL`. Cette transition
-attendra que le niveau de mipmap soit prêt, que ce soit par copie depuis le buffer pour l'image originale, ou bien par
+attendra que le niveau de mipmap soit prêt, que ce soit par copie depuis le buffer pour l'image originale, ou bien par 
 `vkCmdBlitImage`. La commande de génération de la mipmap suivante attendra donc la fin de la précédente.
 
 ```c++
@@ -197,7 +197,7 @@ blit.dstSubresource.layerCount = 1;
 ```
 
 Nous devons maintenant indiquer les régions concernées par la commande. Le niveau de mipmap source est `i-1` et le
-niveau destination est `i`. Les deux éléments du tableau `scrOffsets` déterminent en 3D la région source, et
+niveau destination est `i`. Les deux éléments du tableau `scrOffsets` déterminent en 3D la région source, et 
 `dstOffsets` la région cible. Les coordonnées X et Y sont à chaque fois divisées par deux pour réduire la taille des
 mipmaps. La coordonnée Z doit être mise à la profondeur de l'image, c'est à dire 1.
 
@@ -277,9 +277,9 @@ Les mipmaps de notre image sont maintenant complètement remplies.
 
 ## Support pour le filtrage linéaire
 
-La fonction `vkCmdBlitImage` est extrèmement pratique. Malheuresement il n'est pas garanti qu'elle soit disponible. Elle
-nécessite que le format de l'image texture supporte ce type de filtrage, ce que nous pouvons vérifier avec la fonction
-`vkGetPhysicalDeviceFormatProperties`. Nous allons vérifier sa disponiblité dans `generateMipmaps`.
+La fonction `vkCmdBlitImage` est extrêmement pratique. Malheureusement il n'est pas garanti qu'elle soit disponible. Elle
+nécessite que le format de l'image texture supporte ce type de filtrage, ce que nous pouvons vérifier avec la fonction 
+`vkGetPhysicalDeviceFormatProperties`. Nous allons vérifier sa disponibilité dans `generateMipmaps`.
 
 Ajoutez d'abord un paramètre qui indique le format de l'image :
 
@@ -308,7 +308,7 @@ void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int3
     ...
 ```
 
-La structure `VkFormatProperties` possède les trois champs `linearTilingFeatures`, `optimalTilingFeature` et
+La structure `VkFormatProperties` possède les trois champs `linearTilingFeatures`, `optimalTilingFeature` et 
 `bufferFeaetures`. Ils décrivent chacun l'utilisation possible d'images de ce format dans certains contextes. Nous avons
 créé l'image avec le format optimal, les informations qui nous concernent sont donc dans `optimalTilingFeatures`. Le
 support pour le filtrage linéaire est ensuite indiqué par `VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT`.
@@ -330,8 +330,8 @@ dans le fichier avec l'image de base. Le chargement de mipmaps prégénérées e
 ## Sampler
 
 Un objet `VkImage` contient les données de l'image et un objet `VkSampler` contrôle la lecture des données pendant le
-rendu. Vulkan nous permet de spécifier les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`, où "Lod" signifie
-*level of detail* (*niveau de détail*). Pendant l'échantillonage d'une texture, le sampler sélectionne le niveau de
+rendu. Vulkan nous permet de spécifier les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`, où "Lod" signifie 
+*level of detail* (*niveau de détail*). Pendant l’échantillonnage d'une texture, le sampler sélectionne le niveau de
 mipmap à utiliser suivant ce pseudo-code :
 
 ```c++
@@ -347,7 +347,7 @@ if (mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST) {
 }
 ```
 
-Si `samplerInfo.mipmapMode` est `VK_SAMPLER_MIPMAP_MODE_NEAREST`, la variable `lod` correpond au niveau de mipmap à
+Si `samplerInfo.mipmapMode` est `VK_SAMPLER_MIPMAP_MODE_NEAREST`, la variable `lod` correspond au niveau de mipmap à
 échantillonner. Sinon, si il vaut `VK_SAMPLER_MIPMAP_MODE_LINEAR`, deux niveaux de mipmaps sont samplés, puis interpolés
 linéairement.
 
@@ -365,7 +365,7 @@ Si l'objet est proche de la caméra, `magFilter` est utilisé comme filtre. Si l
 utilisé. Normalement `lod` est positif, est devient nul au niveau de la caméra. `mipLodBias` permet de forcer Vulkan à
 utiliser un `lod` plus petit et donc un noveau de mipmap plus élevé.
 
-Pour voir les résultats de ce chapitre, nous devons choisir les valeurs pour `textureSampler`. Nous avons déjà fourni
+Pour voir les résultats de ce chapitre, nous devons choisir les valeurs pour `textureSampler`. Nous avons déjà fourni 
 `minFilter` et `magFilter`. Il nous reste les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`.
 
 ```c++
@@ -374,7 +374,7 @@ void createTextureSampler() {
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.minLod = 0;
     samplerInfo.maxLod = static_cast<float>(mipLevels);
-    samplerInfo.mipLodBias = 0; // Optionel
+    samplerInfo.mipLodBias = 0; // Optionnel
     ...
 }
 ```

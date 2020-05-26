@@ -13,7 +13,7 @@ Pour cela créez un autre `std::vector` qui contiendra des framebuffers :
 std::vector<VkFramebuffer> swapChainFramebuffers;
 ```
 
-Nous allons remplir ce `vector` depuis une nouvelle fonction `createFramebuffers` que nous appellerons depuis
+Nous allons remplir ce `vector` depuis une nouvelle fonction `createFramebuffers` que nous appellerons depuis 
 `initVulkan` juste après la création de la pipeline graphique :
 
 ```c++
