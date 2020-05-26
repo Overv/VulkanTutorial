@@ -72,7 +72,7 @@ Il nous faut aussi mettre à jour les appels.
 ```c++
 createImage(swapChainExtent.width, swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
 ...
-createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ```
 
 ```c++
@@ -80,13 +80,13 @@ swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageForma
 ...
 depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 ...
-textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 ```
 
 ```c++
 transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 ...
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 ```
 
 ## Génération des mipmaps
@@ -102,12 +102,12 @@ création de l'image.
 
 ```c++
 ...
-createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+createImage(texWidth, texHeight, mipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 ...
 ```
 
 Comme pour les autres opérations sur les images, la commande `vkCmdBlitImage` dépend de l'organisation de l'image sur
-laquelle elle opère. Nous pourrions transitionner l'image vers `VK_IMAGE_LAYOUT_GENERAL`, mais les opérations 
+laquelle elle opère. Nous pourrions transitionner l'image vers `VK_IMAGE_LAYOUT_GENERAL`, mais les opérations
 prendraient beaucoup de temps. En fait il est possible de transitionner les niveaux de mipmaps indépendemment les uns
 des autres. Nous pouvons donc mettre l'image initiale à `VK_IMAGE_LAYOUT_TRANSFER_SCR_OPTIMAL` et la chaîne de mipmaps
 à `VK_IMAGE_LAYOUT_DST_OPTIMAL`. Nous pourrons réaliser les transitions à la fin de chaque opération.
@@ -118,7 +118,7 @@ donc devoir écrire quelque commandes liées aux barrières de pipeline. Supprim
 
 ```c++
 ...
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
     copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 //transitionné vers VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL lors de la generation des mipmaps
 ...
@@ -266,7 +266,7 @@ n'a jamais servie de source à une copie.
 Appelez finalement cette fonction depuis `createTextureImage` :
 
 ```c++
-transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
     copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 //transions vers VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL pendant la génération des mipmaps
 ...
@@ -287,7 +287,7 @@ Ajoutez d'abord un paramètre qui indique le format de l'image :
 void createTextureImage() {
     ...
 
-    generateMipmaps(textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+    generateMipmaps(textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
 }
 
 void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
@@ -331,7 +331,7 @@ dans le fichier avec l'image de base. Le chargement de mipmaps prégénérées e
 
 Un objet `VkImage` contient les données de l'image et un objet `VkSampler` contrôle la lecture des données pendant le
 rendu. Vulkan nous permet de spécifier les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`, où "Lod" signifie 
-*level of detail* (*niveau de détail*). Pendant l’échantillonnage d'une texture, le sampler sélectionne le niveau de
+*level of detail* (*niveau de détail*). Pendant l'échantillonnage d'une texture, le sampler sélectionne le niveau de
 mipmap à utiliser suivant ce pseudo-code :
 
 ```c++
@@ -372,15 +372,15 @@ Pour voir les résultats de ce chapitre, nous devons choisir les valeurs pour `t
 void createTextureSampler() {
     ...
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.minLod = 0;
+    samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = static_cast<float>(mipLevels);
-    samplerInfo.mipLodBias = 0; // Optionnel
+    samplerInfo.mipLodBias = 0.0f; // Optionnel
     ...
 }
 ```
 
-Pour utiliser la totalité des niveaux de mipmaps, nous mettons `minLod` à `0` et `maxLod` au nombre de niveaux de
-mipmaps. Nous n'avons aucune raison d'altérer `lod` avec `mipLodBias`, alors nous pouvons le mettre à `0`.
+Pour utiliser la totalité des niveaux de mipmaps, nous mettons `minLod` à `0.0f` et `maxLod` au nombre de niveaux de
+mipmaps. Nous n'avons aucune raison d'altérer `lod` avec `mipLodBias`, alors nous pouvons le mettre à `0.0f`.
 
 Lancez votre programme et vous devriez voir ceci :
 
@@ -391,7 +391,7 @@ différences.
 
 ![](/images/mipmaps_comparison.png)
 
-La différence la plus évidente est le texte sur le paneau, plus lisse avec les mipmaps.
+La différence la plus évidente est l'écriture sur le paneau, plus lisse avec les mipmaps.
 
 Vous pouvez modifier les paramètres du sampler pour voir l'impact sur le rendu. Par exemple vous pouvez empêcher le
 sampler d'utiliser le plus haut nivau de mipmap en ne lui indiquant pas le niveau le plus bas :
