@@ -18,7 +18,7 @@ grand travail de votre part pour assurer un comportement correct.
 
 Le message véhiculé ici est que Vulkan n'est pas fait pour tout le monde. Cette API est conçue pour les programmeurs 
 concernés par la programmation avec GPU de haute performance, et qui sont prêts à y travailler sérieusement. Si vous
-êtes intéressées dans le développement de jeux vidéos, et moins dans les graphismes eux-mêmes, vous devriez plutôt
+êtes intéressées dans le développement de jeux vidéo, et moins dans les graphismes eux-mêmes, vous devriez plutôt
 continuer d'utiliser OpenGL et DirectX, qui ne seront pas dépréciés en faveur de Vulkan avant un certain temps. Une
 autre alternative serait d'utiliser un moteur de jeu comme
 [Unreal Engine](https://en.wikipedia.org/wiki/Unreal_Engine#Unreal_Engine_4) ou

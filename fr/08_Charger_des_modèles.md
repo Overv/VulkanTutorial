@@ -35,10 +35,10 @@ TINYOBJ_INCLUDE_PATH = /home/user/libraries/tinyobjloader
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(TINYOBJ_INCLUDE_PATH)
 ```
 
-## Exmple de modèle
+## Exemple de modèle
 
 Nous n'allons pas utiliser de lumières pour l'instant. Il est donc préférable de charger un modèle qui comprend les
-ombres pour que nous ayons un rendu plus intéressant. Vous pouvez trouver de tels modèles sur
+ombres pour que nous ayons un rendu plus intéressant. Vous pouvez trouver de tels modèles sur 
 [Sketchfab](https://sketchfab.com/).
 
 Pour ce tutoriel j'ai choisi d'utiliser le [Chalet Hippolyte Chassande Baroz](https://skfb.ly/HDVU) créé par Escadrone.
@@ -87,7 +87,7 @@ Changez également le paramètre de type dans l'appel à `vkCmdBindIndexBuffer`.
 vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 ```
 
-La librairie que nous utilisons s'inclue de la même manière que les librairies STB. Il faut définir la macro
+La librairie que nous utilisons s'inclue de la même manière que les librairies STB. Il faut définir la macro 
 `TINYOBJLOADER_IMLEMENTATION` pour que le fichier comprenne les définitions des fonctions.
 
 ```c++
@@ -95,7 +95,7 @@ La librairie que nous utilisons s'inclue de la même manière que les librairies
 #include <tiny_obj_loader.h>
 ```
 
-Nous allons ensuite écrire la fonciton `loadModel` pour remplir le tableau de vertices et d'indices depuis le fichier
+Nous allons ensuite écrire la fonction `loadModel` pour remplir le tableau de vertices et d'indices depuis le fichier
 OBJ. Nous devons l'appeler avant que les buffers de vertices et d'indices soient créés.
 
 ```c++
@@ -133,14 +133,14 @@ Dans un fichier OBJ on trouve des positions, des normales, des coordonnées de t
 sont une collection de vertices, avec chaque vertex lié à une position, une normale et/ou un coordonnée de texture à
 l'aide d'un indice. Il est ainsi possible de réutiliser les attributs de manière indépendante.
 
-Le conteneur `attrib` contient les positions, les normales et les coordonnées de texture dans les vecteurs
+Le conteneur `attrib` contient les positions, les normales et les coordonnées de texture dans les vecteurs 
 `attrib.vertices`, `attrib.normals` et `attrib.texcoords`. Le conteneur `shapes` contient tous les objets et leurs
 faces. Ces dernières se réfèrent donc aux données stockées dans `attrib`. Les modèles peuvent aussi définir un matériau
 et une texture par face, mais nous ignorerons ces attributs pour le moment.
 
-La chaine de caractères `err` contient les erreurs et les messages générés pendant le chargement du fichier. Le
+La chaîne de caractères `err` contient les erreurs et les messages générés pendant le chargement du fichier. Le
 chargement des fichiers ne rate réellement que quand `LoadObj` retourne `false`. Les faces peuvent être constitués d'un
-nombre quelconque de vertices, alors que notre application ne peut dessiner que des triangles. Heuresement, la fonction
+nombre quelconque de vertices, alors que notre application ne peut dessiner que des triangles. Heureusement, la fonction
 possède la capacité - activée par défaut - de triangulariser les faces.
 
 Nous allons combiner toutes les faces du fichier en un seul modèle. Commençons par itérer sur ces faces.
@@ -184,8 +184,8 @@ vertex.texCoord = {
 vertex.color = {1.0f, 1.0f, 1.0f};
 ```
 
-La tableau `attrib.vertices` est constitués de floats et non de vecteurs à trois composants comme `glm::vec3`. Il faut
-donc multiplier les indices par 3. De même on trouve deux coordonnées de texture par entrée. Les décalages `0`, `1` et
+Le tableau `attrib.vertices` est constitués de floats et non de vecteurs à trois composants comme `glm::vec3`. Il faut
+donc multiplier les indices par 3. De même on trouve deux coordonnées de texture par entrée. Les décalages `0`, `1` et 
 `2` permettent ensuite d'accéder aux composant X, Y et Z, ou aux U et V dans le cas des textures.
 
 Lancez le programme avec les optimisation activées (`Release` avec Visual Studio ou avec l'argument `-03` pour GCC).
@@ -238,7 +238,7 @@ for (const auto& shape : shapes) {
 ```
 
 Chaque fois que l'on extrait un vertex du fichier, nous devons vérifier si nous avons déjà manipulé un vertex possédant
-les mêmes attributs. Si il est nouveau, nous le stockerons dans `vertices` et placerons son indice dans
+les mêmes attributs. Si il est nouveau, nous le stockerons dans `vertices` et placerons son indice dans 
 `uniqueVertices` et dans `indices`. Si nous avons déjà un tel vertex nous regarderons son indice depuis `uniqueVertices`
 et copierons cette valeur dans `indices`.
 

@@ -2,8 +2,8 @@
 
 Avant de finaliser la création de la pipeline nous devons informer Vulkan des attachements des framebuffers utilisés 
 lors du rendu. Nous devons indiquer combien chaque framebuffer aura de buffers de couleur et de profondeur, combien de 
-samples il faudra utiliser avec chaque frambuffer et comment les utiliser tout au long des opérations de rendu. Toutes
-ces informations sont contenues dans un objet appelé *render pass*. Pour le configurer, créons la fonction
+samples il faudra utiliser avec chaque framebuffer et comment les utiliser tout au long des opérations de rendu. Toutes
+ces informations sont contenues dans un objet appelé *render pass*. Pour le configurer, créons la fonction 
 `createRenderPass`. Appelez cette fonction depuis `initVulkan` après `createGraphicsPipeline`.
 
 ```c++
@@ -67,7 +67,7 @@ colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 ```
 
 Les membres `loadOp` et `storeOp` s'appliquent aux données de couleur et de profondeur, et `stencilLoadOp` et 
-`stencilStoreOp` s'appliquent aux données de stencil. Notre application n'uilisant pas de stencil buffer, nous 
+`stencilStoreOp` s'appliquent aux données de stencil. Notre application n'utilisant pas de stencil buffer, nous 
 pouvons indiquer que les données ne nous intéressent pas.
 
 ```c++
