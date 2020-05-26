@@ -81,7 +81,7 @@ que nous utiliserons de nouvelles fonctionnalités, nous les ajouterons dans cet
 ## Vérification des fonctionnalités de base
 
 Pour évaluer la compatibilité d'un physical device nous devons d'abord nous informer sur ses capacités. Des propriétés
-basiques comme le nom, le type et les versions de Vulkan supportées peuvent être obtenues en appelant
+basiques comme le nom, le type et les versions de Vulkan supportées peuvent être obtenues en appelant 
 `vkGetPhysicalDeviceProperties`.
 
 ```c++
@@ -236,7 +236,7 @@ std::cout << std::boolalpha << graphicsFamily.has_value() << std::endl; // vrai
 ```
 
 `std::optional` est un wrapper qui ne contient aucune valeur tant que vous ne lui en assignez pas une.
-Vous pouvez, quelque soit le moment, lui demander si il contient une valeur ou non en appelant sa fonction membre
+Vous pouvez, quelque soit le moment, lui demander si il contient une valeur ou non en appelant sa fonction membre 
 `has_value()`. On peut donc changer le code comme suit:
 
 ```c++
@@ -269,7 +269,7 @@ QueueFamilyIndices findQueueFamily(VkPhysicalDevice) {
 }
 ```
 
-Récupérer la liste des queue families disponibles se fait de la même manière que d'habitude, avec la fonction
+Récupérer la liste des queue families disponibles se fait de la même manière que d'habitude, avec la fonction 
 `vkGetPhysicalDeviceQueueFamilyProperties` :
 
 ```c++
@@ -306,7 +306,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-Pour que ce soit plus pratique, nous allons aussi ajouté une fonction générique à la structure:
+Pour que ce soit plus pratique, nous allons aussi ajouter une fonction générique à la structure:
 
 ```c++
 struct QueueFamilyIndices {
@@ -326,7 +326,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-On peut également utiliser ceci pour sortitr plus tôt de `findQueueFamilies`:
+On peut également utiliser ceci pour sortir plus tôt de `findQueueFamilies`:
 
 ```c++
 for (const auto& queueFamily : queueFamilies) {

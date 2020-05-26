@@ -20,9 +20,9 @@ en indiquant qu'il n'y a aucune donnée à charger. Nous y reviendrons dans le c
 VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 vertexInputInfo.vertexBindingDescriptionCount = 0;
-vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optionel
+vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optionnel
 vertexInputInfo.vertexAttributeDescriptionCount = 0;
-vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optionel
+vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optionnel
 ```
 
 Les membres `pVertexBindingDescriptions` et `pVertexAttributeDescriptions` pointent vers un tableau de structures
@@ -44,7 +44,7 @@ triangle suivant
 * `VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ` : le deuxième et troisième sommets sont utilisées comme les deux premiers
 pour le triangle suivant
 
-Les sommets sont normalement chargées séquentiellement depuis le vertex buffer. Avec un _element buffer_ vous pouvez
+Les sommets sont normalement chargés séquentiellement depuis le vertex buffer. Avec un _element buffer_ vous pouvez
 cependant choisir vous-même les indices à charger. Vous pouvez ainsi réaliser des optimisations, comme n'utiliser
 une combinaison de sommet qu'une seule fois au lieu de d'avoir les mêmes données plusieurs fois dans le buffer. Si
 vous mettez le membre `primitiveRestartEnable` à la valeur `VK_TRUE`, il devient alors possible d'interrompre les
@@ -116,12 +116,12 @@ viewportState.pScissors = &scissor;
 
 ## Rasterizer
 
-Le rasterizer récupère la géomértie définie par des sommets et calcule les fragments qu'elle recouvre. Ils sont ensuite 
+Le rasterizer récupère la géométrie définie par des sommets et calcule les fragments qu'elle recouvre. Ils sont ensuite 
 traités par le fragment shaders. Il réalise également un
 [test de profondeur](https://en.wikipedia.org/wiki/Z-buffering), le
 [face culling](https://en.wikipedia.org/wiki/Back-face_culling) et le test de ciseau pour vérifier si le fragment doit
 effectivement être traité ou non. Il peut être configuré pour émettre des fragments remplissant tous les polygones ou
-bien ne remplissant que les cotés (wireframe rendering). Tout cela se configure dans la structure
+bien ne remplissant que les cotés (wireframe rendering). Tout cela se configure dans la structure 
 `VkPipelineRasterizationStateCreateInfo`.
 
 ```c++
@@ -167,18 +167,18 @@ rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 
 Le membre `cullMode` détermine quel type de face culling utiliser. Vous pouvez désactiver tout ce filtrage, 
 n'éliminer que les faces de devant, que celles de derrière ou éliminer toutes les faces. Le membre `frontFace` 
-indique l'ordre d'évalutaion des vertices pour dire que la face est devant ou derrière, qui est le sens des
+indique l'ordre d'évaluation des vertices pour dire que la face est devant ou derrière, qui est le sens des
 aiguilles d'une montre ou le contraire.
 
 ```c++
 rasterizer.depthBiasEnable = VK_FALSE;
-rasterizer.depthBiasConstantFactor = 0.0f; // Optionel
-rasterizer.depthBiasClamp = 0.0f; // Optionel
-rasterizer.depthBiasSlopeFactor = 0.0f; // Optionel
+rasterizer.depthBiasConstantFactor = 0.0f; // Optionnel
+rasterizer.depthBiasClamp = 0.0f; // Optionnel
+rasterizer.depthBiasSlopeFactor = 0.0f; // Optionnel
 ```
 
 Le rasterizer peut altérer la profondeur en y ajoutant une valeur constante ou en la modifiant selon l'inclinaison du
-fragment. Ces possibilités sont parfois exploitées pour le shadow mapping mais nous ne les utiliserons pas. Laissez
+fragment. Ces possibilités sont parfois exploitées pour le shadow mapping mais nous ne les utiliserons pas. Laissez 
 `depthBiasEnabled` à la valeur `VK_FALSE`.
 
 ## Multisampling
@@ -196,10 +196,10 @@ VkPipelineMultisampleStateCreateInfo multisampling{};
 multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 multisampling.sampleShadingEnable = VK_FALSE;
 multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-multisampling.minSampleShading = 1.0f; // Optionel
-multisampling.pSampleMask = nullptr; // Optionel
-multisampling.alphaToCoverageEnable = VK_FALSE; // Optionel
-multisampling.alphaToOneEnable = VK_FALSE; // Optionel
+multisampling.minSampleShading = 1.0f; // Optionnel
+multisampling.pSampleMask = nullptr; // Optionnel
+multisampling.alphaToCoverageEnable = VK_FALSE; // Optionnel
+multisampling.alphaToOneEnable = VK_FALSE; // Optionnel
 ```
 
 Nous reverrons le multisampling plus tard, pour l'instant laissez-le désactivé.
@@ -219,8 +219,8 @@ opération s'appelle color blending et il y a deux manières de la réaliser :
 * Mélanger linéairement l'ancienne et la nouvelle couleur pour créer la couleur finale
 * Combiner l'ancienne et la nouvelle couleur à l'aide d'une opération bit à bit
 
-Il y a deux types de structures pour configurer le color blending. La première,
-`VkPipelineColorBlendAttachmentState`, contient une configuration pour chaque framebuffer et la seconde,
+Il y a deux types de structures pour configurer le color blending. La première, 
+`VkPipelineColorBlendAttachmentState`, contient une configuration pour chaque framebuffer et la seconde, 
 `VkPipelineColorBlendStateCreateInfo` contient les paramètres globaux pour ce color blending. Dans notre cas nous
 n'avons qu'un seul framebuffer :
 
@@ -228,11 +228,11 @@ n'avons qu'un seul framebuffer :
 VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 colorBlendAttachment.blendEnable = VK_FALSE;
-colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optionel
-colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optionel
+colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optionnel
+colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optionnel
 colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optionnel
-colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optionel
-colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optionel
+colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optionnel
+colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optionnel
 colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optionnel
 ```
 
@@ -264,7 +264,7 @@ finalColor.a = newAlpha.a;
 ```
 
 Avec cette méthode la valeur alpha correspond à une pondération pour la nouvelle valeur par rapport à l'ancienne. Les
-paramètres suivants permettent de faire eexécuter ce calcul :
+paramètres suivants permettent de faire exécuter ce calcul :
 
 ```c++
 colorBlendAttachment.blendEnable = VK_TRUE;
@@ -286,18 +286,18 @@ indiquer des constantes utilisables lors des opérations de mélange que nous ve
 VkPipelineColorBlendStateCreateInfo colorBlending{};
 colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 colorBlending.logicOpEnable = VK_FALSE;
-colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optionel
+colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optionnel
 colorBlending.attachmentCount = 1;
 colorBlending.pAttachments = &colorBlendAttachment;
-colorBlending.blendConstants[0] = 0.0f; // Optionel
-colorBlending.blendConstants[1] = 0.0f; // Optionel
-colorBlending.blendConstants[2] = 0.0f; // Optionel
-colorBlending.blendConstants[3] = 0.0f; // Optionel
+colorBlending.blendConstants[0] = 0.0f; // Optionnel
+colorBlending.blendConstants[1] = 0.0f; // Optionnel
+colorBlending.blendConstants[2] = 0.0f; // Optionnel
+colorBlending.blendConstants[3] = 0.0f; // Optionnel
 ```
 
 Si vous voulez utiliser la seconde méthode de mélange (la combinaison bit à bit) vous devez indiquer `VK_TRUE` au
 membre `logicOpEnable` et déterminer l'opération dans `logicOp`. Activer ce mode de mélange désactive automatiquement
-la permière méthode aussi radicalement que si vous aviez indiqué `VK_FALSE` au membre `blendEnable` de la
+la première méthode aussi radicalement que si vous aviez indiqué `VK_FALSE` au membre `blendEnable` de la
 précédente structure pour chaque framebuffer. Le membre `colorWriteMask` sera également utilisé dans ce second mode pour
 déterminer les canaux affectés. Il est aussi possible de désactiver les deux modes comme nous l'avons fait ici. Dans
 ce cas les résultats des invocations du fragment shader seront écrits directement dans le framebuffer.
@@ -327,12 +327,12 @@ sur ces états.
 ## Pipeline layout
 
 Les variables `uniform` dans les shaders sont des données globales similaires aux états dynamiques. Elles doivent 
-être déterminées lors du rendu pour altérer les calculs des shaders sans avoir à les recréer. Elles sont très uilisées 
+être déterminées lors du rendu pour altérer les calculs des shaders sans avoir à les recréer. Elles sont très utilisées 
 pour fournir les matrices de transformation au vertex shader et pour créer des samplers de texture dans les fragment 
 shaders.
 
 Ces variables doivent être configurées lors de la création de la pipeline en créant une variable 
-de type `VkPipelineLayout`. Même si nous n'en utilisons pas dans nos shaders atuels nous devons en créer un vide.
+de type `VkPipelineLayout`. Même si nous n'en utilisons pas dans nos shaders actuels nous devons en créer un vide.
 
 Créez un membre donnée pour stocker la structure car nous en aurons besoin plus tard.
 
@@ -345,10 +345,10 @@ Créons maintenant l'objet dans la fonction `createGraphicsPipline` :
 ```c++
 VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-pipelineLayoutInfo.setLayoutCount = 0;            // Optionel
-pipelineLayoutInfo.pSetLayouts = nullptr;         // Optionel
-pipelineLayoutInfo.pushConstantRangeCount = 0;    // Optionel
-pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optionel
+pipelineLayoutInfo.setLayoutCount = 0;            // Optionnel
+pipelineLayoutInfo.pSetLayouts = nullptr;         // Optionnel
+pipelineLayoutInfo.pushConstantRangeCount = 0;    // Optionnel
+pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optionnel
 
 if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
     throw std::runtime_error("échec de la création du pipeline layout!");

@@ -18,10 +18,10 @@ Si vous aimez la difficulté, vous pouvez préférer l'utilisation d'une queue s
 aurez alors ceci à changer :
 
 * Modifier la structure `QueueFamilyIndices` et la fonction `findQueueFamilies` pour obtenir une queue family dont la
-description comprend `VK_QUEUE_TRANSFER` mais pas `VK_QUEUE_GRAPHICS_BIT`
+description comprend `VK_QUEUE_TRANSFER_BIT` mais pas `VK_QUEUE_GRAPHICS_BIT`
 * Modifier `createLogicalDevice` pour y récupérer une référence à une queue de transfert
 * Créer une command pool pour les command buffers envoyés à la queue de transfert
-* Changer la valeur de `sharingMode` pour les resources qui le demandent à `VK_SHARING_MODE_CONCURRENT`, et indiquer à
+* Changer la valeur de `sharingMode` pour les ressources qui le demandent à `VK_SHARING_MODE_CONCURRENT`, et indiquer à
 la fois la queue des graphismes et la queue ds transferts
 * Émettre toutes les commandes de transfert telles `vkCmdCopyBuffer` - nous allons l'utiliser dans ce chapitre - à la
 queue de transfert au lieu de la queue des graphismes
@@ -31,7 +31,7 @@ families.
 
 ## Abstraction de la création des buffers
 
-Comme nous allons créer plusieurs buffers, il serait judicieux de placer la logique dans une fonction. Appelez-la
+Comme nous allons créer plusieurs buffers, il serait judicieux de placer la logique dans une fonction. Appelez-la 
 `createBuffer` et déplacez-y le code suivant :
 
 ```c++
@@ -114,7 +114,7 @@ graphique. Dans ce chapitre nous allons utiliser deux nouvelles valeurs pour les
 Le `vertexBuffer` est maintenant alloué à partir d'un type de mémoire local au device, ce qui implique en général que
 nous ne pouvons pas utiliser `vkMapMemory`. Nous pouvons cependant bien sûr y copier les données depuis le buffer
 intermédiaire. Nous pouvons indiquer que nous voulons transmettre des données entre ces buffers à l'aide des valeurs
-que nous avons vues juste au-dessus. Nous pouvons combiner ces informations avec par exemple
+que nous avons vues juste au-dessus. Nous pouvons combiner ces informations avec par exemple 
 `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`.
 
 Nous allons maintenant écrire la fonction `copyBuffer`, qui servira à recopier le contenu du buffer intermédiaire dans
@@ -155,14 +155,14 @@ beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 vkBeginCommandBuffer(commandBuffer, &beginInfo);
 ```
 
-Nous allons utiliser le Command Buffer une fois seulement, et attendre que la copie soit
-terminée avant de sortir de la fonction. Il est alors préférable d'informer le driver de cela à l'aide de
+Nous allons utiliser le command buffer une fois seulement, et attendre que la copie soit
+terminée avant de sortir de la fonction. Il est alors préférable d'informer le driver de cela à l'aide de 
 `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`.
 
 ```c++
 VkBufferCopy copyRegion{};
-copyRegion.srcOffset = 0; // Optionel
-copyRegion.dstOffset = 0; // Optionel
+copyRegion.srcOffset = 0; // Optionnel
+copyRegion.dstOffset = 0; // Optionnel
 copyRegion.size = size;
 vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 ```

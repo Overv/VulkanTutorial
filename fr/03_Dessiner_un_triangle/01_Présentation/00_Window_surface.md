@@ -1,7 +1,7 @@
 ## Introduction
 
 Vulkan ignore la plateforme sur laquelle il opère et ne peut donc pas directement établir d'interface avec le
-gestionnaire de fenêtres. Pour créer une interface permettant de présenter les rendus à l'écran, nous devons utilser
+gestionnaire de fenêtres. Pour créer une interface permettant de présenter les rendus à l'écran, nous devons utiliser
 l'extension WSI (Window System Integration). Nous verrons dans ce chapitre l'extension `VK_KHR_surface`, l'une des
 extensions du WSI. Nous pourrons ainsi obtenir l'objet `VkSurfaceKHR`, qui est un type abstrait de surface sur
 lequel nous pourrons effectuer des rendus. Cette surface sera en lien avec la fenêtre que nous avons créée grâce à GLFW.
@@ -36,8 +36,8 @@ du code spécifique à la plateforme. La fonction de GLFW `glfwCreateWindowSurfa
 plateforme. Cet exemple ne servira ainsi qu'à présenter le travail de bas niveau, dont la connaissance est toujours
 utile à une bonne utilisation de Vulkan.
 
-Une window surface est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici
-`VkWin32SurfaceCreateInfoKHR`. Elle possède deux paramètres importants :`hwnd` et `hinstance`. Ce sont les références
+Une window surface est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici 
+`VkWin32SurfaceCreateInfoKHR`. Elle possède deux paramètres importants : `hwnd` et `hinstance`. Ce sont les références
 à la fenêtre et au processus courant.
 
 ```c++
@@ -47,11 +47,11 @@ createInfo.hwnd = glfwGetWin32Window(window);
 createInfo.hinstance = GetModuleHandle(nullptr);
 ```
 
-Nous pouvons extraire `HWND` de la fenêtre à l'aide de la fonction `glfwGetWin32Window`. La fonction
+Nous pouvons extraire `HWND` de la fenêtre à l'aide de la fonction `glfwGetWin32Window`. La fonction 
 `GetModuleHandle` fournit une référence au `HINSTANCE` du thread courant.
 
 La surface peut maintenant être crée avec `vkCreateWin32SurfaceKHR`. Cette fonction prend en paramètre une instance, des
-détails sur la création de la surface, l'allocateur optionel et la variable dans laquelle placer la référence. Bien que
+détails sur la création de la surface, l'allocateur optionnel et la variable dans laquelle placer la référence. Bien que
 cette fonction fasse partie d'une extension, elle est si communément utilisée qu'elle est chargée par défaut par Vulkan.
 Nous n'avons ainsi pas à la charger à la main :
 
@@ -61,7 +61,7 @@ if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCC
 }
 ```
 
-Ce processus est similaire pour Linux, où la fonction `vkCreateXcbSurfaceKHR` requiert la fenêtre et une connection à
+Ce processus est similaire pour Linux, où la fonction `vkCreateXcbSurfaceKHR` requiert la fenêtre et une connexion à
 XCB comme paramètres pour X11.
 
 La fonction `glfwCreateWindowSurface` implémente donc tout cela pour nous et utilise le code correspondant à la bonne
@@ -201,6 +201,6 @@ vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 ```
 
 Si les queues sont les mêmes, les variables contenant les références contiennent la même valeur. Dans le prochain
-chapitre nous nous interesserons aux swap chain, et verrons comment elle permet de présenter les rendus à l'écran.
+chapitre nous nous intéresserons aux swap chain, et verrons comment elle permet de présenter les rendus à l'écran.
 
 [Code C++](/code/05_window_surface.cpp)

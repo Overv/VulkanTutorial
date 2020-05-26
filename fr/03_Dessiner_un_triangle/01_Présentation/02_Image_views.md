@@ -39,7 +39,7 @@ void createImageViews() {
 }
 ```
 
-Créez ensuite la boucle qui parcourera toutes les images de la swap chain.
+Créez ensuite la boucle qui parcourra toutes les images de la swap chain.
 
 ```c++
 for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -88,7 +88,7 @@ createInfo.subresourceRange.layerCount = 1;
 
 Si vous travailliez sur une application 3D stéréoscopique, vous devrez alors créer une swap chain avec plusieurs 
 couches. Vous pourriez alors créer plusieurs image views pour chaque image. Elles représenteront ce qui sera affiché
-pour l'oeil gauche et pour l'oeil droit.
+pour l'œil gauche et pour l'œil droit.
 
 Créer l'image view ne se résume plus qu'à appeler `vkCreateImageView` :
 
@@ -113,6 +113,6 @@ void cleanup() {
 
 Une image view est suffisante pour commencer à utiliser une image comme une texture, mais pas pour que l'image soit 
 utilisée comme cible d'affichage. Pour cela nous avons encore une étape, appelée framebuffer. Mais nous devons 
-d'abord mettre en place la pipelinie graphique.
+d'abord mettre en place le pipeline graphique.
 
-[CCode ++](/code/07_image_views.cpp)
+[Code C++](/code/07_image_views.cpp)
