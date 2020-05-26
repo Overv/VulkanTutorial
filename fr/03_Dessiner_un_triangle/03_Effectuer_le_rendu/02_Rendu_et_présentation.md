@@ -35,9 +35,9 @@ Il y a deux manières de synchroniser les évènements de la swap chain : les *f
 permettent d'attendre qu'une opération se termine en relayant un signal émis par un processus généré par la fonction à
 l'origine du lancement de l'opération.
 
-Ils ont cependant une différence : l'état d'une fence peut être accedé depuis le programme à l'aide de fonctions telles
+Ils ont cependant une différence : l'état d'une fence peut être accédé depuis le programme à l'aide de fonctions telles
 que `vkWaitForFences` alors que les sémaphores ne le permettent pas. Les fences sont généralement utilisées pour 
-synchroniser votre programme avec les opérations alors que les sémaphores synchronisent les opération entre elles. Nous
+synchroniser votre programme avec les opérations alors que les sémaphores synchronisent les opérations entre elles. Nous
 voulons synchroniser les queues, les commandes d'affichage et la présentation, donc les sémaphores nous conviennent le
 mieux.
 
@@ -178,7 +178,7 @@ if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) 
 
 Nous pouvons maintenant envoyer notre command buffer à la queue des graphismes en utilisant `vkQueueSubmit`. Cette
 fonction prend en argument un tableau de structures de type `VkSubmitInfo` pour une question d'efficacité. Le dernier
-paramètre permet de fournir une fence optionelle. Celle-ci sera prévenue de la fin de l'exécution des command
+paramètre permet de fournir une fence optionnelle. Celle-ci sera prévenue de la fin de l'exécution des command
 buffers. Nous n'en utilisons pas donc passerons `VK_NULL_HANDLE`.
 
 ## Subpass dependencies
@@ -191,7 +191,7 @@ subpasses implicites.
 Il existe deux dépendances préexistantes capables de gérer les transitions au début et à la fin de la render pass. Le
 problème est que cette première dépendance ne s'exécute pas au bon moment. Elle part du principe que la transition de
 l'organisation de l'image doit être réalisée au début de la pipeline, mais dans notre programme l'image n'est pas encore
-acquise à ce moment! Il existe deux manières de régler ce problème. Nous pourrions changer `waitStages` pour
+acquise à ce moment! Il existe deux manières de régler ce problème. Nous pourrions changer `waitStages` pour 
 `imageAvailableSemaphore` à `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` pour être sûrs que la pipeline ne commence pas avant
 que l'image ne soit acquise, mais nous perdrions en performance car les shaders travaillant sur les vertices n'ont pas
 besoin de l'image. Il faudrait faire quelque chose de plus subtil. Nous allons donc plutôt faire attendre la render
@@ -267,10 +267,10 @@ Les deux paramètres suivants fournissent un tableau contenant notre unique swap
 l'indice de l'image pour celle-ci.
 
 ```c++
-presentInfo.pResults = nullptr; // Optionel
+presentInfo.pResults = nullptr; // Optionnel
 ```
 
-Ce dernier paramètre est optionel. Il vous permet de fournir un tableau de `VkResult` que vous pourrez consulter pour
+Ce dernier paramètre est optionnel. Il vous permet de fournir un tableau de `VkResult` que vous pourrez consulter pour
 vérifier que toutes les swap chain ont bien présenté leur image sans problème. Cela n'est pas nécessaire dans notre
 cas, car n'utilisant qu'une seule swap chain nous pouvons simplement regarder la valeur de retour de la fonction de
 présentation.
@@ -288,7 +288,7 @@ programme :
 
 ![](/images/triangle.png)
 
-Enfin! Malheuresement si vous essayez de quitter proprement le programme vous obtiendrez un crash et un message
+Enfin! Malheureusement si vous essayez de quitter proprement le programme vous obtiendrez un crash et un message
 semblable à ceci :
 
 ![](/images/semaphore_in_use.png)
@@ -311,7 +311,7 @@ void mainLoop() {
 }
 ```
 
-Vous pouvez également attendre la fin d'une opération quelconque depuis une queue spécifique à l'aide de la fonction
+Vous pouvez également attendre la fin d'une opération quelconque depuis une queue spécifique à l'aide de la fonction 
 `vkQueueWaitIdle`. Ces fonction peuvent par ailleurs être utilisées pour réaliser une synchronisation très basique,
 mais très inefficace. Le programme devrait maintenant se terminer sans problème quand vous fermez la fenêtre.
 
@@ -445,7 +445,7 @@ std::vector<VkFence> inFlightFences;
 size_t currentFrame = 0;
 ```
 
-J'ai choisi de créer les fences avec les sémaphores et de renommer la fonction `createSemaphores` en
+J'ai choisi de créer les fences avec les sémaphores et de renommer la fonction `createSemaphores` en 
 `createSyncObjects` :
 
 ```c++
@@ -486,7 +486,7 @@ void cleanup() {
 ```
 
 Nous voulons maintenant que `drawFrame` utilise les fences pour la synchronisation. L'appel à `vkQueueSubmit` inclut un
-paramètre optionel qui permet de passer une fence. Celle-ci sera informée de la fin de l'exécution du command buffer.
+paramètre optionnel qui permet de passer une fence. Celle-ci sera informée de la fin de l'exécution du command buffer.
 Nous pouvons interpréter ce signal comme la fin du rendu sur la frame.
 
 ```c++
@@ -556,7 +556,7 @@ std::vector<VkFence> imagesInFlight;
 size_t currentFrame = 0;
 ```
 
-Préparez-la dans `CreateSyncObjects`:
+Préparez-la dans `createSyncObjects`:
 
 ```c++
 void createSyncObjects() {
@@ -569,7 +569,7 @@ void createSyncObjects() {
 }
 ```
 
-Initiallement aucune frame n'utilise d'image, donc on peut explicitement l'initialiser à *pas de fence*. Maintenant, nous allons modifier
+Initialement aucune frame n'utilise d'image, donc on peut explicitement l'initialiser à *pas de fence*. Maintenant, nous allons modifier 
 `drawFrame` pour attendre la fin de n'importe quelle frame qui serait en train d'utiliser l'image qu'on nous assigné pour la nouvelle frame.
 
 ```c++
@@ -589,7 +589,7 @@ void drawFrame() {
 }
 ```
 
-Parce que nous avons maintenant plus d'appels à `vkWaitForFences`, les apples à `vkResetFences` doivent être **déplacés**. Le mieux reste
+Parce que nous avons maintenant plus d'appels à `vkWaitForFences`, les appels à `vkResetFences` doivent être **déplacés**. Le mieux reste
 de simplement l'appeler juste avant d'utiliser la fence:
 
 ```c++

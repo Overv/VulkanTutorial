@@ -31,7 +31,7 @@ manière possible. Nous avons déjà croisé certaines organisation lors de la c
 * `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL` : optimal pour être l'attachement cible du fragment shader donc en tant que
 cible de rendu
 * `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL` : optimal pour être la source d'un transfert comme `vkCmdCopyImageToBuffer`
-* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` : optimal pour être la cible d'un transfer comme `vkCmdCopyBufferToImage`
+* `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL` : optimal pour être la cible d'un transfert comme `vkCmdCopyBufferToImage`
 * `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` : optimal pour être échantillonné depuis un shader
 
 La plus commune des méthode spour réaliser une transition entre différentes organisations est la *barrière pipeline*. 
@@ -74,7 +74,7 @@ Incluez la librairie de cette manière :
 #include <stb_image.h>
 ```
 
-Le header simple ne fournit que les prototypes des fonctions. Nous devons demander les implémentations avec la define
+Le header simple ne fournit que les prototypes des fonctions. Nous devons demander les implémentations avec la define 
 `STB_IMAGE_IMPLEMENTATION` pour ne pas avoir d'erreurs à l'édition des liens.
 
 ```c++
@@ -118,7 +118,7 @@ void createTextureImage() {
 }
 ```
 
-La fonction `stbi_load` prend en argument le chemin de l'image et les différentes canaux à charger. L'argument
+La fonction `stbi_load` prend en argument le chemin de l'image et les différentes canaux à charger. L'argument 
 `STBI_rgb_alpha` force la fonction à créer un canal alpha même si l'image originale n'en possède pas. Cela simplifie le
 travail en homogénéisant les situations. Les trois arguments transmis en addresse servent de résultats pour stocker
 des informations sur l'image. Les pixels sont retournés sous forme du pointeur `stbi_uc *pixels`. Ils sont organisés
@@ -158,7 +158,7 @@ stbi_image_free(pixels);
 
 ## Texture d'image
 
-Bien qu'il nous soit possible de paramétrer le shader afin qu'il utiliser le buffer comme source de pixels, il est bien
+Bien qu'il nous soit possible de paramétrer le shader afin qu'il utilise le buffer comme source de pixels, il est bien
 plus efficace d'utiliser un objet image. Ils rendent plus pratique, mais surtout plus rapide, l'accès aux données de
 l'image en nous permettant d'utiliser des coordonnées 2D. Les pixels sont appelés texels dans le contexte du shading, et
 nous utiliserons ce terme à partir de maintenant. Ajoutez les membres données suivants :
@@ -168,7 +168,7 @@ VkImage textureImage;
 VkDeviceMemory textureImageMemory;
 ```
 
-Les paramètre pour la création d'une image sont indiqués dans une structure de type `VkImageCreateInfo` :
+Les paramètres pour la création d'une image sont indiqués dans une structure de type `VkImageCreateInfo` :
 
 ```c++
 VkImageCreateInfo imageInfo{};
@@ -236,12 +236,12 @@ imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 ```
 
 L'image ne sera utilisée que par une famille de queues : celle des graphismes (qui rappelons-le supporte
-implcitement les transferts). Si vous avez choisi d'utiliser une queue spécifique vous devrez mettre
+implicitement les transferts). Si vous avez choisi d'utiliser une queue spécifique vous devrez mettre 
 `VK_SHARING_MODE_CONCURENT`.
 
 ```c++
 imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-imageInfo.flags = 0; // Optionel
+imageInfo.flags = 0; // Optionnel
 ```
 
 Le membre `sample` se réfère au multisampling. Il n'a de sens que pour les images utilisées comme attachements d'un
@@ -323,7 +323,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
 }
 ```
 
-La largeur, la hauteur, le mode de tiling, l'uage et les propriétés de la mémoire sont des paramètres car ils varierons
+La largeur, la hauteur, le mode de tiling, l'usage et les propriétés de la mémoire sont des paramètres car ils varierons
 toujours entre les différentes images que nous créerons dans ce tutoriel.
 
 La fonction `createTextureImage` peut maintenant être réduite à ceci :
@@ -407,7 +407,7 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 }
 ```
 
-Si nous utilisions de simples buffers nous pourrions nous contenter d'écrire une fonction qui enregistre l'appel à
+Si nous utilisions de simples buffers nous pourrions nous contenter d'écrire une fonction qui enregistre l'appel à 
 `vkCmdCopyBufferToImage`. Mais comme cette fonction utilse une image comme cible nous devons changer l'organisation de
 l'image avant l'appel. Créez une nouvelle fonction pour gérer de manière générique les transitions :
 
@@ -419,7 +419,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 }
 ```
 
-L'une des manières de réaliser une transition consiste à utiliser un *barrière pour mémoire d'image*. Une telle barrière
+L'une des manières de réaliser une transition consiste à utiliser une *barrière pour mémoire d'image*. Une telle barrière
 de pipeline est en général utilisée pour synchroniser l'accès à une ressource, mais nous avons déjà évoqué ce sujet. Il
 existe au passage un équivalent pour les buffers : une barrière pour mémoire de buffer.
 
@@ -430,7 +430,7 @@ barrier.oldLayout = oldLayout;
 barrier.newLayout = newLayout;
 ```
 
-Les deux premiers champs indiquent la transition à réaliser. Il est possible d'utiliser `VK_IMAGE_LAYOUT_UNDEFINED` pour
+Les deux premiers champs indiquent la transition à réaliser. Il est possible d'utiliser `VK_IMAGE_LAYOUT_UNDEFINED` pour 
 `oldLayout` si le contenu de l'image ne vous intéresse pas.
 
 ```c++
@@ -439,7 +439,7 @@ barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 ```
 
 Ces deux paramètres sont utilisés pour transmettre la possession d'une queue à une autre. Il faut leur indiquer les
-indices des familles de queues correspondantes. Comme nous ne les utilisons pas, nous devons les mettre à
+indices des familles de queues correspondantes. Comme nous ne les utilisons pas, nous devons les mettre à 
 `VK_QUEUE_FAMILY_IGNORED`.
 
 ```c++
@@ -571,7 +571,7 @@ copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), 
 
 Nous avons créé l'image avec une organisation `VK_LAYOUT_UNDEFINED`, car le contenu initial ne nous intéresse pas.
 
-Pour ensuite pouvoir échantilloner la texture depuis le framgment shader nous devons réaliser une dernière transition,
+Pour ensuite pouvoir échantillonner la texture depuis le fragment shader nous devons réaliser une dernière transition,
 qui la préparera à être accédée depuis un shader :
 
 ```c++
@@ -634,14 +634,14 @@ la mémoire de l'image.
 Quand nous aurons besoin de plus de transitions, nous compléterons la fonction de transition pour qu'elle les prenne en
 compte. L'application devrait maintenant tourner sans problème, bien qu'il n'y aie aucune différence visible.
 
-Un point intéressant est que l'émission du command buffer génère implicitement une synchronisation de type
+Un point intéressant est que l'émission du command buffer génère implicitement une synchronisation de type 
 `VK_ACCESS_HOST_WRITE_BIT`. Comme la fonction `transitionImageLayout` exécute un command buffer ne comprenant qu'une
 seule commande, il est possbile d'utiliser cette synchronisation. Cela signifie que vous pourriez alors mettre
 `srcAccessMask` à `0` dans le cas d'une transition vers `VK_ACCESS_HOST_WRITE_BIT`. C'est à vous de voir si vous
 voulez être explicites à ce sujet. Personnellement je n'aime pas du tout faire dépendre mon application sur des
 opérations cachées, que je trouve dangereusement proche d'OpenGL.
 
-Autre chose intéressante à savoir, il existe une organisation qui supporte toutes les opérations. Elle s'appelle
+Autre chose intéressante à savoir, il existe une organisation qui supporte toutes les opérations. Elle s'appelle 
 `VK_IMAGE_LAYOUT_GENERAL`. Le problème est qu'elle est évidemment moins optimisée. Elle est cependant utile dans
 certains cas, comme quand une image doit être utilisée comme cible et comme source, ou pour pouvoir lire l'image juste
 après qu'elle aie quittée l'organisation préinitialisée.

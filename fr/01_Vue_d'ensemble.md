@@ -206,7 +206,7 @@ if (vkCreateXXX(&createInfo, nullptr, &object) != VK_SUCCESS) {
 De nombreuses structure imposent que l’on spécifie explicitement leur type dans le membre donnée «sType». Le membre
 donnée «pNext» peut pointer vers une extension et sera toujours `nullptr` dans ce tutoriel. Les fonctions qui créent ou
 détruisent les objets ont un paramètre appelé `VkAllocationCallbacks`, qui vous permettent de spécifier un allocateur.
-Nous le metterons également à `nullptr`.
+Nous le mettrons également à `nullptr`.
 
 La plupart des fonctions retournent un `VkResult`, qui peut être soit `VK_SUCCESS` soit un code d’erreur. La
 spécification décrit lesquels chaque fonction renvoie et ce qu’ils signifient.

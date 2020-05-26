@@ -70,19 +70,19 @@ automatiquement.
 
 De la même façon qu'une quelconque ressource explicitement allouée par `new` doit être explicitement libérée par `delete`, nous
 devrons explicitement détruire quasiment toutes les ressources Vulkan que nous allouerons. Il est possible d'exploiter
-des fonctioinnalités du C++ pour s'aquitter automatiquement de cela. Ces possibilités sont localisées dans `<memory>` si
+des fonctionnalités du C++ pour s’acquitter automatiquement de cela. Ces possibilités sont localisées dans `<memory>` si
 vous désirez les utiliser. Cependant nous resterons explicites pour toutes les opérations dans ce tutoriel, car la
 puissance de Vulkan réside en particulier dans la clareté de l'expression de la volonté du programmeur. De plus, cela
 nous permettra de bien comprendre la durée de vie de chacun des objets.
 
 Après avoir suivi ce tutoriel vous pourrez parfaitement implémenter une gestion automatique des ressources en
-spécialisant `std::shared_ptr` par exemple. L'utilisations du [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
+spécialisant `std::shared_ptr` par exemple. L'utilisation du [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
 à votre avantage est toujours recommandé en C++ pour de gros programmes Vulkan, mais il est quand même bon de
 commencer par connaître les détails de l'implémentation.
 
-Les objets Vulkan peuvent être crées de deux manières. Soit ils sont directement crées avec une fonction du type
-`vkCreateXXX`, soit il sont alloués à l'aide d'un autre objet avec une fonction `vkAllocateXXX`. Après vous
-être assuré qu'il n'est plus utilisé où que ce soit, il faut le détruire en utilisant les fonctions
+Les objets Vulkan peuvent être créés de deux manières. Soit ils sont directement créés avec une fonction du type 
+`vkCreateXXX`, soit ils sont alloués à l'aide d'un autre objet avec une fonction `vkAllocateXXX`. Après vous
+être assuré qu'il n'est plus utilisé où que ce soit, il faut le détruire en utilisant les fonctions 
 `vkDestroyXXX` ou `vkFreeXXX`, respectivement. Les paramètres de ces fonctions varient sauf pour l'un d'entre eux :
 `pAllocator`. Ce paramètre optionnel vous permet de spécifier un callback sur un allocateur de mémoire. Nous
 n'utiliserons jamais ce paramètre et indiquerons donc toujours `nullptr`.
@@ -90,7 +90,7 @@ n'utiliserons jamais ce paramètre et indiquerons donc toujours `nullptr`.
 ## Intégrer GLFW
 
 Vulkan marche très bien sans fenêtre si vous voulez l'utiliser pour du rendu sans écran (offscreen rendering en
-Anglais), mais c'est tout de même plus intéressant d'afficher quelque chose! Remplacez d'abord la ligne
+Anglais), mais c'est tout de même plus intéressant d'afficher quelque chose! Remplacez d'abord la ligne 
 `#include <vulkan/vulkan.h>` par :
 
 ```c++
@@ -179,7 +179,7 @@ void mainLoop() {
 }
 ```
 
-Ce code est relativement simple. GLFW récupère tous les évènements disponible, puis vérifie qu'aucun d'entre eux ne
+Ce code est relativement simple. GLFW récupère tous les évènements disponibles, puis vérifie qu'aucun d'entre eux ne
 correspond à une demande de fermeture de fenêtre. Ce sera aussi ici que nous appellerons la fonction qui affichera un
 triangle.
 

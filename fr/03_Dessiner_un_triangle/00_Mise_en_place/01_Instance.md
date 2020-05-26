@@ -54,9 +54,9 @@ createInfo.pApplicationInfo = &appInfo;
 ```
 
 Les deux premiers paramètres sont simples. Les deux suivants spécifient les extensions dont nous aurons besoin. Comme
-nous l'avons vu dans l'introduction, Vulkan ne connait pas la plateforme sur laquelle il travaille, et nous aurons donc
+nous l'avons vu dans l'introduction, Vulkan ne connaît pas la plateforme sur laquelle il travaille, et nous aurons donc
 besoin d'extensions pour utiliser des interfaces avec le gestionnaire de fenêtre. GLFW possède une fonction très
-pratiques qui nous donne la liste des extensions dont nous aurons besoin pour afficher nos résultats. Remplissez donc la
+pratique qui nous donne la liste des extensions dont nous aurons besoin pour afficher nos résultats. Remplissez donc la
 structure de ces données :
 
 ```c++
@@ -103,7 +103,7 @@ Lancez votre programme pour voir si l'instance s'est créée correctement.
 
 ## Vérification du support des extensions
 
-Si vous regardez la documentation pour `vkCreateInstance` vous pourrez voir que l'un des messages d'erreur possible est
+Si vous regardez la documentation pour `vkCreateInstance` vous pourrez voir que l'un des messages d'erreur possible est 
 `VK_ERROR_EXTENSION_NOT_PRESENT`. Nous pourrions juste interrompre le programme et afficher une erreur si une extension
 manque. Ce serait logique pour des fonctionnalités cruciales comme l'affichage, mais pas dans le cas d'extensions
 optionnelles.
@@ -146,7 +146,7 @@ for (const auto& extension : extensions) {
 ```
 
 Vous pouvez ajouter ce code dans la fonction `createInstance` si vous voulez indiquer des informations à propos du
-support Vulkan sur la machine. Petit challenge : programmez une fonction vérifiant si les extension dont vous avez
+support Vulkan sur la machine. Petit challenge : programmez une fonction vérifiant si les extensions dont vous avez
 besoin (en particulier celles indiquées par GLFW) sont disponibles.
 
 ## Libération des ressources
@@ -164,7 +164,7 @@ void cleanup() {
 }
 ```
 
-Les paramètres de cette fonctions sont évidents. Nous y retrouvons le paramètre pour un désallocateur que nous laissons
+Les paramètres de cette fonction sont évidents. Nous y retrouvons le paramètre pour un désallocateur que nous laissons
 `nullptr`. Toutes les ressources que nous allouerons à partir du prochain chapitre devront être libérées avant la
 libération de l'instance.
 

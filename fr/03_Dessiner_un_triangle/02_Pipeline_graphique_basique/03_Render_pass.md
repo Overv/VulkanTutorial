@@ -67,7 +67,7 @@ colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 ```
 
 Les membres `loadOp` et `storeOp` s'appliquent aux données de couleur et de profondeur, et `stencilLoadOp` et 
-`stencilStoreOp` s'appliquent aux données de stencil. Notre application n'uilisant pas de stencil buffer, nous 
+`stencilStoreOp` s'appliquent aux données de stencil. Notre application n'utilisant pas de stencil buffer, nous 
 pouvons indiquer que les données ne nous intéressent pas.
 
 ```c++
