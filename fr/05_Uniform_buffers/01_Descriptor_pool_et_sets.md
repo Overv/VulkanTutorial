@@ -6,7 +6,7 @@ chaque `VkBuffer`, afin que nous puissions chacun les lier au descripteur de l'U
 
 ## Pool de descripteurs
 
-Les sets de descipteurs ne peuvent pas être crées directement. Il faut les allouer depuis une pool, comme les command
+Les sets de descripteurs ne peuvent pas être crées directement. Il faut les allouer depuis une pool, comme les command
 buffers. Nous allons créer la fonction `createDescriptorPool` pour générer une pool de descripteurs.
 
 ```c++
@@ -49,8 +49,8 @@ Nous devons aussi spécifier le nombre maximum de sets de descripteurs que nous 
 poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
 ```
 
-La stucture possède un membre optionnel également présent pour les command pools. Il permet d'indiquer que les
-sets peuvent être libérés indépendemment les uns des autres avec la valeur
+La structure possède un membre optionnel également présent pour les command pools. Il permet d'indiquer que les
+sets peuvent être libérés indépendemment les uns des autres avec la valeur 
 `VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`. Comme nous n'allons pas toucher aux descripteurs pendant que le
 programme s'exécute, nous n'avons pas besoin de l'utiliser. Indiquez `0` pour ce champ.
 
@@ -94,7 +94,7 @@ void recreateSwapChain() {
 
 ## Set de descripteurs
 
-Nous pouvons maintenant allouer les sets de descipteurs. Créez pour cela la fonction `createDescriptorSets` :
+Nous pouvons maintenant allouer les sets de descripteurs. Créez pour cela la fonction `createDescriptorSets` :
 
 ```c++
 void initVulkan() {
@@ -125,7 +125,7 @@ allocInfo.pSetLayouts = layouts.data();
 ```
 
 Dans notre cas nous allons créer autant de sets qu'il y a d'images dans la swap chain. Ils auront tous la même
-organisation. Malheuresement nous devons copier la structure plusieurs fois car la fonction que nous allons utiliser
+organisation. Malheureusement nous devons copier la structure plusieurs fois car la fonction que nous allons utiliser
 prend en argument un tableau, dont le contenu doit correspondre indice à indice aux objets à créer.
 
 Ajoutez un membre donnée pour garder une référence aux sets, et allouez-les avec `vkAllocateDescriptorSets` :
@@ -193,8 +193,8 @@ type en même temps. La fonction commence à `dstArrayElement` et s'étend sur `
 
 ```c++
 descriptorWrite.pBufferInfo = &bufferInfo;
-descriptorWrite.pImageInfo = nullptr; // Optionel
-descriptorWrite.pTexelBufferView = nullptr; // Optionel
+descriptorWrite.pImageInfo = nullptr; // Optionnel
+descriptorWrite.pTexelBufferView = nullptr; // Optionnel
 ```
 
 Le dernier champ que nous allons utiliser est `pBufferInfo`. Il permet de fournir `descriptorCount` structures qui
@@ -206,7 +206,7 @@ descripteurs liés aux buffer views.
 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 ```
 
-Les mises à jour sont appliquées quand nous appellons `vkUpdateDescriptorSets`. La fonction accepte deux tableaux, un de
+Les mises à jour sont appliquées quand nous appelons `vkUpdateDescriptorSets`. La fonction accepte deux tableaux, un de 
 `VkWriteDesciptorSets` et un de `VkCopyDescriptorSet`. Le second permet de copier des descripteurs.
 
 ## Utiliser des sets de descripteurs
@@ -231,7 +231,7 @@ Si vous lanciez le programme vous verrez que rien ne s'affiche. Le problème est
 la matrice induit l'évaluation des vertices dans le sens inverse des aiguilles d'une montre (*counter-clockwise* en anglais),
 alors que nous voudrions le contraire. En effet, les systèmes actuels utilisent ce sens de rotation pour détermnier la face de devant.
 La face de derrière est ensuite simplement ignorée. C'est pourquoi notre géométrie n'est pas rendue. C'est le *backface culling*.
-Changez le champ `frontface` de la structure `VkPipelineRasterizationStateCreateInfo` dans la fonction
+Changez le champ `frontface` de la structure `VkPipelineRasterizationStateCreateInfo` dans la fonction 
 `createGraphicsPipeline` de la manière suivante :
 
 ```c++
@@ -244,7 +244,7 @@ Maintenant vous devriez voir ceci en lançant votre programme :
 ![](/images/spinning_quad.png)
 
 Le rectangle est maintenant un carré car la matrice de projection corrige son aspect. La fonction `updateUniformBuffer`
-inclut d'office les redimensionnements d'écran, il n'est donc pas nécessaire de recréer les descripteurs dans
+inclut d'office les redimensionnements d'écran, il n'est donc pas nécessaire de recréer les descripteurs dans 
 `recreateSwapChain`.
 
 ## Alignement
@@ -265,7 +265,7 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 ```
 
-Pourtant ce n'est pas aussi simple. Essayez la modifiction suivante :
+Pourtant ce n'est pas aussi simple. Essayez la modification suivante :
 
 ```c++
 struct UniformBufferObject {
@@ -286,6 +286,7 @@ Recompilez les shaders et relancez le programme. Le carré coloré a disparu! La
 l'alignement.
 
 Vulkan s'attend à un certain alignement des données en mémoire pour chaque type. Par exemple :
+
 * Les scalaires doivent être alignés sur leur nombre d'octets N (float de 32 bits donne un alognement de 4 octets)
 * Un `vec2` doit être aligné sur 2N (8 octets)
 * Les `vec3` et `vec4` doivent être alignés sur 4N (16 octets)
@@ -313,7 +314,7 @@ struct UniformBufferObject {
 
 Si vous recompilez et relancez, le programme devrait fonctionner à nouveau.
 
-Heuresement pour nous, GLM inclue un moyen qui nous permet de plus penser à ce souci d'alignement :
+Heureusement pour nous, GLM inclue un moyen qui nous permet de plus penser à ce souci d'alignement :
 
 ```c++
 #define GLM_FORCE_RADIANS
@@ -322,7 +323,7 @@ Heuresement pour nous, GLM inclue un moyen qui nous permet de plus penser à ce 
 ```
 
 La ligne `#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES` force GLM a s'assurer de l'alignement des types qu'elle expose.
-La limite de cette méthode s'atteint en utilisant des structures imbriquées. Prenons l'exémple suivant :
+La limite de cette méthode s'atteint en utilisant des structures imbriquées. Prenons l'exemple suivant :
 
 ```c++
 struct Foo {

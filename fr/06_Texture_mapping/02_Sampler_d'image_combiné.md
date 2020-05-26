@@ -1,11 +1,11 @@
 ## Introduction
 
 Nous avons déjà évoqué les descripteurs dans la partie sur les buffers d'uniformes. Dans ce chapitre nous en verrons un
-nouveau type : les *samplers d'image combinés* (*combined image sampler*). Ceux-ci permettent aux shaders d'accéder au
+nouveau type : les *samplers d'image combinés* (*combined image sampler*). Ceux-ci permettent aux shaders d'accéder au 
 contenu d'images, à travers un sampler.
 
 Nous allons d'abord modifier l'organisation des descripteurs, la pool de descripteurs et le set de descripteurs pour
-qu'ils incluent le sampler d'image combiné. Ensuite nous ajouterons des coordonnées de texture à la structure
+qu'ils incluent le sampler d'image combiné. Ensuite nous ajouterons des coordonnées de texture à la structure 
 `Vertex` et modifierons le vertex shader et le fragment shader pour qu'il utilisent les couleurs de la texture.
 
 ## Modifier les descripteurs
@@ -103,7 +103,7 @@ allons utiliser le tableau `pImageInfo` plutôt que `pBufferInfo`. Les descripte
 ## Coordonnées de texture
 
 Il manque encore un élément au mapping de textures. Ce sont les coordonnées spécifiques aux sommets. Ce sont elles qui
-déterminent les coordonées de la texture à lier à la géométrie.
+déterminent les coordonnées de la texture à lier à la géométrie.
 
 ```c++
 struct Vertex {
@@ -159,7 +159,7 @@ const std::vector<Vertex> vertices = {
 
 Dans ce tutoriel nous nous contenterons de mettre une texture sur le carré en utilisant des coordonnées normalisées.
 Nous mettrons le `0, 0` en haut à gauche et le `1, 1` en bas à droite. Essayez de mettre des valeurs sous `0` ou au-delà
-de `1` pour voir l'addressing mode en action. Vous pourrez également changer le mode dans la création du sampler pour
+de `1` pour voir l'addressing mode en action. Vous pourrez également changer le mode dans la création du sampler pour 
 voir comment ils se comportent.
 
 ## Shaders
@@ -205,7 +205,7 @@ Vous devriez avoir un résultat similaire à l'image suivante. N'oubliez pas de 
 ![](/images/texcoord_visualization.png)
 
 Le vert représente l'horizontale et le rouge la verticale. Les coins noirs et jaunes confirment la normalisation des
-valeurs de `0, 0` à `1, 1`. Utiliser les couleurs pour visualiser les valeurs et déboguer est similaire à utiliser
+valeurs de `0, 0` à `1, 1`. Utiliser les couleurs pour visualiser les valeurs et déboguer est similaire à utiliser 
 `printf`. C'est peu pratique mais il n'y a pas vraiment d'autre option.
 
 Un descripteur de sampler d'image combiné est représenté dans les shaders par un objet de type `sampler` placé dans
@@ -252,7 +252,7 @@ J'ai séparé l'alpha du reste pour ne pas altérer la transparence.
 
 ![](/images/texture_on_square_colorized.png)
 
-Nous pouvons désormais utiliser des textures dans notre programme! Cette technique est extrèmement puissante et permet
+Nous pouvons désormais utiliser des textures dans notre programme! Cette technique est extrêmement puissante et permet
 beaucoup plus que juste afficher des couleurs. Vous pouvez même utiliser les images de la swap chain comme textures et y
 appliquer des effets post-processing.
 

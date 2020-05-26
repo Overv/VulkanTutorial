@@ -6,7 +6,7 @@ laisse au programmeur un control quasiment total sur leur génération.
 
 Les mipmaps sont des versions de qualité réduite précalculées d'une texture. Chacune de ces versions est deux fois
 moins haute et large que l'originale. Les objets plus distants de la caméra peuvent utiliser ces versions pour le
-sampling de la texture. Le rendu est alors plus rapide et plus lisse. Voici un exemple de mipmpas :
+sampling de la texture. Le rendu est alors plus rapide et plus lisse. Voici un exemple de mipmaps :
 
 ![](/images/mipmaps_example.jpg)
 
@@ -277,9 +277,9 @@ Les mipmaps de notre image sont maintenant complètement remplies.
 
 ## Support pour le filtrage linéaire
 
-La fonction `vkCmdBlitImage` est extrèmement pratique. Malheuresement il n'est pas garanti qu'elle soit disponible. Elle
+La fonction `vkCmdBlitImage` est extrêmement pratique. Malheureusement il n'est pas garanti qu'elle soit disponible. Elle
 nécessite que le format de l'image texture supporte ce type de filtrage, ce que nous pouvons vérifier avec la fonction
-`vkGetPhysicalDeviceFormatProperties`. Nous allons vérifier sa disponiblité dans `generateMipmaps`.
+`vkGetPhysicalDeviceFormatProperties`. Nous allons vérifier sa disponibilité dans `generateMipmaps`.
 
 Ajoutez d'abord un paramètre qui indique le format de l'image :
 
@@ -331,7 +331,7 @@ dans le fichier avec l'image de base. Le chargement de mipmaps prégénérées e
 
 Un objet `VkImage` contient les données de l'image et un objet `VkSampler` contrôle la lecture des données pendant le
 rendu. Vulkan nous permet de spécifier les valeurs `minLod`, `maxLod`, `mipLodBias` et `mipmapMode`, où "Lod" signifie
-*level of detail* (*niveau de détail*). Pendant l'échantillonage d'une texture, le sampler sélectionne le niveau de
+*level of detail* (*niveau de détail*). Pendant l'échantillonnage d'une texture, le sampler sélectionne le niveau de
 mipmap à utiliser suivant ce pseudo-code :
 
 ```c++
@@ -347,7 +347,7 @@ if (mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST) {
 }
 ```
 
-Si `samplerInfo.mipmapMode` est `VK_SAMPLER_MIPMAP_MODE_NEAREST`, la variable `lod` correpond au niveau de mipmap à
+Si `samplerInfo.mipmapMode` est `VK_SAMPLER_MIPMAP_MODE_NEAREST`, la variable `lod` correspond au niveau de mipmap à
 échantillonner. Sinon, si il vaut `VK_SAMPLER_MIPMAP_MODE_LINEAR`, deux niveaux de mipmaps sont samplés, puis interpolés
 linéairement.
 
@@ -374,7 +374,7 @@ void createTextureSampler() {
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = static_cast<float>(mipLevels);
-    samplerInfo.mipLodBias = 0.0f; // Optionel
+    samplerInfo.mipLodBias = 0.0f; // Optionnel
     ...
 }
 ```

@@ -42,7 +42,7 @@ bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 bufferInfo.size = sizeof(vertices[0]) * vertices.size();
 ```
 
-Le premier champ de cette structure s'appelle `size`. Il spécifie la taille du buffer en octets. Nous pouvons utiliser
+Le premier champ de cette structure s'appelle `size`. Il spécifie la taille du buffer en octets. Nous pouvons utiliser 
 `sizeof` pour déterminer la taille de notre tableau de valeur.
 
 ```c++
@@ -100,7 +100,7 @@ void cleanup() {
 ## Fonctionnalités nécessaires de la mémoire
 
 Le buffer a été créé mais il n'est lié à aucune forme de mémoire. La première étape de l'allocation de mémoire consiste
-à récupérer les foncitonnalités dont le buffer a besoin à l'aide de la fonction `vkGetBufferMemoryRequirements`.
+à récupérer les fonctionnalités dont le buffer a besoin à l'aide de la fonction `vkGetBufferMemoryRequirements`.
 
 ```c++
 VkMemoryRequirements memRequirements;
@@ -151,7 +151,7 @@ for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 throw std::runtime_error("aucun type de memoire ne satisfait le buffer!");
 ```
 
-La paramètre `typeFilter` nous permettra d'indiquer les types de mémoire nécessaires au buffer lors de l'appel à la
+Le paramètre `typeFilter` nous permettra d'indiquer les types de mémoire nécessaires au buffer lors de l'appel à la
 fonction. Ce champ de bit voit son n-ième bit mis à `1` si le n-ième type de mémoire disponible lui convient. Ainsi
 nous pouvons itérer sur les bits de `typeFilter` pour trouver les types de mémoire qui lui correspondent.
 
@@ -209,7 +209,7 @@ vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
 
 Les trois premiers paramètres sont évidents. Le quatrième indique le décalage entre le début de la mémoire et le début
 du buffer. Nous avons alloué cette mémoire spécialement pour ce buffer, nous pouvons donc mettre `0`. Si vous décidez
-d'allouer un grand espace mémoire pour y mettre plusieurs buffers, sachez qu'il faut que ce nombre soit divisible par
+d'allouer un grand espace mémoire pour y mettre plusieurs buffers, sachez qu'il faut que ce nombre soit divisible par 
 `memRequirements.alignement`. Notez que cette stratégie est la manière recommandée de gérer la mémoire des GPUs (voyez
 [cet article](https://developer.nvidia.com/vulkan-memory-management)).
 
@@ -238,7 +238,7 @@ vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
 ```
 
 Cette fonction nous permet d'accéder à une région spécifique d'une ressource. Nous devons pour cela indiquer un décalage
-et une taille. Nous mettons ici respectivement `0` et `bufferInfo.size`. Il est également possible de fournir la valeur
+et une taille. Nous mettons ici respectivement `0` et `bufferInfo.size`. Il est également possible de fournir la valeur 
 `VK_WHOLE_SIZE` pour mapper d'un coup toute la ressource. L'avant-dernier paramètre est un champ de bits pour l'instant
 non implémenté par Vulkan. Il est impératif de la laisser à `0`. Enfin, le dernier paramètre permet de fournir un
 pointeur vers la mémoire ainsi mappée.
@@ -250,8 +250,8 @@ vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
 vkUnmapMemory(device, vertexBufferMemory);
 ```
 
-Vous pouvez maintenant utiliser `memcpy` pour copier les vertices dans la mémoire, puis démapper le buffer à l'aide de
-`vkUnmapMemory`. Malheuresement le driver peut décider de cacher les données avant de les copier dans le buffer. Il est
+Vous pouvez maintenant utiliser `memcpy` pour copier les vertices dans la mémoire, puis démapper le buffer à l'aide de 
+`vkUnmapMemory`. Malheureusement le driver peut décider de cacher les données avant de les copier dans le buffer. Il est
 aussi possible que les données soient copiées mais que ce changement ne soit pas visible immédiatement. Il y a deux
 manières de régler ce problème :
 
@@ -272,7 +272,7 @@ représentation sur la carte graphique.
 
 ## Lier le vertex buffer
 
-Il ne nous reste qu'à lier le vertex buffer pour les opérations de rendu. Nous allons pour cela compléter la fonction
+Il ne nous reste qu'à lier le vertex buffer pour les opérations de rendu. Nous allons pour cela compléter la fonction 
 `createCommandBuffers`.
 
 ```c++

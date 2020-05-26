@@ -148,7 +148,7 @@ secondaire est à la base de la génération rapie de commandes d'affichage depu
 ## Début de l'enregistrement des commandes
 
 Nous commençons l'enregistrement des commandes en appelant `vkBeginCommandBuffer`. Cette fonction prend une petite
-struture du type `VkCommandBufferBeginInfo` en argument, permettant d'indiquer quelques détails sur l'utilisation du
+structure du type `VkCommandBufferBeginInfo` en argument, permettant d'indiquer quelques détails sur l'utilisation du
 command buffer.
 
 ```c++
@@ -235,7 +235,7 @@ Nous n'utiliserons pas de command buffer secondaire, nous devons donc fournir la
 
 ## Commandes d'affichage basiques
 
-Nous pouvons maintentant activer la pipeline graphique :
+Nous pouvons maintenant activer la pipeline graphique :
 
 ```c++
 vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
@@ -255,9 +255,9 @@ command buffer concerné :
 
 * `vertexCount` : même si nous n'avons pas de vertex buffer, nous avons techniquement trois vertices à dessiner
 * `instanceCount` : sert au rendu instancié (instanced rendering); indiquez `1` si vous ne l'utilisez pas
-* `firstVertex` : utilisé comme décalage dans le vertex buffer et définit ainsi la valeur la plus basse pour
+* `firstVertex` : utilisé comme décalage dans le vertex buffer et définit ainsi la valeur la plus basse pour 
 `glVertexIndex`
-* `firstInstance` : utilisé comme décalage pour l'instanced rendering et définit ainsi la valeur la plus basse pour
+* `firstInstance` : utilisé comme décalage pour l'instanced rendering et définit ainsi la valeur la plus basse pour 
 `gl_InstanceIndex`
 
 ## Finitions

@@ -19,9 +19,9 @@ nommé `glslc`, écrit par Google. L'avantage de ce dernier est qu'il utilise le
 et inclu quelques fonctionnalités supplémentaires comme les *includes*. Les deux compilateurs sont fournis dans le SDK, 
 vous n'avez donc rien de plus à télécharger.
 
-GLSL est un language possédant une syntaxe proche du C. Les programmes y ont une fonction `main` invoquée pour chaque 
+GLSL est un langage possédant une syntaxe proche du C. Les programmes y ont une fonction `main` invoquée pour chaque 
 objet à traiter. Plutôt que d'utiliser des paramètres et des valeurs de retour, GLSL utilise des variables globales 
-pour les entrées et sorties des invocations. Le language possède des fonctionnalités avancées pour aider le travail 
+pour les entrées et sorties des invocations. Le langage possède des fonctionnalités avancées pour aider le travail 
 avec les mathématiques nécessaires aux graphismes, avec par exemple des vecteurs, des matrices et des fonctions pour 
 les traiter. On y trouve des fonctions pour réaliser des produits vectoriels ou des réflexions d'un vecteurs par 
 rapport à un autre. Le type pour les vecteurs s'appelle `vec` et est suivi d'un nombre indiquant le nombre d'éléments,
@@ -156,7 +156,7 @@ montré dans l'image précédente est dû à l'interpolation réalisée lors de 
 
 ## Compilation des shaders
 
-Créez un dossier `shaders` à la racine de votre projet, puis enregistrez le vertex shader dans un fichier appelé
+Créez un dossier `shaders` à la racine de votre projet, puis enregistrez le vertex shader dans un fichier appelé 
 `shader.vert` et le fragment shader dans un fichier appelé `shader.frag`. Les shaders en GLSL n'ont pas d'extension 
 officielle mais celles-ci correspondent à l'usage communément accepté.
 
@@ -268,9 +268,9 @@ static std::vector<char> readFile(const std::string& filename) {
 ```
 
 La fonction `readFile` lira tous les octets du fichier qu'on lui indique et les retournera dans un `vector` de 
-charactères servant ici d'octets. L'ouverture du fichier se fait avec deux paramètres particuliers :
+caractères servant ici d'octets. L'ouverture du fichier se fait avec deux paramètres particuliers :
 * `ate` : permet de commencer la lecture à la fin du fichier
-* `binary` : indique que le fichier doit être lu comme des octets et que ceux-ci ne doivent pas être formattés
+* `binary` : indique que le fichier doit être lu comme des octets et que ceux-ci ne doivent pas être formatés
 
 Commencer la lecture à la fin permet d'utiliser la position du pointeur comme indicateur de la taille totale du 
 fichier et nous pouvons ainsi allouer un stockage suffisant :
@@ -279,7 +279,7 @@ fichier et nous pouvons ainsi allouer un stockage suffisant :
 size_t fileSize = (size_t) file.tellg();
 std::vector<char> buffer(fileSize);
 ```
-Après cela nous revenons au déubut du fichier et lisons tous les octets d'un coup :
+Après cela nous revenons au début du fichier et lisons tous les octets d'un coup :
 
 ```c++
 file.seekg(0);
@@ -318,7 +318,7 @@ VkShaderModule createShaderModule(const std::vector<char>& code) {
 }
 ```
 
-Cette fonction prendra comme paramètre le buffer contenant le bytecode et crééra un `VkShaderModule` avec ce code.
+Cette fonction prendra comme paramètre le buffer contenant le bytecode et créera un `VkShaderModule` avec ce code.
 
 La création d'un module shader est très simple. Nous avons juste à indiquer un pointeur vers le buffer et la taille 
 de ce buffer. Ces informations seront inscrites dans la structure `VkShaderModuleCreatInfo`. Le seul problème est que
