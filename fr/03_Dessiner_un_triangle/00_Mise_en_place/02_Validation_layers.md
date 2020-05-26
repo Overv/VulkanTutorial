@@ -1,6 +1,6 @@
 ## Que sont les validation layers?
 
-L'API Vulkan est concu pour limiter au maximum le travail du driver. Par conséquent il n'y a aucun traitement d'erreur
+L'API Vulkan est conçue pour limiter au maximum le travail du driver. Par conséquent il n'y a aucun traitement d'erreur
 par défaut. Une erreur aussi simple que se tromper dans la valeur d'une énumération ou passer un pointeur nul comme
 argument non optionnel résultent en un crash. Dans la mesure où Vulkan nous demande d'être complètement explicite, il
 est facile d'utiliser une fonctionnalité optionnelle et d'oublier de mettre en place l'utilisation de l'extension à
@@ -94,7 +94,7 @@ bool checkValidationLayerSupport() {
 }
 ```
 
-Verifiez que toutes les layers de `validationLayers` sont présentes dans la liste des layers disponibles. Vous aurez
+Vérifiez que toutes les layers de `validationLayers` sont présentes dans la liste des layers disponibles. Vous aurez
 besoin de `<cstring>` pour la fonction `strcmp`.
 
 ```c++
@@ -189,7 +189,7 @@ pas avoir besoin de vérifier sa présence dans la mesure où les validation lay
 mais sait-on jamais.
 
 Intéressons-nous maintenant à la fonction de rappel. Ajoutez la fonction statique `debugCallback` à votre classe avec le
-prototype `PFN_vkDebugUtilsMessengerCallbackEXT`. `VKAPI_ATTR` et `VKAPI_CALL` assurent une comptaibilité avec tous les
+prototype `PFN_vkDebugUtilsMessengerCallbackEXT`. `VKAPI_ATTR` et `VKAPI_CALL` assurent une compatibilité avec tous les
 compilateurs.
 
 ```c++
@@ -209,22 +209,22 @@ Le premier paramètre indique la sévérité du message, et peut prendre les val
 
 * `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Message de suivi des appels
 * `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: Message d'information (allocation d'une ressource...)
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message relevant un comportment qui n'est pas un bug mais plutôt
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message relevant un comportement qui n'est pas un bug mais plutôt
 une imperfection involontaire
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: Message relevant un comportant invalide pouvant mener à un crash
+* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: Message relevant un comportement invalide pouvant mener à un crash
 
 Les valeurs de cette énumération on été conçues de telle sorte qu'il est possible de les comparer pour vérifier la
 sévérité d'un message, par exemple :
 
 ```c++
 if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    // Le message est suffisemment important pour être affiché
+    // Le message est suffisamment important pour être affiché
 }
 ```
 
 Le paramètre `messageType` peut prendre les valeurs suivantes :
 
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT` : Un évenement quelconque est survenu, sans lien avec les
+* `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT` : Un événement quelconque est survenu, sans lien avec les
 performances ou la spécification
 * `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT` : Une violation de la spécification ou une potentielle erreur est
 survenue
@@ -368,7 +368,7 @@ quel fonction a lancé un appel au messager, vous pouvez insérer un point d'arr
 
 ## Déboguer la création et la destruction de l'instance
 
-Même si nous avons mis en place un système de déboguage très efficace, deux fonctions passent sous le radar. Comme il
+Même si nous avons mis en place un système de débogage très efficace, deux fonctions passent sous le radar. Comme il
 est nécessaire d'avoir une instance pour appeler `vkCreateDebugUtilsMessengerEXT`, la création de l'instance n'est pas
 couverte par le messager. Le même problème apparait avec la destruction de l'instance.
 
@@ -397,7 +397,7 @@ void setupDebugMessenger() {
 }
 ```
 
-Nous pouvons réutiliser cette fonctin dans `createInstance` :
+Nous pouvons réutiliser cette fonction dans `createInstance` :
 
 ```c++
 void createInstance() {

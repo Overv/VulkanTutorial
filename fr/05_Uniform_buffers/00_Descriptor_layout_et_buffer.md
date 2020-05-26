@@ -13,10 +13,10 @@ transformation. Nous ferons en sorte que le vertex shader puisse y accéder. Il 
 descripteur de ressources :
 
 * Spécifier l'organisation des descripteurs durant la création de la pipeline
-* Allouer un set de descripteurs depuis une pool de descritpeurs (encore un objet de gestion de mémoire)
+* Allouer un set de descripteurs depuis une pool de descripteurs (encore un objet de gestion de mémoire)
 * Lier le descripteur pour les opérations de rendu
 
-L'*organisation du descripteur* (descriptor layout) indique le type de ressources qui seront accedées par la
+L'*organisation du descripteur* (descriptor layout) indique le type de ressources qui seront accédées par la
 pipeline. Cela ressemble sur le principe à indiquer les attachements accédés. Un *set de descripteurs* (descriptor
 set) spécifie le buffer ou l'image qui sera lié à ce descripteur, de la même manière qu'un framebuffer doit indiquer
 les ressources qui le composent.
@@ -84,7 +84,7 @@ void main() {
 }
 ```
 
-L'ordre des variables `in`, `out` et `uniform` n'a aucune importance. La directive `binding` est assez semblable à
+L'ordre des variables `in`, `out` et `uniform` n'a aucune importance. La directive `binding` est assez semblable à 
 `location` ; elle permet de fournir l'indice du binding. Nous allons l'indiquer dans l'organisation du descripteur.
 Notez le changement dans la ligne calculant `gl_Position`, qui prend maintenant en compte la matrice MVP. La dernière
 composante du vecteur ne sera plus à `0`, car elle sert à diviser les autres coordonnées en fonction de leur distance à
@@ -104,7 +104,7 @@ struct UniformBufferObject {
 ```
 
 Nous pouvons faire correspondre parfaitement la déclaration en C++ avec celle dans le shader grâce à GLM. De plus les
-martrices sont stockées d'une manière compatible bit à bit avec l'interprétation de ces données par les shaders. Nous
+matrices sont stockées d'une manière compatible bit à bit avec l'interprétation de ces données par les shaders. Nous
 pouvons ainsi utiliser `memcpy` sur une structure `UniformBufferObject` vers un `VkBuffer`.
 
 Nous devons fournir des informations sur chacun des descripteurs utilisés par les shaders lors de la création de la
@@ -149,11 +149,11 @@ uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 ```
 
 Nous devons aussi informer Vulkan des étapes shaders qui accèderont à cette ressource. Le champ de bits `stageFlags`
-permet de combiner toutes les étapes shader concernées. Vous pouvez aussi fournir la valeur
+permet de combiner toutes les étapes shader concernées. Vous pouvez aussi fournir la valeur 
 `VK_SHADER_STAGE_ALL_GRAPHICS`. Nous mettons uniquement `VK_SHADER_STAGE_VERTEX_BIT`.
 
 ```c++
-uboLayoutBinding.pImmutableSamplers = nullptr; // Optionel
+uboLayoutBinding.pImmutableSamplers = nullptr; // Optionnel
 ```
 
 Le champ `pImmutableSamplers` n'a de sens que pour les descripteurs liés aux samplers d'images. Nous nous attaquerons à
@@ -312,7 +312,7 @@ void updateUniformBuffer(uint32_t currentImage) {
 }
 ```
 
-Cette fonction génèrera une rotation à chaque frame pour que la géométrie tourne sur elle-même. Pour ces fonctionnalités
+Cette fonction générera une rotation à chaque frame pour que la géométrie tourne sur elle-même. Pour ces fonctionnalités
 mathématiques nous devons inclure deux en-têtes :
 
 ```c++

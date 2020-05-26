@@ -110,7 +110,7 @@ buffers existants à l'aide de la fonction `vkFreeCommandBuffers`. Nous pouvons 
 command pool mais changer les command buffers.
 
 Pour bien gérer le redimensionnement de la fenêtre nous devons récupérer la taille actuelle du framebuffer qui lui est
-associé pour s'assurer que les images de la swap chain ont bien la nouvelle taille. Pour cela changez
+associé pour s'assurer que les images de la swap chain ont bien la nouvelle taille. Pour cela changez 
 `chooseSwapExtent` afin que cette fonction prenne en compte la nouvelle taille réelle :
 
 ```c++
@@ -133,17 +133,17 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
 C'est tout ce que nous avons à faire pour recréer la swap chain! Le problème cependant est que nous devons arrêter
 complètement l'affichage pendant la recréation alors que nous pourrions éviter que les frames en vol soient perdues. 
-Pour cela vous devez passer l'ancienne swap chain en paramètre à `oldSwapChain` dans la structure
+Pour cela vous devez passer l'ancienne swap chain en paramètre à `oldSwapChain` dans la structure 
 `VkSwapchainCreateInfoKHR` et détruire cette ancienne swap chain dès que vous ne l'utilisez plus.
 
 ## Swap chain non-optimales ou dépassées
 
-Nous devons maintenant déterminer quand recréer la swap chain et donc quand appeler `recreateSwapChain`. Heuresement
-pour nous Vulkan nous indiquera quand la swap chain n'est plus adéquate au moment de la présentation. Les fonctions
+Nous devons maintenant déterminer quand recréer la swap chain et donc quand appeler `recreateSwapChain`. Heureusement
+pour nous Vulkan nous indiquera quand la swap chain n'est plus adéquate au moment de la présentation. Les fonctions 
 `vkAcquireNextImageKHR` et `vkQueuePresentKHR` peuvent pour cela retourner les valeurs suivantes :
 
 * `VK_ERROR_OUT_OF_DATE_KHR` : la swap chain n'est plus compatible avec la surface de fenêtre et ne peut plus être
-utilisée pour l'affichage, ce qui arrive en général avec un rendimensionnement de la fenêtre
+utilisée pour l'affichage, ce qui arrive en général avec un redimensionnement de la fenêtre
 * `VK_SUBOPTIMAL_KHR` : la swap chain peut toujours être utilisée pour présenter des images avec succès, mais les
 caractéristiques de la surface de fenêtre ne correspondent plus à celles de la swap chain
 
@@ -178,7 +178,7 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 ```
 
-La fonction `vkQueuePresentKHR` retourne les mêmes valeurs avec la même signification. Dans ce cas nous recréeons la
+La fonction `vkQueuePresentKHR` retourne les mêmes valeurs avec la même signification. Dans ce cas nous recréons la
 swap chain si elle n'est plus optimale car nous voulons les meilleurs résultats possibles.
 
 ## Explicitement gérer les redimensionnements
@@ -271,7 +271,7 @@ void recreateSwapChain() {
 
 L'appel initial à `glfwGetFramebufferSize` prend en charge le cas où la taille est déjà correcte et `glfwWaitEvents` n'aurait rien à attendre.
 
-Félicitations, vous avez codé un programme fonctinnel avec Vulkan! Dans le prochain chapitre nous allons supprimer les 
+Félicitations, vous avez codé un programme fonctionnel avec Vulkan! Dans le prochain chapitre nous allons supprimer les 
 sommets du vertex shader et mettre en place un vertex buffer.
 
 [Code C++](/code/16_swap_chain_recreation.cpp) /

@@ -129,7 +129,7 @@ int main() {
 }
 ```
 
-Configurons maintenant le projet afin de se débarasser des erreurs. Ouvrez le dialogue des propriétés du projet et
+Configurons maintenant le projet afin de se débarrasser des erreurs. Ouvrez le dialogue des propriétés du projet et
 assurez-vous que "All Configurations" est sélectionné, car la plupart des paramètres s'appliquent autant à "Debug"
 qu'à "Release".
 
@@ -233,9 +233,9 @@ Vulkan, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer u
 ou MacOS indifféremment. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à
 l'avantage d'abstraire d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
-Nous allons installer GLFW à partir des sources, car Vulkan nécessite une version récente. Vous pouvez trouvez ces
+Nous allons installer GLFW à partir des sources, car Vulkan nécessite une version récente. Vous pouvez trouver ces
 sources sur le [site officiel](http://www.glfw.org/). Extrayez les sources où vous voulez et ouvrez un terminal dans le
-dossier extrait, où se trouve le fichier "CmakeLists.txt".
+dossier extrait, où se trouve le fichier "CMakeLists.txt".
 
 Exécutez les commandes suivantes afin de générer un makefile et de compiler GLFW :
 
@@ -310,7 +310,7 @@ int main() {
 }
 ```
 
-Nous allons maintenant créer un makefile pour compiler et lancer ce code. Créez un fichier "makefile". Je pars du
+Nous allons maintenant créer un makefile pour compiler et lancer ce code. Créez un fichier "Makefile". Je pars du
 principe que vous connaissez déjà les bases de makefile, dont les variables et les règles. Sinon vous pouvez trouver des
 introductions claires sur internet, par exemple [ici](https://makefiletutorial.com/).
 
@@ -338,7 +338,7 @@ LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 ```
 
 Le premier paramètre permet de localiser les librairies comme "libvulkan.so" dans le dossier "x86_64/lib" du SDK. La
-seconde partie utilise `pkg-config` pour trouver les pramètres nécessaires au linker pour compiler avec GLFW. Enfin,
+seconde partie utilise `pkg-config` pour trouver les pramètres nécessaires au linker pour compiler avec GLFW. Enfin, 
 `-lvulkan` correspond au loader dynamique des fonctions Vulkan présent dans le SDK.
 
 Spécifier les commandes pour la compilation de "VulkanTest" est désormais un jeu d'enfant. Assurez-vous que vous
@@ -349,7 +349,7 @@ VulkanTest: main.cpp
     g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
 ```
 
-Vérifiez que le fichier fonctionne en le sauveguardant et en exécutant make depuis un terminal ouvert dans le
+Vérifiez que le fichier fonctionne en le sauvegardant et en exécutant make depuis un terminal ouvert dans le
 dossier le contenant. Vous devriez avoir un exécutable appelé "VulkanTest".
 
 Nous allons ensuite définir deux règles, `test` et `clean`. La première exécutera le programme et le second supprimera
@@ -365,7 +365,7 @@ clean:
     rm -f VulkanTest
 ```
 
-Vous devriez constater que `make clean` fonctionne mais que `make test` s'interrompera avec le message suivant :
+Vous devriez constater que `make clean` fonctionne mais que `make test` s'interrompra avec le message suivant :
 
 ```text
 ./VulkanTest: error while loading shared libraries: libvulkan.so.1: cannot open shared object file: No such file or directory
@@ -382,7 +382,7 @@ test: VulkanTest
 Le programme devrait se lancer correctement maintenant, et afficher le nombre d'extensions disponibles. Si ce nombre est
 zéro, il y a un problème avec la configuration de Vulkan sur votre système. L'application devrait quitter avec le
 code 0 lorsque vous fermez la fenêtre. Il y a pourtant encore une variable que nous devons créer. Nous allons
-utiliser les validation layers et devons donc lui indiquer leur localisation avec la variable
+utiliser les validation layers et devons donc lui indiquer leur localisation avec la variable 
 `VK_LAYER_PATH` :
 
 ```make
@@ -416,7 +416,7 @@ nom du projet et tout sera prêt!
 Avant d'avancer, regardons le SDK plus en détail. Il y a d'autres programmes dans ce dossier qui vous seront utiles :
 "glslangValidator" et "glslc". Nous nous en servirons pour compiler les shaders. Ils transforment un code lisible par l'homme
 écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en bytecode. Nous couvrirons cela dans le
-chapitre [modeules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
+chapitre [modules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
 
 
 Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
@@ -539,7 +539,7 @@ d'appeler quelques fonctions de l'API pour s'assurer que tout fonctionne. Nous v
 plus tard.
 
 Xcode devrait déjà vous afficher des erreurs comme le fait que des librairies soient introuvables. Nous allons
-maintenant les faire dispaître. Séletionnez votre projet sur le menu *Project Navigator*. Ouvrez
+maintenant les faire disparaître. Sélectionnez votre projet sur le menu *Project Navigator*. Ouvrez 
 *Build Settings* puis :
 
 * Trouvez le champ **Header Search Paths** et ajoutez "/usr/local/include" (c'est ici que Homebrew installe les headers)
@@ -583,7 +583,7 @@ avoir ceci :
 
 ![](/images/xcode_output.png)
 
-Si vouc obtenez `0 extensions supported`, il y a un problème avec la configuration de Vulkan sur votre système. Les
-autres données proviennet de librairies, et dépendent de votre configuration.
+Si vous obtenez `0 extensions supported`, il y a un problème avec la configuration de Vulkan sur votre système. Les
+autres données proviennent de librairies, et dépendent de votre configuration.
 
 Vous êtes maintenant prêts à vous [lancer avec Vulkan!](!fr/Dessiner_un_triangle/Mise_en_place/Code_de_base).
