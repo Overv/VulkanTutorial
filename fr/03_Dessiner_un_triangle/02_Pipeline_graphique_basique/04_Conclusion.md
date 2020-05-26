@@ -83,7 +83,7 @@ nous avons pu voir jusqu'à présent. Elle peut en effet accepter plusieurs stru
 et créer plusieurs `VkPipeline` en un seul appel.
 
 Le second paramètre que nous n'utilisons pas ici (mais que nous reverrons dans un chapitre qui lui sera dédié) sert à
-fournir un objet `VkPipelineCache` Optionnel. Un tel objet peut être stocké et réutilisé entre plusieurs appels de la
+fournir un objet `VkPipelineCache` optionnel. Un tel objet peut être stocké et réutilisé entre plusieurs appels de la
 fonction et même entre plusieurs exécutions du programme si son contenu est correctement stocké dans un fichier. Cela
 permet de grandement accélérer la création des pipelines.
 

@@ -9,7 +9,7 @@ ces informations sont contenues dans un objet appelé *render pass*. Pour le con
 ```c++
 void initVulkan() {
     createInstance();
-    setupDebugCallback();
+    setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
@@ -32,7 +32,7 @@ Dans notre cas nous aurons un seul attachement de couleur, et c'est une image de
 
 ```c++
 void createRenderPass() {
-    VkAttachmentDescription colorAttachment = {};
+    VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapChainImageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 }
