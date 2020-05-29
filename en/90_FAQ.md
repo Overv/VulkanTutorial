@@ -11,7 +11,7 @@ after your program exits. You can do this from Visual Studio by running your
 program with Ctrl-F5 instead of F5, and on Linux by executing your program from
 a terminal window. If there are still no messages and you are sure that
 validation layers are turned on, then you should ensure that your Vulkan SDK is
-correctly installed by following [these instructions](https://vulkan.lunarg.com/doc/view/1.1.106.0/windows/getting_started.html#user-content-verify-the-installation). Also ensure that your SDK version is at least 1.1.106.0 to support the `VK_LAYER_KHRONOS_validation` layer.
+correctly installed by following the "Verify the Installation" instructions [on this page](https://vulkan.lunarg.com/doc/view/1.2.135.0/windows/getting_started.html). Also ensure that your SDK version is at least 1.1.106.0 to support the `VK_LAYER_KHRONOS_validation` layer.
 
 * **vkCreateSwapchainKHR triggers an error in SteamOverlayVulkanLayer64.dll**:
 This appears to be a compatibility problem in the Steam client beta. There are a
