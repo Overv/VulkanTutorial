@@ -57,7 +57,7 @@ lui-même et donne un effet 3D à la scène.
 
 Modifiez le vertex shader pour qu'il inclue l'UBO comme dans l'exemple ci-dessous. Je pars du principe que vous
 connaissez les transformations MVP. Si ce n'est pourtant pas le cas, vous pouvez vous rendre sur
-[ce site](http://opengl.datenwolf.net/gltut/html/index.html) déjà mentionné dans le premier chapitre.
+[ce site](https://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/) déjà mentionné dans le premier chapitre.
 
 ```glsl
 #version 450
@@ -84,7 +84,7 @@ void main() {
 }
 ```
 
-L'ordre des variables `in`, `out` et `uniform` n'a aucune importance. La directive `binding` est assez semblable à 
+L'ordre des variables `in`, `out` et `uniform` n'a aucune importance. La directive `binding` est assez semblable à
 `location` ; elle permet de fournir l'indice du binding. Nous allons l'indiquer dans l'organisation du descripteur.
 Notez le changement dans la ligne calculant `gl_Position`, qui prend maintenant en compte la matrice MVP. La dernière
 composante du vecteur ne sera plus à `0`, car elle sert à diviser les autres coordonnées en fonction de leur distance à
@@ -149,7 +149,7 @@ uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 ```
 
 Nous devons aussi informer Vulkan des étapes shaders qui accèderont à cette ressource. Le champ de bits `stageFlags`
-permet de combiner toutes les étapes shader concernées. Vous pouvez aussi fournir la valeur 
+permet de combiner toutes les étapes shader concernées. Vous pouvez aussi fournir la valeur
 `VK_SHADER_STAGE_ALL_GRAPHICS`. Nous mettons uniquement `VK_SHADER_STAGE_VERTEX_BIT`.
 
 ```c++
@@ -262,7 +262,7 @@ supprimer depuis `cleanupSwapChain` :
 ```c++
 void cleanupSwapChain() {
     ...
-    
+
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);

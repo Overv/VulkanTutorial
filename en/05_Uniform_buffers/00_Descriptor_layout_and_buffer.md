@@ -61,7 +61,7 @@ make the rectangle from the previous chapter spin around in 3D.
 
 Modify the vertex shader to include the uniform buffer object like it was
 specified above. I will assume that you are familiar with MVP transformations.
-If you're not, see [the resource](http://opengl.datenwolf.net/gltut/html/index.html)
+If you're not, see [the resource](https://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/)
 mentioned in the first chapter.
 
 ```glsl
