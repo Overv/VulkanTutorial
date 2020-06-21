@@ -452,7 +452,7 @@ on the presentation queue. There are two ways to handle images that are
 accessed from multiple queues:
 
 * `VK_SHARING_MODE_EXCLUSIVE`: An image is owned by one queue family at a time
-and ownership must be explicitly transfered before using it in another queue
+and ownership must be explicitly transferred before using it in another queue
 family. This option offers the best performance.
 * `VK_SHARING_MODE_CONCURRENT`: Images can be used across multiple queue
 families without explicit ownership transfers.
