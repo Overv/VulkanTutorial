@@ -235,7 +235,7 @@ as its name implies.
 ## Using descriptor sets
 
 We now need to update the `createCommandBuffers` function to actually bind the
-right descriptor set for each swap chain image to the descriptors in the shader with `cmdBindDescriptorSets`. This needs to be done before the `vkCmdDrawIndexed` call:
+right descriptor set for each swap chain image to the descriptors in the shader with `vkCmdBindDescriptorSets`. This needs to be done before the `vkCmdDrawIndexed` call:
 
 ```c++
 vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
