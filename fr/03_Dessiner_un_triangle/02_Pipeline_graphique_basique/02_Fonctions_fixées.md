@@ -1,6 +1,6 @@
 Les anciens APIs définissaient des configurations par défaut pour toutes les étapes à fonction fixée de la pipeline 
 graphique. Avec Vulkan vous devez être explicite dans ce domaine également et devrez donc configurer la fonction de
-mélange par exmple. Dans ce chapitre nous remplirons toutes les structures nécessaires à la configuration des étapes à
+mélange par exemple. Dans ce chapitre nous remplirons toutes les structures nécessaires à la configuration des étapes à
 fonction fixée.
 
 ## Entrée des sommets
