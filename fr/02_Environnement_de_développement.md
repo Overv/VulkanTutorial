@@ -178,52 +178,19 @@ Si le nombre d'extensions est nul, il y a un problème avec la configuration de 
 ## Linux
 
 Ces instructions sont conçues pour les utilisateurs d'Ubuntu, mais vous devriez pouvoir suivre ces instructions depuis
-une autre distribution si vous recompilez vous-même le SDK et adaptez les commandes "apt" à votre propre gestionnaire de
-packages. Il vous faut un compilateur qui supporte C++17 (GCC 7+ ou Clang 5+). Vous aurez également besoin de make et de CMake.
+une autre distribution si vous adaptez les commandes "apt" à votre propre gestionnaire de
+packages. Il vous faut un compilateur qui supporte C++17 (GCC 7+ ou Clang 5+). Vous aurez également besoin de make.
 
-### Le SDK Vulkan
+### Paquets Vulkan
 
-Le composant central au développement d'application Vulkan est le SDK. Il inclut les headers, les validation layers
-standards, des outils de débogage et un loader pour les fonctions Vulkan. Ce loader récupère les fonctions dans le
-driver à l'exécution, comme GLEW pour OpenGL, si cela vous parle.
+Les composants les plus importants pour le développement d'applications Vulkan sous Linux sont le loader Vulkan, les validation layers et quelques utilitaires pour tester que votre machine est bien en état de faire fonctionner une application Vulkan:
+* `sudo apt install vulkan-tools`: Les utilitaires en ligne de commande, plus précisément `vulkaninfo` et `vkcube`. Lancez ceux-ci pour vérifier le bon fonctionnement de votre machine pour Vulkan.
+* `sudo apt install libvulkan-dev`: Installe le loader Vulkan. Il sert à aller chercher les fonctions aurpès du driver de votre GPU au runtime, de la même façon que GLEW le fait pour OpenGL - si vous êtes familiez avec ceci.
+* `sudo apt install vulkan-validationlayers-dev`: Installe les layers de validation standards. Ceux-ci sont cruciaux pour débugger vos applications Vulkan, et nous en reparlerons dans un prochain chapitre.
 
-Le SDK peut être téléchargé sur [le site LunarG](https://vulkan.lunarg.com/) en utilisant les boutons en bas de page.
-Vous n'avez pas besoin de compte, mais celui-ci vous donne accès à une documentation supplémentaire qui pourra vous être
-utile.
-
-![](/images/vulkan_sdk_download_buttons.png)
-
-Ouvrez un terminal dans le dossier où vous avez téléchargé l'archive en ".tar.gz" et extrayez-là :
-
-```bash
-tar -xzf vulkansdk-linux-x86_64-xxx.tar.gz
-```
-
-Cela extraira tous les fichiers dans un sous-dossier dont le nom est celui de la version du SDK. Placez le dossier où
-vous le désirez. Ouvrez-y un terminal. Vous devriez être là où sont présents les fichier comme "build_examples.sh".
-
-Les exemples dans le SDK et l'une des libraries dont nous aurons besoin dépendent de la librairie XCB. C'est une
-librairie écrite en C utilisée pour communiquer avec le gestionnaire de fenêtres X. Elle s'installe à l'aide du package
-"libxcb1-dev" sous Ubuntu. Vous aurez également besoin de fichiers de développement X présents dans le package
-"xorg-dev".
-
-```bash
-sudo apt install libxcb1-dev xorg-dev
-```
-
-Compilez les exemples Vulkan ainsi :
-
-```bash
-./build_examples.sh
-```
-
-Si la compilation a réussi, vous avez normalement un exécutable "./examples/build/vkcube". Lancez-le depuis le
-dossier "examples/build" avec la commande "./vkcube" et assurez-vous que vous obtenez la fenêtre suivante :
+Si l'installation est un succès, vous devriez être prêt pour la partie Vulkan. N'oubliez pas de lancer `vkcube` et assurez-vous de voir la fenêtre suivante:
 
 ![](/images/cube_demo_nowindow.png)
-
-Si vous recevez un message d'erreur, assurez-vous que vos drivers sont à jour, incluent Vulkan et que votre carte
-graphique est supportée. Référez-vous au [chapitre introductif](!fr/Introduction) pour les liens aux vendeurs principaux.
 
 ### GLFW
 
@@ -233,22 +200,9 @@ Vulkan, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer u
 ou MacOS indifféremment. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à
 l'avantage d'abstraire d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
-Nous allons installer GLFW à partir des sources, car Vulkan nécessite une version récente. Vous pouvez trouver ces
-sources sur le [site officiel](http://www.glfw.org/). Extrayez les sources où vous voulez et ouvrez un terminal dans le
-dossier extrait, où se trouve le fichier "CMakeLists.txt".
-
-Exécutez les commandes suivantes afin de générer un makefile et de compiler GLFW :
-
+Nous allons installer GLFW à l'aide de la commande suivante:
 ```bash
-cmake .
-make
-```
-
-Si vous rencontrez le message "Could NOT find Vulkan", ignorez-le. Si la compilation a fonctionné, vous pouvez installer
-GLFW sur votre système en exécutant :
-
-```bash
-sudo make install
+sudo apt install libglfw3-dev
 ```
 
 ### GLM
@@ -262,6 +216,18 @@ Cette librairie contenue intégralement dans les headers peut être installée d
 ```bash
 sudo apt install libglm-dev
 ```
+
+### Compilateur de shader
+
+Nous avons tout ce qu'il nous faut, excepté un programme qui compile le code [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) lisible par un humain en bytecode.
+
+Deux compilateurs de shader populaires sont `glslangValidator` de Khronos et `glslc` de Google. Ce dernier a l'avantage d'être proche de GCC et Clang à l'usage,.
+Pour cette raison, nous l'utliliserons: téléchargez les exécutables [non officiels](https://github.com/google/shaderc/blob/main/downloads.md) et copiez `glslc` dans votre répertoire `/usr/local.bin`. Notez que vous aurez certainement besoin d'utiliser `sudo` en fonctions de vos permissions.
+Pour tester, lancer `glslc` depuis le répertoire de votre choix et il devrait se plaindre qu'il n'a reçu aucun shader à compiler de votre part:
+
+`glslc: error: no input files`
+
+Nous couvrirons l'usage de `glslc` plus en détails dans le chapitre des [modules shaders](!fr/03_Dessiner_un_triangle/02_Pipeline_graphique_basique/01_Modules_shaders.md)
 
 ### Préparation d'un fichier makefile
 
@@ -314,32 +280,22 @@ Nous allons maintenant créer un makefile pour compiler et lancer ce code. Crée
 principe que vous connaissez déjà les bases de makefile, dont les variables et les règles. Sinon vous pouvez trouver des
 introductions claires sur internet, par exemple [ici](https://makefiletutorial.com/).
 
-Nous allons d'abord définir quelques variables pour simplifier le reste du fichier. Définissez `VULKAN_SDK_PATH`, qui se
-réfère à l'emplacement du dossier "x86_64" dans le SDK, par exemple :
+Nous allons d'abord définir quelques variables pour simplifier le reste du fichier.
+Définissez `CFLAGS`, qui spécifiera les arguments pour la compilation :
 
 ```make
-VULKAN_SDK_PATH = /home/utilisateur/VulkanSDK/x.x.x.x/x86_64
+CFLAGS = -std=c++17 -O2
 ```
 
-Remplacez bien "utilisateur" par votre nom d'utilisateur et "x.x.x.x" par la bonne version. Définissez ensuite `CFLAGS`,
-qui spécifiera les arguments pour la compilation :
-
-```make
-CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include
-```
-
-Nous utiliserons du C++ moderne (`-std=c++17`). Nous devons également localiser "vulkan.h" dans le SDK de
-LunarG.
+Nous utiliserons du C++ moderne (`-std=c++17`) et compilerons avec le paramètre d'optimisation `-O2`. Vous pouvez le retirer pour compiler nos programmes plus rapidement, mais n'oubliez pas de le remettre pour compiler des exécutables prêts à être distribués.
 
 Définissez de manière analogue `LDFLAGS` :
 
 ```make
-LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread
 ```
 
-Le premier paramètre permet de localiser les librairies comme "libvulkan.so" dans le dossier "x86_64/lib" du SDK. La
-seconde partie utilise `pkg-config` pour trouver les pramètres nécessaires au linker pour compiler avec GLFW. Enfin, 
-`-lvulkan` correspond au loader dynamique des fonctions Vulkan présent dans le SDK.
+Le premier flag correspond à GLFW, `-lvulkan` correspond au loader dynamique des fonctions Vulkan, et les deux derniers sont requis par GLFW.
 
 Spécifier les commandes pour la compilation de "VulkanTest" est désormais un jeu d'enfant. Assurez-vous que vous
 utilisez des tabulations et non des espaces pour l'indentation.
@@ -365,38 +321,13 @@ clean:
     rm -f VulkanTest
 ```
 
-Vous devriez constater que `make clean` fonctionne mais que `make test` s'interrompra avec le message suivant :
-
-```text
-./VulkanTest: error while loading shared libraries: libvulkan.so.1: cannot open shared object file: No such file or directory
-```
-
-En effet "libvulkan.so" n'est pas installé comme une librairie système. Pour que le linker la trouve, nous devons lui
-spécifier explicitement la localisation de la librairie avec une variable :
-
-```make
-test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib ./VulkanTest
-```
-
-Le programme devrait se lancer correctement maintenant, et afficher le nombre d'extensions disponibles. Si ce nombre est
-zéro, il y a un problème avec la configuration de Vulkan sur votre système. L'application devrait quitter avec le
-code 0 lorsque vous fermez la fenêtre. Il y a pourtant encore une variable que nous devons créer. Nous allons
-utiliser les validation layers et devons donc lui indiquer leur localisation avec la variable 
-`VK_LAYER_PATH` :
-
-```make
-test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./VulkanTest
-```
-
+Lancer `make test` doit vous afficher le programme sans erreur, listant le nombre d'extensions disponible pour Vulkan.
+L'application devrait retourner le code de retour 0 (succès) quand vous fermez la fenêtre vide.
 Vous devriez désormais avoir un makefile ressemblant à ceci :
 
 ```make
-VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
-
-CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include
-LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
+CFLAGS = -std=c++17 01_Modules_shaders.md
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread
 
 VulkanTest: main.cpp
     g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
@@ -404,23 +335,14 @@ VulkanTest: main.cpp
 .PHONY: test clean
 
 test: VulkanTest
-    LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./VulkanTest
+    ./VulkanTest
 
 clean:
     rm -f VulkanTest
 ```
 
-Vous pouvez désormais utiliser ce dossier comme exemple pour vos futurs projets Vulkan. Faites-en une copie, changez le
-nom du projet et tout sera prêt!
-
-Avant d'avancer, regardons le SDK plus en détail. Il y a d'autres programmes dans ce dossier qui vous seront utiles :
-"glslangValidator" et "glslc". Nous nous en servirons pour compiler les shaders. Ils transforment un code lisible par l'homme
-écrit en [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) en bytecode. Nous couvrirons cela dans le
-chapitre [modules shader](!fr/Dessiner_un_triangle/Pipeline_graphique_basique/Modules_shaders).
-
-
-Enfin, le dossier "Include" contient les headers Vulkan. Vous pouvez parourir les autres
-fichiers, mais nous ne les utiliserons pas dans ce tutoriel.
+Vous pouvez désormais utiliser ce dossier comme exemple pour vos futurs projets Vulkan.
+Faites-en une copie, changez le nom du projet pour quelque chose comme `HelloTriangle` et retirez tout le code contenu dans `main.cpp`.
 
 Bravo, vous êtes fin prêts à vous [lancer avec Vulkan!](!fr/Dessiner_un_triangle/Mise_en_place/Code_de_base)
 
