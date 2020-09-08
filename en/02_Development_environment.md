@@ -323,10 +323,10 @@ We're going to use modern C++ (`-std=c++17`), and we'll set optimization level t
 Similarly, define the linker flags in a `LDFLAGS` variable:
 
 ```make
-LDFLAGS = -lglfw -lvulkan -ldl -lpthread
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 ```
 
-The flag `-lglfw` is for GLFW, `-lvulkan` links with the Vulkan function loader and the remaining flags are low-level system libraries that GLFW needs.
+The flag `-lglfw` is for GLFW, `-lvulkan` links with the Vulkan function loader and the remaining flags are low-level system libraries that GLFW needs. The remaining flags are dependencies of GLFW itself: the threading and window management.
 
 Specifying the rule to compile `VulkanTest` is straightforward now. Make sure to
 use tabs for indentation instead of spaces.
@@ -357,7 +357,7 @@ Running `make test` should show the program running successfully, and displaying
 
 ```make
 CFLAGS = -std=c++17 -O2
-LDFLAGS = -lglfw -lvulkan -ldl -lpthread
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 VulkanTest: main.cpp
     g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
