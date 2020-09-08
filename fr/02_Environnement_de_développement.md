@@ -222,7 +222,7 @@ sudo apt install libglm-dev
 Nous avons tout ce qu'il nous faut, excepté un programme qui compile le code [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) lisible par un humain en bytecode.
 
 Deux compilateurs de shader populaires sont `glslangValidator` de Khronos et `glslc` de Google. Ce dernier a l'avantage d'être proche de GCC et Clang à l'usage,.
-Pour cette raison, nous l'utliliserons: téléchargez les exécutables [non officiels](https://github.com/google/shaderc/blob/main/downloads.md) et copiez `glslc` dans votre répertoire `/usr/local.bin`. Notez que vous aurez certainement besoin d'utiliser `sudo` en fonctions de vos permissions.
+Pour cette raison, nous l'utliliserons: téléchargez les exécutables [non officiels](https://github.com/google/shaderc/blob/main/downloads.md) et copiez `glslc` dans votre répertoire `/usr/local/bin`. Notez que vous aurez certainement besoin d'utiliser `sudo` en fonctions de vos permissions.
 Pour tester, lancer `glslc` depuis le répertoire de votre choix et il devrait se plaindre qu'il n'a reçu aucun shader à compiler de votre part:
 
 `glslc: error: no input files`
@@ -326,7 +326,7 @@ L'application devrait retourner le code de retour 0 (succès) quand vous fermez 
 Vous devriez désormais avoir un makefile ressemblant à ceci :
 
 ```make
-CFLAGS = -std=c++17 01_Modules_shaders.md
+CFLAGS = -std=c++17 -O2
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread
 
 VulkanTest: main.cpp
