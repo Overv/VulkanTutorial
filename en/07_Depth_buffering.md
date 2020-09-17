@@ -500,9 +500,7 @@ depthStencil.depthWriteEnable = VK_TRUE;
 The `depthTestEnable` field specifies if the depth of new fragments should be
 compared to the depth buffer to see if they should be discarded. The
 `depthWriteEnable` field specifies if the new depth of fragments that pass the
-depth test should actually be written to the depth buffer. This is useful for
-drawing transparent objects. They should be compared to the previously rendered
-opaque objects, but not cause further away transparent objects to not be drawn.
+depth test should actually be written to the depth buffer.
 
 ```c++
 depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
