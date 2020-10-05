@@ -124,7 +124,7 @@ necessary.
 Now with the above done, we can generate the static files. Asuming the daux.io
 and VulkanTutorial directories are next to each other, go into the `daux.io`
 directory and run a command similar to:
-`php generate -s ../VulkanTutorial -d ../VulkanTutorial\out`.
+`php generate -s ../VulkanTutorial -d ../VulkanTutorial/out`.
 
 `-s` tells it where to find the documentation, while `-d` tells it where to put
 the generated files.
