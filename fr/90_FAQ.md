@@ -6,8 +6,7 @@ RivaTuner Statistics Server ne tournent pas, car ils possèdent des problèmes d
 * **Je ne vois aucun message provenant des validation layers / les validation layers ne sont pas disponibles** :
 assurez-vous d'abord que les validation layers peuvent écrire leurs message en laissant le terminal ouvert après
 l'exécution. Avec Visual Studio, lancez le programme avec Ctrl-F5. Sous Linux, lancez le programme depuis un terminal.
-S'il n'y a toujours pas de message, revoyez l'installation du SDK
-[ici](https://vulkan.lunarg.com/doc/sdk/1.1.106.0/windows/getting_started.html#user-content-verify-the-installation).
+S'il n'y a toujours pas de message, revoyez l'installation du SDK en suivant les instructions de [cette page](https://vulkan.lunarg.com/doc/view/1.2.135.0/windows/getting_started.html) (section "Verify the Installation").
 Assurez-vous également que le SDK est au moins de la version 1.1.106.0 pour le support de `VK_LAYER_KHRONOS_validation`.
 
 * **vkCreateSwapchainKHR induit une erreur dans SteamOverlayVulkanLayer64.dll** : Il semble qu'il y ait un problème de
