@@ -292,10 +292,10 @@ Nous utiliserons du C++ moderne (`-std=c++17`) et compilerons avec le paramètre
 Définissez de manière analogue `LDFLAGS` :
 
 ```make
-LDFLAGS = -lglfw -lvulkan -ldl -lpthread
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 ```
 
-Le premier flag correspond à GLFW, `-lvulkan` correspond au loader dynamique des fonctions Vulkan, et les deux derniers sont requis par GLFW.
+Le premier flag correspond à GLFW, `-lvulkan` correspond au loader dynamique des fonctions Vulkan. Le reste des options correspondent à des bibliothèques systèmes liés à la gestion des fenêtres et aux threads nécessaire pour le bon fonctionnement de GLFW.
 
 Spécifier les commandes pour la compilation de "VulkanTest" est désormais un jeu d'enfant. Assurez-vous que vous
 utilisez des tabulations et non des espaces pour l'indentation.
@@ -327,7 +327,7 @@ Vous devriez désormais avoir un makefile ressemblant à ceci :
 
 ```make
 CFLAGS = -std=c++17 -O2
-LDFLAGS = -lglfw -lvulkan -ldl -lpthread
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 VulkanTest: main.cpp
     g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
