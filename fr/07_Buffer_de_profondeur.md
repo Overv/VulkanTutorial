@@ -459,9 +459,7 @@ depthStencil.depthWriteEnable = VK_TRUE;
 ```
 
 Le champ `depthTestEnable` permet d'activer la comparaison de la profondeur des fragments. Le champ `depthWriteEnable`
-autorise les fragments qui passent le test à écrire leur propre profondeur sur l'image de profondeur. Cela est utile
-dans le cas des objets transparents. Ils doivent être comparés aux objets opaques, mais ne doivent pas bloquer le rendu
-des autres objets derrière eux, car ils participent à leur coloration.
+indique si la nouvelle profondeur des fragments qui passent le test doivent être écrite dans le tampon de profondeur.
 
 ```c++
 depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
