@@ -212,7 +212,7 @@ Les mises à jour sont appliquées quand nous appelons `vkUpdateDescriptorSets`.
 ## Utiliser des sets de descripteurs
 
 Nous devons maintenant étendre `createCommandBuffers` pour qu'elle lie les sets de descripteurs aux descripteurs des
-shaders avec la commande `cmdBindDescriptorSets`. Il faut invoquer cette commande dans l'enregistrement des command
+shaders avec la commande `vkCmdBindDescriptorSets`. Il faut invoquer cette commande dans l'enregistrement des command
 buffers avant l'appel à `vkCmdDrawIndexed`.
 
 ```c++
