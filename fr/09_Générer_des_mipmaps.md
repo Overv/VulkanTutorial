@@ -213,6 +213,8 @@ Nous enregistrons maintenant les commandes. Remarquez que `textureImage` est uti
 cible, car la commande s'applique à plusieurs niveaux de l'image. Le niveau de mipmap source vient d'être transitionné
 vers `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`, et le niveau cible est resté en destination depuis sa création.
 
+Attention au cas où vous utilisez une queue de transfert dédiée (comme suggéré dans [Vertex buffers](!fr/Vertex_buffers/Buffer_intermédiaire)) : la fonction `vkCmdBlitImage` doit être envoyée dans une queue graphique.
+
 Le dernier paramètre permet de fournir un `VkFilter`. Nous voulons le même filtre que pour le sampler, nous pouvons donc
 mettre `VK_FILTER_LINEAR`.
 

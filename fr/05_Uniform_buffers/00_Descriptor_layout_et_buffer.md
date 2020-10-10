@@ -57,7 +57,7 @@ lui-même et donne un effet 3D à la scène.
 
 Modifiez le vertex shader pour qu'il inclue l'UBO comme dans l'exemple ci-dessous. Je pars du principe que vous
 connaissez les transformations MVP. Si ce n'est pourtant pas le cas, vous pouvez vous rendre sur
-[ce site](https://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/) déjà mentionné dans le premier chapitre.
+[ce site](https://www.opengl-tutorial.org/fr/beginners-tutorials/tutorial-3-matrices/) déjà mentionné dans le premier chapitre.
 
 ```glsl
 #version 450
