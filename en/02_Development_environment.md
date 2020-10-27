@@ -397,10 +397,10 @@ After downloading it, simply extract the contents to a folder of your choice (ke
 
 As mentioned before, Vulkan by itself is a platform agnostic API and does not include tools for creation a window to display the rendered results. We'll use the [GLFW library](http://www.glfw.org/) to create a window, which supports Windows, Linux and MacOS. There are other libraries available for this purpose, like [SDL](https://www.libsdl.org/), but the advantage of GLFW is that it also abstracts away some of the other platform-specific things in Vulkan besides just window creation.
 
-To install GLFW on MacOS we will use the Homebrew package manager. Vulkan support for MacOS is still not fully available on the current (at the time of this writing) stable version 3.2.1. Therefore we will install the latest version of the `glfw3` package using:
+To install GLFW on MacOS we will use the Homebrew package manager to get the `glfw` package:
 
 ```bash
-brew install glfw3 --HEAD
+brew install glfw
 ```
 
 ### GLM
