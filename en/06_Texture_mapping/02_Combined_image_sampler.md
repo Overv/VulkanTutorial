@@ -38,11 +38,11 @@ fragment is going to be determined. It is possible to use texture sampling in
 the vertex shader, for example to dynamically deform a grid of vertices by a
 [heightmap](https://en.wikipedia.org/wiki/Heightmap).
 
-If you would run the application with validation layers now, then you'll see
-that it complains that the descriptor pool cannot allocate descriptor sets with
-this layout, because it doesn't have any combined image sampler descriptors. Go
-to the `createDescriptorPool` function and modify it to include a
-`VkDescriptorPoolSize` for this descriptor:
+We must also create a larger descriptor pool to make room for the allocation
+of the combined image sampler by adding another `VkPoolSize` of type
+`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER` to the
+`VkDescriptorPoolCreateInfo`. Go to the `createDescriptorPool` function and
+modify it to include a `VkDescriptorPoolSize` for this descriptor:
 
 ```c++
 std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -57,6 +57,24 @@ poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 poolInfo.pPoolSizes = poolSizes.data();
 poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
 ```
+
+Inadequate descriptor pools are a good example of a problem that the validation
+layers will not catch: As of Vulkan 1.1, `vkAllocateDescriptorSets` may fail
+with the error code `VK_ERROR_POOL_OUT_OF_MEMORY` if the pool is not
+sufficiently large, but the driver may also try to solve the problem internally.
+This means that sometimes (depending on hardware, pool size and allocation size)
+the driver will let us get away with an allocation that exceeds the limits of
+our descriptor pool. Other times, `vkAllocateDescriptorSets` will fail and
+return `VK_ERROR_POOL_OUT_OF_MEMORY`. This can be particularly frustrating if
+the allocation succeeds on some machines, but fails on others.
+
+Since Vulkan shifts the responsiblity for the allocation to the driver, it is no
+longer a strict requirement to only allocate as many descriptors of a certain
+type (`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER`, etc.) as specified by the
+corresponding `descriptorCount` members for the creation of the descriptor pool.
+However, it remains best practise to do so, and in the future,
+`VK_LAYER_KHRONOS_validation` will warn about this type of problem if you enable
+[Best Practice Validation](https://vulkan.lunarg.com/doc/view/1.1.126.0/windows/best_practices.html).
 
 The final step is to bind the actual image and sampler resources to the
 descriptors in the descriptor set. Go to the `createDescriptorSets` function.
