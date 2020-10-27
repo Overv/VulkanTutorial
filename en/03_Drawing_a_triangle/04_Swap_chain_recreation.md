@@ -117,7 +117,7 @@ allocate the new command buffers.
 Note that in `chooseSwapExtent` we already query the new window resolution to
 make sure that the swap chain images have the (new) right size, so there's no
 need to modify `chooseSwapExtent` (remember that we already had to use
-`glfwGetFramebufferSize` get the resolution of the surface in pixel when
+`glfwGetFramebufferSize` get the resolution of the surface in pixels when
 creating the swap chain).
 
 That's all it takes to recreate the swap chain! However, the disadvantage of
