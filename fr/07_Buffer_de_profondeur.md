@@ -480,8 +480,8 @@ valeurs fournies ici. Nous n'utiliserons pas cette fonctionnalité.
 
 ```c++
 depthStencil.stencilTestEnable = VK_FALSE;
-depthStencil.front{}; // Optionnel
-depthStencil.back{}; // Optionnel
+depthStencil.front = {}; // Optionnel
+depthStencil.back = {}; // Optionnel
 ```
 
 Les trois derniers champs configurent les opérations du buffer de stencil, que nous n'utiliserons pas non plus dans ce

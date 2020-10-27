@@ -523,8 +523,8 @@ functionality.
 
 ```c++
 depthStencil.stencilTestEnable = VK_FALSE;
-depthStencil.front{}; // Optional
-depthStencil.back{}; // Optional
+depthStencil.front = {}; // Optional
+depthStencil.back = {}; // Optional
 ```
 
 The last three fields configure stencil buffer operations, which we also won't
