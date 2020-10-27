@@ -318,14 +318,28 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 ```
 
 The swap extent is the resolution of the swap chain images and it's almost
-always exactly equal to the resolution of the window that we're drawing to. The
-range of the possible resolutions is defined in the `VkSurfaceCapabilitiesKHR`
-structure. Vulkan tells us to match the resolution of the window by setting the
-width and height in the `currentExtent` member. However, some window managers do
-allow us to differ here and this is indicated by setting the width and height in
-`currentExtent` to a special value: the maximum value of `uint32_t`. In that
-case we'll pick the resolution that best matches the window within the
-`minImageExtent` and `maxImageExtent` bounds.
+always exactly equal to the resolution of the window that we're drawing to _in
+pixels_ (more on that in a moment). The range of the possible resolutions is
+defined in the `VkSurfaceCapabilitiesKHR` structure. Vulkan tells us to match
+the resolution of the window by setting the width and height in the
+`currentExtent` member. However, some window managers do allow us to differ here
+and this is indicated by setting the width and height in `currentExtent` to a
+special value: the maximum value of `uint32_t`. In that case we'll pick the
+resolution that best matches the window within the `minImageExtent` and
+`maxImageExtent` bounds. But we must specify the resolution in the correct unit.
+
+GLFW uses two units when measuring sizes: pixels and
+[screen coordinates](https://www.glfw.org/docs/latest/intro_guide.html#coordinate_systems).
+For example, the resolution `{WIDTH, HEIGHT}` that we specified earlier when
+creating the window is measured in screen coordinates. But Vulkan works with
+pixels, so the swap chain extent must be specified in pixels as well.
+Unfortunately, if you are using a high DPI display (like Apple's Retina
+display), screen coordinates don't correspond to pixels. Instead, due to the
+higher pixel density, the resolution of the window in pixel will be larger than
+the resolution in screen coordinates. So if Vulkan doesn't fix the swap extent
+for us, we can't just use the original `{WIDTH, HEIGHT}`. Instead, we must use
+`glfwGetFramebufferSize` to query the resolution of the window in pixel before
+matching it against the minimum and maximum image extent.
 
 ```c++
 #include <cstdint> // Necessary for UINT32_MAX
@@ -336,7 +350,13 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
     if (capabilities.currentExtent.width != UINT32_MAX) {
         return capabilities.currentExtent;
     } else {
-        VkExtent2D actualExtent = {WIDTH, HEIGHT};
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        VkExtent2D actualExtent = {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
+        };
 
         actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
         actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
