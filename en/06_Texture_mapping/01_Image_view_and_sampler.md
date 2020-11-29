@@ -218,15 +218,27 @@ floors and walls.
 
 ```c++
 samplerInfo.anisotropyEnable = VK_TRUE;
-samplerInfo.maxAnisotropy = 16.0f;
+samplerInfo.maxAnisotropy = ???;
 ```
 
 These two fields specify if anisotropic filtering should be used. There is no
 reason not to use this unless performance is a concern. The `maxAnisotropy`
 field limits the amount of texel samples that can be used to calculate the final
 color. A lower value results in better performance, but lower quality results.
-There is no graphics hardware available today that will use more than 16
-samples, because the difference is negligible beyond that point.
+To figure out which value we can use, we need to retrieve the properties of the physical device like so:
+
+```c++
+VkPhysicalDeviceProperties properties{};
+vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+```
+
+If you look at the documentation for the `VkPhysicalDeviceProperties` structure, you'll see that it contains a `VkPhysicalDeviceLimits` member named `limits`. This struct in turn has a member called `maxSamplerAnisotropy` and this is the maximum value we can specify for `maxAnisotropy`. If we want to go for maximum quality, we can simply use that value directly:
+
+```c++
+samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+```
+
+You can either query the properties at the beginning of your program and pass them around to the functions that need them, or query them in the `createTextureSampler` function itself.
 
 ```c++
 samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
