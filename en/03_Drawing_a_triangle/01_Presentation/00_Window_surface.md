@@ -49,7 +49,9 @@ window and the process.You need to define VK_USE_PLATFORM_WIN32_KHR before
 including vulkan header file. Because include vulkan header file we define it 
 before including glfw header. 
 
-```#define GLFW_INCLUDE_VULKAN
+```
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 ```
 
