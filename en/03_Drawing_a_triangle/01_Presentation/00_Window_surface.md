@@ -45,7 +45,15 @@ behind the scenes before we start relying on it.
 Because a window surface is a Vulkan object, it comes with a
 `VkWin32SurfaceCreateInfoKHR` struct that needs to be filled in. It has two
 important parameters: `hwnd` and `hinstance`. These are the handles to the
-window and the process.
+window and the process.You need to define VK_USE_PLATFORM_WIN32_KHR before 
+including vulkan header file. Because include vulkan header file we define it 
+before including glfw header. 
+
+```#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+```
+
+now we can create our surface.
 
 ```c++
 VkWin32SurfaceCreateInfoKHR createInfo{};
