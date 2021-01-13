@@ -47,12 +47,17 @@ Because a window surface is a Vulkan object, it comes with a
 important parameters: `hwnd` and `hinstance`. These are the handles to the
 window and the process.You need to define VK_USE_PLATFORM_WIN32_KHR before 
 including vulkan header file. Because include vulkan header file we define it 
-before including glfw header. 
+before including glfw header. and to use glfwGetWin32Window function we need to
+include it from glfw3native header file and define GLFW_EXPOSE_NATIVE_WIN32 before
+it , to make the function available for use.
 
 ```
+
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 ```
 
 now we can create our surface.
