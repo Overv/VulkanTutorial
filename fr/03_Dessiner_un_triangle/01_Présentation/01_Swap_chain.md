@@ -1,6 +1,6 @@
 Vulkan ne possède pas de concept comme le framebuffer par défaut, et nous devons donc créer une infrastructure qui
-contiendra les buffers sur lesquels nous effectuerons les rendus avant de la présentation à l'écran. Cette
-infrastructure s'appelle _swap chain_ sur Vulkan et doit être crée explicitement. La swap chain est essentiellement
+contiendra les buffers sur lesquels nous effectuerons les rendus avant de les présenter à l'écran. Cette
+infrastructure s'appelle _swap chain_ sur Vulkan et doit être créée explicitement. La swap chain est essentiellement
 une file d'attente d'images attendant d'être affichées. Notre application devra récupérer une des images de la file,
 dessiner dessus puis la retourner à la file d'attente. Le fonctionnement de la file d'attente et les conditions de la
 présentation dépendent du paramétrage de la swap chain. Cependant, l'intérêt principal de la swap chain est de
@@ -291,7 +291,7 @@ Le swap extent donne la résolution des images dans la swap chain et correspond 
 la fenêtre que nous utilisons. L'étendue des résolutions disponibles est définie dans la
 structure `VkSurfaceCapabilitiesKHR`. Vulkan nous demande de faire correspondre notre résolution à celle de la fenêtre
 fournie par le membre `currentExtent`. Cependant certains gestionnaires de fenêtres nous permettent de choisir une
-résolution différente, ce qui nous pouvons détecter car alors les membres `width` et `height` sont égaux à la plus
+résolution différente, ce que nous pouvons détecter grâce aux membres `width` et `height` qui sont alors égaux à la plus
 grande valeur d'un `uint32_t`. Dans ce cas nous choisirons la résolution correspondant le mieux à la taille de la
 fenêtre, dans les bornes de `minImageExtent` et `maxImageExtent`.
 
@@ -502,7 +502,7 @@ stocker :
 std::vector<VkImage> swapChainImages;
 ```
 
-Ces images ont été crées par l'implémentation avec la swap chain et elles seront automatiquement supprimées avec la
+Ces images ont été créées par l'implémentation avec la swap chain et elles seront automatiquement supprimées avec la
 destruction de la swap chain, nous n'aurons donc rien à rajouter dans la fonction `cleanup`.
 
 Ajoutons le code nécessaire à la récupération des références à la fin de `createSwapChain`, juste après l'appel à 
