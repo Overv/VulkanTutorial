@@ -42,17 +42,9 @@ platform-specific code anyway. GLFW actually has `glfwCreateWindowSurface` that
 handles the platform differences for us. Still, it's good to see what it does
 behind the scenes before we start relying on it.
 
-Because a window surface is a Vulkan object, it comes with a
-`VkWin32SurfaceCreateInfoKHR` struct that needs to be filled in. It has two
-important parameters: `hwnd` and `hinstance`. These are the handles to the
-window and the process.You need to define VK_USE_PLATFORM_WIN32_KHR before 
-including vulkan header file. Because include vulkan header file we define it 
-before including glfw header. and to use glfwGetWin32Window function we need to
-include it from glfw3native header file and define GLFW_EXPOSE_NATIVE_WIN32 before
-it , to make the function available for use.
+To access native platform functions, you need to update the includes at the top:
 
-```
-
+```c++
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -60,7 +52,10 @@ it , to make the function available for use.
 #include <GLFW/glfw3native.h>
 ```
 
-now we can create our surface.
+Because a window surface is a Vulkan object, it comes with a
+`VkWin32SurfaceCreateInfoKHR` struct that needs to be filled in. It has two
+important parameters: `hwnd` and `hinstance`. These are the handles to the
+window and the process.
 
 ```c++
 VkWin32SurfaceCreateInfoKHR createInfo{};
