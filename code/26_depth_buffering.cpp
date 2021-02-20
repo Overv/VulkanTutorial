@@ -337,6 +337,8 @@ private:
         createDescriptorPool();
         createDescriptorSets();
         createCommandBuffers();
+
+        imagesInFlight.resize(swapChainImages.size(), VK_NULL_HANDLE);
     }
 
     void createInstance() {
