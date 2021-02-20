@@ -343,6 +343,7 @@ matching it against the minimum and maximum image extent.
 
 ```c++
 #include <cstdint> // Necessary for UINT32_MAX
+#include <algorithm> // Necessary for std::min/std::max
 
 ...
 
@@ -368,7 +369,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
 The `max` and `min` functions are used here to clamp the value of `WIDTH` and
 `HEIGHT` between the allowed minimum and maximum extents that are supported by
-the implementation. Make sure to include the `<algorithm>` header to use them.
+the implementation.
 
 ## Creating the swap chain
 
