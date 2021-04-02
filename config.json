@@ -24,7 +24,8 @@
             "LunarG Vulkan SDK": "https://lunarg.com/vulkan-sdk/",
             "Vulkan Hardware Database": "http://vulkan.gpuinfo.org/",
             "Tutorial for Rust": "https://github.com/bwasty/vulkan-tutorial-rs",
-            "Tutorial for Java": "https://github.com/Naitsirc98/Vulkan-Tutorial-Java"
+            "Tutorial for Java": "https://github.com/Naitsirc98/Vulkan-Tutorial-Java",
+            "Visual Studio 2019 samples": "https://github.com/jjYBdx4IL/VulkanTutorial-VisualStudioProjectFiles"
         }
     },
     "ignore": {
