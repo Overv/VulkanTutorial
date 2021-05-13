@@ -278,8 +278,7 @@ right away when it finally arrives. This may result in visible tearing.
 * `VK_PRESENT_MODE_MAILBOX_KHR`: This is another variation of the second mode.
 Instead of blocking the application when the queue is full, the images that are
 already queued are simply replaced with the newer ones. This mode can be used to
-implement triple buffering, which allows you to avoid tearing with significantly
-less latency issues than standard vertical sync that uses double buffering.
+render frames as fast as possible while still avoiding tearing, resulting in fewer latency issues than standard vertical sync. This is commonly known as "triple buffering", although the existence of three buffers alone does not necessarily mean that the framerate is unlocked.
 
 Only the `VK_PRESENT_MODE_FIFO_KHR` mode is guaranteed to be available, so we'll
 again have to write a function that looks for the best mode that is available:
@@ -290,10 +289,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
 }
 ```
 
-I personally think that triple buffering is a very nice trade-off. It allows us
-to avoid tearing while still maintaining a fairly low latency by rendering new
-images that are as up-to-date as possible right until the vertical blank. So,
-let's look through the list to see if it's available:
+I personally think that `VK_PRESENT_MODE_MAILBOX_KHR` is a very nice trade-off if energy usage is not a concern. It allows us to avoid tearing while still maintaining a fairly low latency by rendering new images that are as up-to-date as possible right until the vertical blank. On mobile devices, where energy usage is more important, you will probably want to use `VK_PRESENT_MODE_FIFO_KHR` instead. Now, let's look through the list to see if `VK_PRESENT_MODE_MAILBOX_KHR` is available:
 
 ```c++
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
