@@ -101,7 +101,7 @@ for fn in os.listdir('images'):
     parts = fn.split('.')
 
     if parts[1] == 'svg':
-        subprocess.check_output(['inkscape', '-z', '-e', 'images/' +
+        subprocess.check_output(['inkscape', '--export-filename=images/' +
                                  parts[0] + '.png', 'images/' + fn], stderr=subprocess.STDOUT)
         generatedPngs.append('images/' + parts[0] + '.png')
 
