@@ -86,7 +86,7 @@ def create_ebook(path):
     print('building epub...')
 
     subprocess.check_output(
-        ['pandoc', 'ebook.md', '--toc', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.epub'])
+        ['pandoc', 'ebook.md', '--toc', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.epub', '--epub-cover-image=ebook/cover.png'])
 
     # Clean up
     os.remove('ebook.md')
