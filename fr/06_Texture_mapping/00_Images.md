@@ -42,7 +42,7 @@ enfin être utilisées pour changer la queue family qui possède une ressource.
 ## Librairie de chargement d'image
 
 De nombreuses librairies de chargement d'images existent ; vous pouvez même écrire la vôtre pour des formats simples
-comme BMP ou PPM. Nous allons utiliser stb_image, de [la collecetion stb](https://github.com/nothings/stb). Elle
+comme BMP ou PPM. Nous allons utiliser stb_image, de [la collection stb](https://github.com/nothings/stb). Elle
 possède l'avantage d'être écrite en un seul fichier. Téléchargez donc `stb_image.h` et placez-la ou vous voulez, par
 exemple dans le dossier où sont stockés GLFW et GLM.
 
