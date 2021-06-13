@@ -307,15 +307,15 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
     } else {
         VkExtent2D actualExtent = {WIDTH, HEIGHT};
 
-        actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-        actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+        actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
         return actualExtent;
     }
 }
 ```
 
-Les fonctions `min` et `max` sont utilisées ici pour limiter les valeurs `WIDTH` et `HEIGHT` entre le minimum et le
+La fonction `clamp` est utilisée ici pour limiter les valeurs `WIDTH` et `HEIGHT` entre le minimum et le
 maximum supportés par l'implémentation.
 
 ## Création de la swap chain
