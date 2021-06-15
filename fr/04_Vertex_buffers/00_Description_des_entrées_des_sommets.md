@@ -13,7 +13,6 @@ de même avec la couleur.
 
 ```glsl
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) in vec2 inPosition;
 layout(location = 1) in vec3 inColor;
@@ -34,7 +33,7 @@ Les variables `inPosition` et `inColor` sont des *vertex attributes*. Ce sont de
 l'origine de l'invocation du shader. Ces données peuvent être de différentes natures, des couleurs aux coordonnées en
 passant par des coordonnées de texture. Recompilez ensuite le vertex shader.
 
-Tout comme pour `fragColor`, les annotations de type `layout(location=x)` assignent un indice à l'entrée. Cet indice 
+Tout comme pour `fragColor`, les annotations de type `layout(location=x)` assignent un indice à l'entrée. Cet indice
 est utilisé depuis le code C++ pour les reconnaître. Il est important de savoir que certains types - comme les vecteurs
 de flottants de double précision (64 bits) - prennent deux emplacements. Voici un exemple d'une telle situation, où il
 est nécessaire de prévoir un écart entre deux entrés :
@@ -86,7 +85,7 @@ stockées dans le GPU. Nous verrons plus tard comment les y stocker. Il y a deux
 devoir utiliser.
 
 Pour la première, appelée `VkVertexInputBindingDescription`, nous allons ajouter une fonction à `Vertex` qui renverra
-une instance de cette structure. 
+une instance de cette structure.
 
 ```c++
 struct Vertex {
@@ -169,7 +168,7 @@ Comme vous pouvez vous en douter il faudra utiliser le format dont le nombre de 
 nombre de données à transmettre. Il est autorisé d'utiliser plus de données que ce qui est prévu dans le shader, et ces
 données surnuméraires seront silencieusement ignorées. Si par contre il n'y a pas assez de valeurs les valeurs suivantes
 seront utilisées par défaut pour les valeurs manquantes : 0, 0 et 1 pour les deuxième, troisième et quatrième
-composantes. Il n'y a pas de valeur par défaut pour le premier membre car ce cas n'est pas autorisé. Les types 
+composantes. Il n'y a pas de valeur par défaut pour le premier membre car ce cas n'est pas autorisé. Les types
 (`SFLOAT`, `UINT` et `SINT`) et le nombre de bits doivent par contre correspondre parfaitement à ce qui est indiqué dans
 le shader. Voici quelques exemples :
 
@@ -181,7 +180,7 @@ bits
 Le paramètre `format` définit implicitement la taille en octets des données. Mais le binding extrait dans notre cas deux
 données pour chaque sommet : la position et la couleur. Pour savoir quels octets doivent être mis dans la variable à
 laquelle la structure correspond, le paramètre `offset` permet d'indiquer de combien d'octets il faut se décaler dans
-les données extraites pour se trouver au début de la variable. Ce décalage est calculé automatiquement par la macro 
+les données extraites pour se trouver au début de la variable. Ce décalage est calculé automatiquement par la macro
 `offsetof`.
 
 L'attribut de couleur est décrit de la même façon. Essayez de le remplir avant de regarder la solution ci-dessous.

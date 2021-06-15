@@ -115,7 +115,6 @@ like this:
 
 ```glsl
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) out vec4 outColor;
 
@@ -194,7 +193,6 @@ The contents of `shader.vert` should be:
 
 ```glsl
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) out vec3 fragColor;
 
@@ -220,7 +218,6 @@ And the contents of `shader.frag` should be:
 
 ```glsl
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) in vec3 fragColor;
 
