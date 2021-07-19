@@ -32,7 +32,7 @@
         "files": ["README.md", "build_ebook.py","daux.patch",".gitignore"],
         "folders": ["ebook"]
     },
-    "languages": {"en": "English", "fr": "French"},
+    "languages": {"en": "English", "fr": "Français"},
     "language": "en",
     "processor": "VulkanLinkProcessor"
 }
