@@ -220,7 +220,7 @@ region will have undefined values. It should match the size of the attachments
 for best performance.
 
 ```c++
-VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
 renderPassInfo.clearValueCount = 1;
 renderPassInfo.pClearValues = &clearColor;
 ```
