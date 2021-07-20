@@ -206,7 +206,7 @@ chargements et stockages shaders se produiront. Les pixels hors de cette région
 doit correspondre à la taille des attachements pour avoir une performance optimale.
 
 ```c++
-VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
 renderPassInfo.clearValueCount = 1;
 renderPassInfo.pClearValues = &clearColor;
 ```
