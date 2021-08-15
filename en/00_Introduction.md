@@ -31,7 +31,7 @@ able to use Vulkan while exposing a much higher level API to you.
 With that out of the way, let's cover some prerequisites for following this
 tutorial:
 
-* A graphics card and driver compatible with Vulkan ([NVIDIA](https://developer.nvidia.com/vulkan-driver), [AMD](http://www.amd.com/en-us/innovations/software-technologies/technologies-gaming/vulkan), [Intel](https://software.intel.com/en-us/blogs/2016/03/14/new-intel-vulkan-beta-1540204404-graphics-driver-for-windows-78110-1540))
+* A graphics card and driver compatible with Vulkan ([NVIDIA](https://developer.nvidia.com/vulkan-driver), [AMD](http://www.amd.com/en-us/innovations/software-technologies/technologies-gaming/vulkan), [Intel](https://software.intel.com/en-us/blogs/2016/03/14/new-intel-vulkan-beta-1540204404-graphics-driver-for-windows-78110-1540), [APPLE Silicon](https://www.phoronix.com/scan.php?page=news_item&px=Apple-Silicon-Vulkan-MoltenVK))
 * Experience with C++ (familiarity with RAII, initializer lists)
 * A compiler with decent support of C++17 features (Visual Studio 2017+, GCC 7+, Or Clang 5+)
 * Some existing experience with 3D computer graphics
