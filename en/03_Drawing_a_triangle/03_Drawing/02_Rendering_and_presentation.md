@@ -524,11 +524,12 @@ void drawFrame() {
 
 The `vkWaitForFences` function takes an array of fences and waits for either any or all of them to be signaled before returning. The `VK_TRUE` we pass here indicates that we want to wait for all fences, but in the case of a single one it obviously doesn't matter. Just like `vkAcquireNextImageKHR` this function also takes a timeout. Unlike the semaphores, we manually need to restore the fence to the unsignaled state by resetting it with the `vkResetFences` call.
 
-If you run the program now, you'll notice something something strange. The application no longer seems to be rendering anything. With validation layers enabled, you'll see the following message:
-
-![](/images/unsubmitted_fence.png)
-
-That means that we're waiting for a fence that has not been submitted. The problem here is that, by default, fences are created in the unsignaled state. That means that `vkWaitForFences` will wait forever if we haven't used the fence before. To solve that, we can change the fence creation to initialize it in the signaled state as if we had rendered an initial frame that finished:
+If you run the program now, you'll notice something something strange. The application
+no longer seems to be rendering anything. The problem is that we're waiting for a fence
+that has not been submitted. Fences are created in the unsignaled state by default,
+which means that `vkWaitForFences` will wait forever if we haven't used the fence
+before. To solve that, we can change the fence creation to initialize it in the
+signaled state as if we had rendered an initial frame that finished:
 
 ```c++
 void createSyncObjects() {

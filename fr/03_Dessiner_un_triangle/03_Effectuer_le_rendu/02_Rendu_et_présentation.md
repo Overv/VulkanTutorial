@@ -36,7 +36,7 @@ permettent d'attendre qu'une opération se termine en relayant un signal émis p
 l'origine du lancement de l'opération.
 
 Ils ont cependant une différence : l'état d'une fence peut être accédé depuis le programme à l'aide de fonctions telles
-que `vkWaitForFences` alors que les sémaphores ne le permettent pas. Les fences sont généralement utilisées pour 
+que `vkWaitForFences` alors que les sémaphores ne le permettent pas. Les fences sont généralement utilisées pour
 synchroniser votre programme avec les opérations alors que les sémaphores synchronisent les opérations entre elles. Nous
 voulons synchroniser les queues, les commandes d'affichage et la présentation, donc les sémaphores nous conviennent le
 mieux.
@@ -191,7 +191,7 @@ subpasses implicites.
 Il existe deux dépendances préexistantes capables de gérer les transitions au début et à la fin de la render pass. Le
 problème est que cette première dépendance ne s'exécute pas au bon moment. Elle part du principe que la transition de
 l'organisation de l'image doit être réalisée au début de la pipeline, mais dans notre programme l'image n'est pas encore
-acquise à ce moment! Il existe deux manières de régler ce problème. Nous pourrions changer `waitStages` pour 
+acquise à ce moment! Il existe deux manières de régler ce problème. Nous pourrions changer `waitStages` pour
 `imageAvailableSemaphore` à `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` pour être sûrs que la pipeline ne commence pas avant
 que l'image ne soit acquise, mais nous perdrions en performance car les shaders travaillant sur les vertices n'ont pas
 besoin de l'image. Il faudrait faire quelque chose de plus subtil. Nous allons donc plutôt faire attendre la render
@@ -209,7 +209,7 @@ dependency.dstSubpass = 0;
 
 Les deux premiers champs permettent de fournir l'indice de la subpasse d'origine et de la subpasse d'arrivée. La valeur
 particulière `VK_SUBPASS_EXTERNAL` réfère à la subpass implicite soit avant soit après la render pass, selon que
-cette valeur est indiquée dans respectivement `srcSubpass` ou `dstSubpass`. L'indice `0` correspond à notre 
+cette valeur est indiquée dans respectivement `srcSubpass` ou `dstSubpass`. L'indice `0` correspond à notre
 seule et unique subpasse. La valeur fournie à `dstSubpass` doit toujours être supérieure à `srcSubpass` car sinon une
 boucle infinie peut apparaître (sauf si une des subpasse est `VK_SUBPASS_EXTERNAL`).
 
@@ -311,7 +311,7 @@ void mainLoop() {
 }
 ```
 
-Vous pouvez également attendre la fin d'une opération quelconque depuis une queue spécifique à l'aide de la fonction 
+Vous pouvez également attendre la fin d'une opération quelconque depuis une queue spécifique à l'aide de la fonction
 `vkQueueWaitIdle`. Ces fonction peuvent par ailleurs être utilisées pour réaliser une synchronisation très basique,
 mais très inefficace. Le programme devrait maintenant se terminer sans problème quand vous fermez la fenêtre.
 
@@ -445,7 +445,7 @@ std::vector<VkFence> inFlightFences;
 size_t currentFrame = 0;
 ```
 
-J'ai choisi de créer les fences avec les sémaphores et de renommer la fonction `createSemaphores` en 
+J'ai choisi de créer les fences avec les sémaphores et de renommer la fonction `createSemaphores` en
 `createSyncObjects` :
 
 ```c++
@@ -519,15 +519,11 @@ différence vu que nous n'avons qu'une seule fence. Comme la fonction `vkAcquire
 durée en argument, que nous ignorons. Nous devons ensuite réinitialiser les fences manuellement à l'aide d'un appel à
 la fonction `vkResetFences`.
 
-Si vous lancez le programme maintenant vous allez constater un comportement étrange. Plus rien ne se passe. Encore 
-une fois regardez ce que les validation layers vous fournissent comme informations :
-
-![](/images/unsubmitted_fence.png)
-
-Nous attendons qu'une fence soit signalée alors qu'elle n'a jamais été envoyée à aucune fonction. En effet les fences
-sont par défaut crées dans le mode non signalé. Comme nous appelons `vkWaitForFences` avant `vkQueueSubmit` notre
-première fence va créer une pause infinie. Pour empêcher cela nous devons initialiser les fences dans le mode signalé,
-et ce dès leur création :
+Si vous lancez le programme maintenant vous allez constater un comportement étrange. Plus rien ne se passe. Nous attendons qu'une fence soit signalée alors qu'elle n'a
+jamais été envoyée à aucune fonction. En effet les fences sont par défaut crées dans le
+mode non signalé. Comme nous appelons `vkWaitForFences` avant `vkQueueSubmit` notre
+première fence va créer une pause infinie. Pour empêcher cela nous devons initialiser
+les fences dans le mode signalé, et ce dès leur création :
 
 ```c++
 void createSyncObjects() {
@@ -569,7 +565,7 @@ void createSyncObjects() {
 }
 ```
 
-Initialement aucune frame n'utilise d'image, donc on peut explicitement l'initialiser à *pas de fence*. Maintenant, nous allons modifier 
+Initialement aucune frame n'utilise d'image, donc on peut explicitement l'initialiser à *pas de fence*. Maintenant, nous allons modifier
 `drawFrame` pour attendre la fin de n'importe quelle frame qui serait en train d'utiliser l'image qu'on nous assigné pour la nouvelle frame.
 
 ```c++
