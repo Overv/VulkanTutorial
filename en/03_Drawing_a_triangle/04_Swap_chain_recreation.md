@@ -21,7 +21,6 @@ void recreateSwapChain() {
     createRenderPass();
     createGraphicsPipeline();
     createFramebuffers();
-    createCommandBuffers();
 }
 ```
 
@@ -34,8 +33,8 @@ images. It is rare for the swap chain image format to change during an operation
 like a window resize, but it should still be handled. Viewport and scissor
 rectangle size is specified during graphics pipeline creation, so the pipeline
 also needs to be rebuilt. It is possible to avoid this by using dynamic state
-for the viewports and scissor rectangles. Finally, the framebuffers and command
-buffers also directly depend on the swap chain images.
+for the viewports and scissor rectangles. Finally, the framebuffers directly
+depend on the swap chain images.
 
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
@@ -57,7 +56,6 @@ void recreateSwapChain() {
     createRenderPass();
     createGraphicsPipeline();
     createFramebuffers();
-    createCommandBuffers();
 }
 ```
 
@@ -69,8 +67,6 @@ void cleanupSwapChain() {
     for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
         vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
     }
-
-    vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
@@ -108,11 +104,6 @@ void cleanup() {
     glfwTerminate();
 }
 ```
-
-We could recreate the command pool from scratch, but that is rather wasteful.
-Instead I've opted to clean up the existing command buffers with the
-`vkFreeCommandBuffers` function. This way we can reuse the existing pool to
-allocate the new command buffers.
 
 Note that in `chooseSwapExtent` we already query the new window resolution to
 make sure that the swap chain images have the (new) right size, so there's no
@@ -259,6 +250,6 @@ Congratulations, you've now finished your very first well-behaved Vulkan
 program! In the next chapter we're going to get rid of the hardcoded vertices in
 the vertex shader and actually use a vertex buffer.
 
-[C++ code](/code/16_swap_chain_recreation.cpp) /
+[C++ code](/code/17_swap_chain_recreation.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)

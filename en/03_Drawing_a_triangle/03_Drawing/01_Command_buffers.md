@@ -1,9 +1,10 @@
 Commands in Vulkan, like drawing operations and memory transfers, are not
 executed directly using function calls. You have to record all of the operations
-you want to perform in command buffer objects. The advantage of this is that all
-of the hard work of setting up the drawing commands can be done in advance and
-in multiple threads. After that, you just have to tell Vulkan to execute the
-commands in the main loop.
+you want to perform in command buffer objects. The advantage of this is that when
+we are ready to tell the Vulkan what we want to do, all of the commands are
+submitted together and Vulkan can more efficiently process the commands since all
+of them are available together. In addition, this allows command recording to
+happen in multiple threads if so desired.
 
 ## Command pools
 
@@ -47,15 +48,9 @@ QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
 VkCommandPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-poolInfo.flags = 0; // Optional
 ```
-
-Command buffers are executed by submitting them on one of the device queues,
-like the graphics and presentation queues we retrieved. Each command pool can
-only allocate command buffers that are submitted on a single type of queue.
-We're going to record commands for drawing, which is why we've chosen the
-graphics queue family.
 
 There are two possible flags for command pools:
 
@@ -64,9 +59,16 @@ rerecorded with new commands very often (may change memory allocation behavior)
 * `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT`: Allow command buffers to be
 rerecorded individually, without this flag they all have to be reset together
 
-We will only record the command buffers at the beginning of the program and then
-execute them many times in the main loop, so we're not going to use either of
-these flags.
+We will be recording a command buffer every frame, so we want to be able to
+reset and rerecord over it. Thus, we need to set the
+`VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` flag bit for our command pool.
+
+Command buffers are executed by submitting them on one of the device queues,
+like the graphics and presentation queues we retrieved. Each command pool can
+only allocate command buffers that are submitted on a single type of queue.
+We're going to record commands for drawing, which is why we've chosen the
+graphics queue family.
+
 
 ```c++
 if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
@@ -89,19 +91,18 @@ void cleanup() {
 
 ## Command buffer allocation
 
-We can now start allocating command buffers and recording drawing commands in
-them. Because one of the drawing commands involves binding the right
-`VkFramebuffer`, we'll actually have to record a command buffer for every image
-in the swap chain once again. To that end, create a list of `VkCommandBuffer`
-objects as a class member. Command buffers will be automatically freed when their
-command pool is destroyed, so we don't need an explicit cleanup.
+We can now start allocating command buffers.
+
+Create a `VkCommandBuffer` object as a class member. Command buffers
+will be automatically freed when their command pool is destroyed, so we don't
+need explicit cleanup.
 
 ```c++
-std::vector<VkCommandBuffer> commandBuffers;
+VkCommandBuffer commandBuffers;
 ```
 
-We'll now start working on a `createCommandBuffers` function that allocates and
-records the commands for each swap chain image.
+We'll now start working on a `createCommandBuffer` function to allocate a single
+command buffer from the command pool.
 
 ```c++
 void initVulkan() {
@@ -116,13 +117,13 @@ void initVulkan() {
     createGraphicsPipeline();
     createFramebuffers();
     createCommandPool();
-    createCommandBuffers();
+    createCommandBuffer();
 }
 
 ...
 
-void createCommandBuffers() {
-    commandBuffers.resize(swapChainFramebuffers.size());
+void createCommandBuffer() {
+
 }
 ```
 
@@ -135,7 +136,7 @@ VkCommandBufferAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 allocInfo.commandPool = commandPool;
 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
+allocInfo.commandBufferCount = 1;
 
 if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate command buffers!");
@@ -154,22 +155,34 @@ We won't make use of the secondary command buffer functionality here, but you
 can imagine that it's helpful to reuse common operations from primary command
 buffers.
 
-## Starting command buffer recording
+Since we are only allocating one command buffer, the `commandBufferCount` parameter
+is just one.
 
-We begin recording a command buffer by calling `vkBeginCommandBuffer` with a
-small `VkCommandBufferBeginInfo` structure as argument that specifies some
-details about the usage of this specific command buffer.
+## Command buffer recording
+
+We'll now start working on the `recordCommandBuffer` function that writes the
+commands we want to execute into a command buffer. The `VkCommandBuffer` used
+will be passed in as a parameter, as well as the index of the current swapchain
+image we want to write to.
 
 ```c++
-for (size_t i = 0; i < commandBuffers.size(); i++) {
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = 0; // Optional
-    beginInfo.pInheritanceInfo = nullptr; // Optional
+void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 
-    if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-        throw std::runtime_error("failed to begin recording command buffer!");
-    }
+}
+```
+
+We always begin recording a command buffer by calling `vkBeginCommandBuffer`
+with a small `VkCommandBufferBeginInfo` structure as argument that specifies
+some details about the usage of this specific command buffer.
+
+```c++
+VkCommandBufferBeginInfo beginInfo{};
+beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+beginInfo.flags = 0; // Optional
+beginInfo.pInheritanceInfo = nullptr; // Optional
+
+if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+    throw std::runtime_error("failed to begin recording command buffer!");
 }
 ```
 
@@ -202,12 +215,14 @@ struct.
 VkRenderPassBeginInfo renderPassInfo{};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 renderPassInfo.renderPass = renderPass;
-renderPassInfo.framebuffer = swapChainFramebuffers[i];
+renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
 ```
 
 The first parameters are the render pass itself and the attachments to bind. We
-created a framebuffer for each swap chain image that specifies it as color
-attachment.
+created a framebuffer for each swap chain image where is specified as a color
+attachment. Thus we need to bind the framebuffer for the swapchain image we want
+to draw to. Using the imageIndex parameter which was passed in, we can pick the
+right framebuffer for the current swapchain image.
 
 ```c++
 renderPassInfo.renderArea.offset = {0, 0};
@@ -230,7 +245,7 @@ The last two parameters define the clear values to use for
 attachment. I've defined the clear color to simply be black with 100% opacity.
 
 ```c++
-vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 ```
 
 The render pass can now begin. All of the functions that record commands can be
@@ -256,7 +271,7 @@ option.
 We can now bind the graphics pipeline:
 
 ```c++
-vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 ```
 
 The second parameter specifies if the pipeline object is a graphics or compute
@@ -265,7 +280,7 @@ pipeline and which attachment to use in the fragment shader, so all that remains
 is telling it to draw the triangle:
 
 ```c++
-vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 ```
 
 The actual `vkCmdDraw` function is a bit anticlimactic, but it's so simple
@@ -286,19 +301,21 @@ value of `gl_InstanceIndex`.
 The render pass can now be ended:
 
 ```c++
-vkCmdEndRenderPass(commandBuffers[i]);
+vkCmdEndRenderPass(commandBuffer);
 ```
 
 And we've finished recording the command buffer:
 
 ```c++
-if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
+if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to record command buffer!");
 }
 ```
 
+
+
 In the next chapter we'll write the code for the main loop, which will acquire
-an image from the swap chain, execute the right command buffer and return the
+an image from the swap chain, record and execute a command buffer, then return the
 finished image to the swap chain.
 
 [C++ code](/code/14_command_buffers.cpp) /

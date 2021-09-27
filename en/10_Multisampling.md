@@ -285,6 +285,6 @@ lighting, post-processing effects and shadow mapping. You should be able to
 learn how these effects work from tutorials for other APIs, because despite
 Vulkan's explicitness, many concepts still work the same.
 
-[C++ code](/code/29_multisampling.cpp) /
-[Vertex shader](/code/26_shader_depth.vert) /
-[Fragment shader](/code/26_shader_depth.frag)
+[C++ code](/code/30_multisampling.cpp) /
+[Vertex shader](/code/27_shader_depth.vert) /
+[Fragment shader](/code/27_shader_depth.frag)

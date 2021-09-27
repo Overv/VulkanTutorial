@@ -229,7 +229,11 @@ the uniform buffer every frame, so it doesn't really make any sense to have a
 staging buffer. It would just add extra overhead in this case and likely degrade
 performance instead of improving it.
 
-We should have multiple buffers, because multiple frames may be in flight at the same time and we don't want to update the buffer in preparation of the next frame while a previous one is still reading from it! We could either have a uniform buffer per frame or per swap chain image. However, since we need to refer to the uniform buffer from the command buffer that we have per swap chain image, it makes the most sense to also have a uniform buffer per swap chain image.
+We should have multiple buffers, because multiple frames may be in flight at the same
+time and we don't want to update the buffer in preparation of the next frame while a
+previous one is still reading from it! Thus, we need to have as many uniform buffers
+as we have frames in flight, and write to a uniform buffer that is not currently
+being read by the GPU
 
 To that end, add new class members for `uniformBuffers`, and `uniformBuffersMemory`:
 
@@ -258,10 +262,10 @@ void initVulkan() {
 void createUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    uniformBuffers.resize(swapChainImages.size());
-    uniformBuffersMemory.resize(swapChainImages.size());
+    uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
     }
 }
@@ -275,7 +279,7 @@ uniform data will be used for all draw calls, so the buffer containing it should
 void cleanupSwapChain() {
     ...
 
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
     }
@@ -416,6 +420,6 @@ In the next chapter we'll look at descriptor sets, which will actually bind the
 `VkBuffer`s to the uniform buffer descriptors so that the shader can access this
 transformation data.
 
-[C++ code](/code/21_descriptor_layout.cpp) /
-[Vertex shader](/code/21_shader_ubo.vert) /
-[Fragment shader](/code/21_shader_ubo.frag)
+[C++ code](/code/22_descriptor_layout.cpp) /
+[Vertex shader](/code/22_shader_ubo.vert) /
+[Fragment shader](/code/22_shader_ubo.frag)

@@ -764,6 +764,6 @@ void cleanup() {
 The image now contains the texture, but we still need a way to access it from
 the graphics pipeline. We'll work on that in the next chapter.
 
-[C++ code](/code/23_texture_image.cpp) /
-[Vertex shader](/code/21_shader_ubo.vert) /
-[Fragment shader](/code/21_shader_ubo.frag)
+[C++ code](/code/24_texture_image.cpp) /
+[Vertex shader](/code/22_shader_ubo.vert) /
+[Fragment shader](/code/22_shader_ubo.frag)
