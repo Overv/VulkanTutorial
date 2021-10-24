@@ -85,7 +85,7 @@ Include the image library like this:
 
 ```c++
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <stb/stb_image.h>
 ```
 
 The header only defines the prototypes of the functions by default. One code

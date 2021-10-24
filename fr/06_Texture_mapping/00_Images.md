@@ -71,7 +71,7 @@ Incluez la librairie de cette manière :
 
 ```c++
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <stb/stb_image.h>
 ```
 
 Le header simple ne fournit que les prototypes des fonctions. Nous devons demander les implémentations avec la define 
