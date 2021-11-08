@@ -23,66 +23,149 @@ void drawFrame() {
 
 At a high level, rendering a frame in Vulkan consists of a common set of steps:
 
-* Wait for previous frame to finish
-* Acquire an image from the swapchain
-* Record command buffers which draw the scene onto that image
-* Submit the recorded command buffers
-* Present the swapchain image
+* Wait for the previous frame to finish
+* Acquire an image from the swap chain
+* Record a command buffer which draws the scene onto that image
+* Submit the recorded command buffer
+* Present the swap chain image
 
 While we will expand the drawing function in later chapters, for now this is the
 core of our render loop.
 
+<!-- Add an image that shows an outline of the frame -->
+
 ## Synchronization
 
-Inside the `drawFrame` function, we perform the following operations on the swapchain:
+<!-- Maybe add images for showing synchronization -->
+
+A core design philosophy in Vulkan is that synchronization of execution on
+the GPU is explicit. The order of operations is up to us to define using various
+synchronization primitives which tell the driver the order we want things to run
+in. This means that many Vulkan API calls which start executing work on the GPU
+are asynchronous, the functions will return before the operation has finished.
+
+In this chapter there are a number of events that we need to order explicitly
+because they happen on the GPU, such as:
 
 * Acquire an image from the swap chain
-* Record drawing commands that draw onto the image, which is an attachment in a framebuffer
-* Return the image to the swap chain for presentation
+* Execute commands that draw onto the acquired image
+* Present that image to the screen for presentation, returning it to the swapchain
 
-Each of these events is set in motion using a single function call, but they are
+Each of these events is set in motion using a single function call, but are all
 executed asynchronously. The function calls will return before the operations
 are actually finished and the order of execution is also undefined. That is
 unfortunate, because each of the operations depends on the previous one
-finishing.
+finishing. Thus we need to explore the which primitives we can use to achieve
+the desired ordering. 
 
-There are two ways of synchronizing swap chain events: fences and semaphores.
-They're both objects that can be used for coordinating operations by having one
-operation signal and another operation wait for a fence or semaphore to go from
-the unsignaled to signaled state.
+### Semaphores
 
-The difference is that the state of fences can be accessed from your program
-using calls like `vkWaitForFences` and semaphores cannot be. Fences are used
-to make the CPU wait for a command buffer to finish executing or allow the
-CPU to check if a command buffer has finished executing. Semaphores are used to
-synchronize operations within or across command queues, specifically so that
-we can stop the GPU from executing one operation, such as a draw call, until
-another operation has finished.
+A semaphore is used to add order between queue operations. Queue operations
+refer to the work we submit to a queue, either in a command buffer or from
+with a function as we will see later. Examples of queues are the graphics queue
+and the presentation queue. Semaphores are used both to order work inside the
+same queue and between different queues. 
 
-We want to synchronize the queue operations of draw commands and presentation,
-which are both GPU only, so semaphores are the best fit. This is because while
-the functions are executed asynchronous from the perspective of the CPU,
-semaphores allow us to order the operations on the GPU.
+There happens to be two kinds of semaphores in Vulkan, binary and timeline.
+Because only binary semaphores will be used in this tutorial, we will not
+discuss timeline semaphores. Further mention of the term semaphore exclusively
+refers to binary semaphores.
 
-let us control the order of execution of operations on the GPUm,
-thus efficiently
+A semaphore is either unsignaled or signaled. It begins life as unsignaled. The
+way we use a semaphore to order queue operations is by providing the same 
+semaphore as a 'signal' semaphore in one queue operation and as a 'wait' 
+semaphore in another queue operation. For example, lets say we have semaphore S
+and queue operations A and B that we want to execute in order. What we tell
+Vulkan is that operation A will 'signal' semaphore S when it finishes executing,
+and operation B will 'wait' on semaphore S before it begins executing. When 
+operation A finishes, semaphore S will be signaled, while operation B  wont start
+until S is signaled. After operation B begins executing, semaphore S is reset
+back to being unsignaled, allowing it to be used again. 
 
-Semaphores efficiently control the order of operations within a single frame,
-but there
+Psuedo-code of what was just described
+```
+VkCommandBuffer A, B = ... // record command buffers
+VkSemaphore S = ... // create a semaphore
 
-However, while semaphores make sure the GPU doesn't present the image until
-its finished being drawn, there is no protection from the CPU getting ahead
-of the GPU and trying to record another frame before the current frame has
-finished. Thus we need to also use a fence which at the top of every frame
-waits for the previous frame to have finished, letting us reuse the command
-buffer and semaphores.
+// enqueue A, signal S when done - starts executing immediately
+vkQueueSubmit(work: A, signal: S, wait: None)
+
+// enqueue B, wait on S to start
+vkQueueSubmit(work: B, signal: None, wait: S)
+```
+
+Note that in this code snippet, both calls to `vkQueueSubmit()` return
+immediately - the waiting only happens on the GPU. The CPU continues running
+without blocking. To make the CPU wait, we need the a different synchronization
+primitive, which we will now describe.
+
+### Fences
+
+A fence has a similar purpose, in that it is used to synchronize execution, but
+it is for ordering the execution on the CPU, otherwise known as the host.
+Simply put, if the host needs to know when the GPU has finished something, we
+use a fence.
+
+Similar to semaphores, fences can be unsignaled or signaled. Whenever we submit
+work to execute, we can attach a fence to that work. When the work is finished,
+the fence will be signaled. This can be waited upon by the host. Note that we
+manually reset fences, unlike semaphores which are automatically reset after
+being waited upon.
+
+A concrete example is taking a screenshot. Say we have already done the
+necessary work on the GPU. Now need to transfer the image from the GPU over
+to the host and then save the memory to a file. We have command buffer A which
+executes the transfer and fence F. We submit command buffer A with fence F,
+then immediately tell the host to wait for F to signal. This causes the host to
+block until command buffer A finishes execution. Thus we are safe to let the
+host save the file to disk, as we the memory transfer is now finished.
+
+Psuedo-code for what was described
+```
+VkCommandBuffer A // recorded command buffer with the transfer
+VkFence F = ... // create the fence  
+
+// enqueue A, start work immediately, signal F when done
+vkQueueSubmit(work: A, fence: F)
+
+vkWaitForFence(F) // blocks execution until A has finished executing
+
+save_screenshot_to_disk() // can't run until the transfer has finished
+```
+
+Unlike the semaphore example, this example *does* block host execution. This
+means the host wont do anything except wait until execution has finished. In
+this case, we had to make sure the transfer was finished before we could save
+the screenshot to disk. 
+
+In general, it is preferable to not block the host unless necessary. We want to
+feed the GPU and the host with useful work to do. Waiting on fences to signal
+is not useful work. Thus we prefer semaphores, or other synchronization
+primitives not yet covered, to synchronize our work. 
+
+In summary, semaphores are used to specify the execution order of operations on
+the GPU while fences are used to keep the CPU and GPU in sync with each-other. 
+
+### What to choose?
+
+We have two synchronization primitives to use and conveniently two places to
+apply synchronization: Swapchain operations and waiting for the previous frame
+to finish. We want to use semaphores for swapchain operations because they
+happen on the GPU, thus we don't want to make the host wait around if we can
+help it. For waiting on the previous frame to finish, we want to use fences
+for the opposite reason, because we need the host to wait. This is so we don't
+draw more than one frame at a time. Because we rerecord the command buffer
+every frame, we cannot record the next frames work to that command buffer until
+it the current frame, and thus the command buffer, has finished executing.
 
 ## Creating the synchronization objects
 
-We'll need one semaphore to signal that an image has been acquired and is ready
-for rendering, another one to signal that rendering has finished and
-presentation can happen, and a fence to make sure only one frame is rendering
-at a time. Create three class members to store these semaphore objects and fence object:
+We'll need one semaphore to signal that an image has been acquired from the
+swapchain and is ready for rendering, another one to signal that rendering has
+finished and presentation can happen, and a fence to make sure only one frame 
+is rendering at a time. 
+
+Create three class members to store these semaphore objects and fence object:
 
 ```c++
 VkSemaphore imageAvailableSemaphore;
@@ -155,8 +238,8 @@ all commands have finished and no more synchronization is necessary:
 
 ```c++
 void cleanup() {
-    vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
     vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
     vkDestroyFence(device, inFlightFence, nullptr);
 ```
 
@@ -174,28 +257,31 @@ void drawFrame() {
 }
 ```
 
-The `vkWaitForFences` function takes an array of fences and waits on the CPU
-for either any or all of them to be signaled before returning. The `VK_TRUE` we
-pass here indicates that we want to wait for all fences, but in the case of a
-single one it obviously doesn't matter. This function also has a timeout
+The `vkWaitForFences` function takes an array of fences and waits on the host
+for either any or all of the fences to be signaled before returning. The 
+`VK_TRUE` we pass here indicates that we want to wait for all fences, but in
+the case of a single one it doesn't matter. This function also has a timeout
 parameter that we set to the maximum value of a 64 bit unsigned integer,
-`UINT64_MAX`, thus disabling the timeout.
+`UINT64_MAX`, which effectively disables the timeout.
 
-We need to manually reset the fence to the unsignaled state by resetting it
-with the `vkResetFences` call:
+After waiting, we need to manually reset the fence to the unsignaled state with
+the `vkResetFences` call:
 ```c++
     vkResetFences(device, 1, &inFlightFence);
 ```
 
-However there is a problem with our current waiting setup. Because fences are
-created unsignaled by default, the first call to `vkWaitForFences` happens
-before we have had a chance to do anything which might signal the fence,
-meaning we would wait forever!
+Before we can proceed, there is a slight hiccup in our design. On the first
+frame we call `drawFrame()`, which immediately waits on `inFlightFence` to
+be signaled. `inFlightFence` is only signaled after a frame has finished
+rendering, yet since this is the first frame, there are no previous frames in
+which to signal the fence! Thus `vkWaitForFences()` blocks indefinitely, 
+waiting on something which will never happen.
 
-Thankfully the API has solution to this problem. When we create the fence, we
-will create it starting in the signaled state. This way, the wait on the first
-frame will immediately return because the fence is in a signalled state. To do
-this, we add a `VK_FENCE_CREATE_SIGNALED_BIT` flag to the `VkFenceCreateInfo`:
+Of the many solutions to this dilemma, there is a clever workaround built into
+the API. Create the fence in the signaled state, so that the first call to 
+`vkWaitForFences()` returns immediately since the fence is already signaled.
+
+To do this, we add the `VK_FENCE_CREATE_SIGNALED_BIT` flag to the `VkFenceCreateInfo`:
 
 ```c++
 void createSyncObjects() {
@@ -240,7 +326,7 @@ image that has become available. The index refers to the `VkImage` in our
 
 ## Recording the command buffer
 
-With the imageIndex specifying the swapchain image to use in hand, we can now
+With the imageIndex specifying the swap chain image to use in hand, we can now
 record the command buffer. First, we call `vkResetCommandBuffer` on the command
 buffer to make sure it is able to be recorded.
 
@@ -313,7 +399,8 @@ argument for efficiency when the workload is much larger. The last parameter
 references an optional fence that will be signaled when the command buffers
 finish execution. This allows us to know when it is safe for the command
 buffer to be reused, thus we want to give it `inFlightFence`. Now on the next
-frame, the CPU will wait for this command buffer to finish executing.
+frame, the CPU will wait for this command buffer to finish executing before it
+records new commands into it.
 
 ## Subpass dependencies
 
@@ -394,7 +481,10 @@ presentInfo.pWaitSemaphores = signalSemaphores;
 ```
 
 The first two parameters specify which semaphores to wait on before presentation
-can happen, just like `VkSubmitInfo`.
+can happen, just like `VkSubmitInfo`. Since we want to wait on the command buffer
+to finish execution, thus our triangle being drawn, we take the semaphores
+which will be signalled and wait on them, thus we use `signalSemaphores`. 
+
 
 ```c++
 VkSwapchainKHR swapChains[] = {swapChain};
@@ -473,8 +563,7 @@ Vulkan objects in the program and how they relate to each other. We'll be
 building on top of that knowledge to extend the functionality of the program
 from this point on.
 
-In the next chapter we'll deal with one more small thing that is required for a
-well-behaved Vulkan program.
+The next chapter will expand the render loop to handle multiple frames in flight.
 
 [C++ code](/code/15_hello_triangle.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
