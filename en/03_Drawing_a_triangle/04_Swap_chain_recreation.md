@@ -236,7 +236,7 @@ Now try to run the program and resize the window to see if the framebuffer is in
 
 ## Handling minimization
 
-There is another case where a swap chain may become out of data and that is a special kind of window resizing: window minimization. This case is special because it will result in a frame buffer size of `0`. In this tutorial we will handle that by pausing until the window is in the foreground again by extending the `recreateSwapChain` function:
+There is another case where a swap chain may become out of date and that is a special kind of window resizing: window minimization. This case is special because it will result in a frame buffer size of `0`. In this tutorial we will handle that by pausing until the window is in the foreground again by extending the `recreateSwapChain` function:
 
 ```c++
 void recreateSwapChain() {
