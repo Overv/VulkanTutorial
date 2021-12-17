@@ -339,7 +339,7 @@ matching it against the minimum and maximum image extent.
 
 ```c++
 #include <cstdint> // Necessary for UINT32_MAX
-#include <algorithm> // Necessary for std::min/std::max
+#include <algorithm> // Necessary for std::clamp
 
 ...
 

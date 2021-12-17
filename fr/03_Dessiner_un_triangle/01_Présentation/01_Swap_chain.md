@@ -297,7 +297,7 @@ fenêtre, dans les bornes de `minImageExtent` et `maxImageExtent`.
 
 ```c++
 #include <cstdint> // UINT32_MAX
-#include <algorithm> // std::min/std::max
+#include <algorithm> // std::clamp
 
 ...
 
