@@ -64,7 +64,7 @@ struct Vertex {
 };
 ```
 
-GLM conveniently provides us with C++ types that exactly match the vector types
+GLM conveniently provides us with C++ types that exactly match the vertex types
 used in the shader language.
 
 ```c++
