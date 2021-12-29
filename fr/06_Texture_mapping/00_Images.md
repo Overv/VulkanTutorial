@@ -280,7 +280,7 @@ vkBindImageMemory(device, textureImage, textureImageMemory, 0);
 
 L'allocation de la mémoire nécessaire à une image fonctionne également de la même façon que pour un buffer. Seuls les
 noms de deux fonctions changent : `vkGetBufferMemoryRequirements` devient `vkGetImageMemoryRequirements` et
-`vkBindBuffer` devient `vkBindImage`.
+`vkBindBufferMemory` devient `vkBindImageMemory`.
 
 Cette fonction est déjà assez grande ainsi, et comme nous aurons besoin d'autres images dans de futurs chapitres, il est
 judicieux de déplacer la logique de leur création dans une fonction, comme nous l'avons fait pour les buffers. Voici 
