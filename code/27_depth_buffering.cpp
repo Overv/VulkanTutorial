@@ -330,8 +330,6 @@ private:
         createGraphicsPipeline();
         createDepthResources();
         createFramebuffers();
-
-        imagesInFlight.resize(swapChainImages.size(), VK_NULL_HANDLE);
     }
 
     void createInstance() {
