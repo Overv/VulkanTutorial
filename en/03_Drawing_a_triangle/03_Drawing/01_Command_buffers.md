@@ -98,7 +98,7 @@ will be automatically freed when their command pool is destroyed, so we don't
 need explicit cleanup.
 
 ```c++
-VkCommandBuffer commandBuffers;
+VkCommandBuffer commandBuffer;
 ```
 
 We'll now start working on a `createCommandBuffer` function to allocate a single
@@ -138,7 +138,7 @@ allocInfo.commandPool = commandPool;
 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 allocInfo.commandBufferCount = 1;
 
-if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate command buffers!");
 }
 ```
@@ -219,7 +219,7 @@ renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
 ```
 
 The first parameters are the render pass itself and the attachments to bind. We
-created a framebuffer for each swap chain image where is specified as a color
+created a framebuffer for each swap chain image where it is specified as a color
 attachment. Thus we need to bind the framebuffer for the swapchain image we want
 to draw to. Using the imageIndex parameter which was passed in, we can pick the
 right framebuffer for the current swapchain image.

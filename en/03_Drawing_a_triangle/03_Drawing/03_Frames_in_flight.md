@@ -11,7 +11,7 @@ is to say, allow the rendering of one frame to not interfere with the recording
 of the next. How do we do this? Any resource that is accessed and modified
 during rendering must be duplicated. Thus, we need multiple command buffers,
 semaphores, and fences. In later chapters we will also add multiple instances
-of other resources, so we will see concept reappear.
+of other resources, so we will see this concept reappear.
 
 Start by adding a constant at the top of the program that defines how many
 frames should be processed concurrently:
@@ -20,8 +20,16 @@ frames should be processed concurrently:
 const int MAX_FRAMES_IN_FLIGHT = 2;
 ```
 
+We choose the number 2 because we don't want the CPU to get *too* far ahead of
+the GPU. With 2 frames in flight, the CPU and the GPU can be working on their
+own tasks at the same time. If the CPU finishes early, it will wait till the
+GPU finishes rendering before submitting more work. With 3 or more frames in
+flight, the CPU could get ahead of the GPU, adding frames of latency.
+Generally, extra latency isn't desired. But giving the application control over
+the number of frames in flight is another example of Vulkan being explicit.
+
 Each frame should have its own command buffer, set of semaphores, and fence.
-Change the following objects to be `std::vector`s of the objects:
+Rename and then change them to be `std::vector`s of the objects:
 
 ```c++
 std::vector<VkCommandBuffer> commandBuffers;
@@ -34,7 +42,7 @@ std::vector<VkFence> inFlightFences;
 ```
 
 Then we need to create multiple command buffers. Rename `createCommandBuffer`
-to `createCommandBuffers`. Then we need to resize the command buffers vector
+to `createCommandBuffers`. Next we need to resize the command buffers vector
 to the size of `MAX_FRAMES_IN_FLIGHT`, alter the `VkCommandBufferAllocateInfo`
 to contain that many command buffers, and then change the destination to our
 vector of command buffers:
