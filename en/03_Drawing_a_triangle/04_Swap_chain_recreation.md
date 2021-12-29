@@ -165,6 +165,39 @@ The `vkQueuePresentKHR` function returns the same values with the same meaning.
 In this case we will also recreate the swap chain if it is suboptimal, because
 we want the best possible result.
 
+## Fixing a deadlock
+
+If we try to run the code now, it is possible to encounter a deadlock.
+Debugging the code, we find that the application reaches `vkWaitForFences` but
+never continues past it. This is because when `vkAcquireNextImageKHR` returns
+`VK_ERROR_OUT_OF_DATE_KHR`, we recreate the swapchain and then return from
+`drawFrame`. But before that happens, the current frame's fence was waited upon
+and reset. Since we return immediately, no work is submitted for execution and
+the fence will never be signaled, causing `vkWaitForFences` to halt forever.
+
+There is a simple fix thankfully. Delay resetting the fence until after we
+know for sure we will be submitting work with it. Thus, if we return early, the
+fence is still signaled and `vkWaitForFences` wont deadlock the next time we
+use the same fence object.
+
+The beginning of `drawFrame` should now look like this:
+```c++
+vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+uint32_t imageIndex;
+VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    recreateSwapChain();
+    return;
+} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    throw std::runtime_error("failed to acquire swap chain image!");
+}
+
+// Only reset the fence if we are submitting work
+vkResetFences(device, 1, &inFlightFences[currentFrame]);
+```
+
 ## Handling resizes explicitly
 
 Although many drivers and platforms trigger `VK_ERROR_OUT_OF_DATE_KHR` automatically after a window resize, it is not guaranteed to happen. That's why we'll add some extra code to also handle resizes explicitly. First add a new member variable that flags that a resize has happened:
