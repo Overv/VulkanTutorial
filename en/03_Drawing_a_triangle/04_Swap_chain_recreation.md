@@ -171,7 +171,6 @@ Although many drivers and platforms trigger `VK_ERROR_OUT_OF_DATE_KHR` automatic
 
 ```c++
 std::vector<VkFence> inFlightFences;
-size_t currentFrame = 0;
 
 bool framebufferResized = false;
 ```

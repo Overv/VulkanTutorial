@@ -98,7 +98,7 @@ To use the right objects every frame, we need to keep track of the current
 frame. We will use a frame index for that purpose:
 
 ```c++
-size_t currentFrame = 0;
+uint32_t currentFrame = 0;
 ```
 
 The `drawFrame` function can now be modified to use the right objects:

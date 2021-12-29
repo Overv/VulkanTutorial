@@ -204,7 +204,7 @@ private:
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
-    size_t currentFrame = 0;
+    uint32_t currentFrame = 0;
 
     bool framebufferResized = false;
 
@@ -349,8 +349,6 @@ private:
         createColorResources();
         createDepthResources();
         createFramebuffers();
-
-        imagesInFlight.resize(swapChainImages.size(), VK_NULL_HANDLE);
     }
 
     void createInstance() {
