@@ -204,10 +204,10 @@ Now update render pass info struct with the new color attachment:
     ...
 ```
 
-With the render pass in place, modify `createFrameBuffers` and add the new image view to the list:
+With the render pass in place, modify `createFramebuffers` and add the new image view to the list:
 
 ```c++
-void createFrameBuffers() {
+void createFramebuffers() {
         ...
         std::array<VkImageView, 3> attachments = {
             colorImageView,
