@@ -295,7 +295,7 @@ Vulkan s'attend à un certain alignement des données en mémoire pour chaque ty
 * Une `mat4` doit avoir le même alignement qu'un `vec4`
 
 Les alignemenents imposés peuvent être trouvés dans
-[la spécification](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap14.html#interfaces-resources-layout)
+[la spécification](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap15.html#interfaces-resources-layout)
 
 Notre shader original et ses trois `mat4` était bien aligné. `model` a un décalage de 0, `view` de 64 et `proj` de 128,
 ce qui sont des multiples de 16.
