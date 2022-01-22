@@ -100,7 +100,7 @@ there are Vulkan devices in the system that lack this ability, for example
 because they only support compute operations. We will come back to this
 extension in the swap chain chapter.
 
-Previous implementations of Vulkan made a distinction between instance and device specific validation layers, but this is [no longer the case](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#extendingvulkan-layers-devicelayerdeprecation). That means that the `enabledLayerCount` and `ppEnabledLayerNames` fields of `VkDeviceCreateInfo` are ignored by up-to-date implementations. However, it is still a good idea to set them anyway to be compatible with older implementations:
+Previous implementations of Vulkan made a distinction between instance and device specific validation layers, but this is [no longer the case](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap40.html#extendingvulkan-layers-devicelayerdeprecation). That means that the `enabledLayerCount` and `ppEnabledLayerNames` fields of `VkDeviceCreateInfo` are ignored by up-to-date implementations. However, it is still a good idea to set them anyway to be compatible with older implementations:
 
 ```c++
 createInfo.enabledExtensionCount = 0;

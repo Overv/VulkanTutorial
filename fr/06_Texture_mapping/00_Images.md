@@ -480,7 +480,7 @@ indique une étape de la pipeline. Durant celle-ci seront réalisées les opéra
 paramètre d'après indique également une étape de la pipeline. Cette fois les opérations exécutées durant cette étape
 attendront la barrière. Les étapes que vous pouvez fournir comme avant- et après-barrière dépendent de l'utilisation
 des ressources qui y sont utilisées. Les valeurs autorisées sont listées
-[dans ce tableau](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#synchronization-access-types-supported).
+[dans ce tableau](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap7.html#synchronization-access-types).
 Par exemple, si vous voulez lire des données présentes dans un UBO après une barrière qui s'applique au buffer, vous 
 devrez indiquer `VK_ACCESS_UNIFORM_READ_BIT` comme usage, et si le premier shader à utiliser l'uniform est le fragment
 shader il vous faudra indiquer `VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT` comme étape. Dans ce cas de figure, spécifier 
@@ -625,7 +625,7 @@ pipeline de transfert. Mais cette opération d'écriture ne dépend d'aucune aut
 une condition d'accès nulle et `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` comme opération pré-barrière. Cette valeur correspond
 au début de la pipeline, mais ne représente pas vraiment une étape. Elle désigne plutôt le moment où la pipeline se
 prépare, et donc sert communément aux transferts. Voyez
-[la documentation](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkPipelineStageFlagBits.html)
+[la documentation](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap7.html#synchronization-pipeline-stages)
 pour de plus amples informations sur les pseudo-étapes.
 
 L'image sera écrite puis lue dans la même passe, c'est pourquoi nous devons indiquer que le fragment shader aura accès à

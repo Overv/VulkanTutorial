@@ -298,7 +298,7 @@ Similarly the `messageType` field lets you filter which types of messages your c
 
 Finally, the `pfnUserCallback` field specifies the pointer to the callback function. You can optionally pass a pointer to the `pUserData` field which will be passed along to the callback function via the `pUserData` parameter. You could use this to pass a pointer to the `HelloTriangleApplication` class, for example.
 
-Note that there are many more ways to configure validation layer messages and debug callbacks, but this is a good setup to get started with for this tutorial. See the [extension specification](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VK_EXT_debug_utils) for more info about the possibilities.
+Note that there are many more ways to configure validation layer messages and debug callbacks, but this is a good setup to get started with for this tutorial. See the [extension specification](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap50.html#VK_EXT_debug_utils) for more info about the possibilities.
 
 This struct should be passed to the `vkCreateDebugUtilsMessengerEXT` function to
 create the `VkDebugUtilsMessengerEXT` object. Unfortunately, because this
