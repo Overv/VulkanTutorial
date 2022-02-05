@@ -195,8 +195,8 @@ The number of extensions should be non-zero. Congratulations, you're all set for
 
 ## Linux
 
-These instructions will be aimed at Ubuntu and Fedora users, but you may be able to follow
-along by changing the `apt` and `dnf` commands to the package manager commands that are appropriate for you. You should have a compiler that supports C++17 (GCC 7+ or Clang 5+). You'll also need make.
+These instructions will be aimed at Ubuntu, Fedora and Arch Linux users, but you may be able to follow
+along by changing the package manager-specific commands to the ones that are appropriate for you. You should have a compiler that supports C++17 (GCC 7+ or Clang 5+). You'll also need `make`.
 
 ### Vulkan Packages
 
@@ -205,6 +205,9 @@ The most important components you'll need for developing Vulkan applications on 
 * `sudo apt install vulkan-tools` or `sudo dnf install vulkan-tools`: Command-line utilities, most importantly `vulkaninfo` and `vkcube`. Run these to confirm your machine supports Vulkan.
 * `sudo apt install libvulkan-dev` or `sudo dnf install vulkan-loader-devel` : Installs Vulkan loader. The loader looks up the functions in the driver at runtime, similarly to GLEW for OpenGL - if you're familiar with that.
 * `sudo apt install vulkan-validationlayers-dev spirv-tools` or `sudo dnf install mesa-vulkan-devel vulkan-validation-layers-devel`: Installs the standard validation layers and required SPIR-V tools. These are crucial when debugging Vulkan applications, and we'll discuss them in the upcoming chapter.
+
+On Arch Linux, you can run `sudo pacman -S vulkan-devel` to install all the
+required tools above.
 
 If installation was successful, you should be all set with the Vulkan portion. Remember to run
  `vkcube` and ensure you see the following pop up in a window:
@@ -236,6 +239,10 @@ or
 ```bash
 sudo dnf install glfw-devel
 ```
+or
+```bash
+sudo pacman -S glfw-wayland # glfw-x11 for X11 users
+```
 
 ### GLM
 
@@ -254,12 +261,16 @@ or
 ```bash
 sudo dnf install glm-devel
 ```
+or
+```bash
+sudo pacman -S glm
+```
 
 ### Shader Compiler
 
 We have just about all we need, except we'll want a program to compile shaders from the human-readable  [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) to bytecode.
 
-Two popular shader compilers are Khronos Group's `glslangValidator` and Google's `glslc`. The latter has a familiar GCC- and Clang-like usage, so we'll go with that: on Ubuntu, download Google's [unofficial binaries](https://github.com/google/shaderc/blob/main/downloads.md) and copy `glslc` to your `/usr/local/bin`. Note you may need to `sudo` depending on your permissions. On Fedora use `sudo dnf install glslc`.  To test, run `glslc` and it should rightfully complain we didn't pass any shaders to compile:
+Two popular shader compilers are Khronos Group's `glslangValidator` and Google's `glslc`. The latter has a familiar GCC- and Clang-like usage, so we'll go with that: on Ubuntu, download Google's [unofficial binaries](https://github.com/google/shaderc/blob/main/downloads.md) and copy `glslc` to your `/usr/local/bin`. Note you may need to `sudo` depending on your permissions. On Fedora use `sudo dnf install glslc`, while on Arch Linux run `sudo pacman -S shaderc`.  To test, run `glslc` and it should rightfully complain we didn't pass any shaders to compile:
 
 `glslc: error: no input files`
 
