@@ -276,7 +276,7 @@ Notre implémentation du MSAA est limitée, et ces limitations impactent la qual
 d'aliasing dû aux shaders qui n'est pas résolu par le MSAA. En effet cette technique ne permet que de lisser les bords
 de la géométrie, mais pas les lignes contenus dans les textures. Ces bords internes sont particulièrement visibles dans
 le cas de couleurs qui contrastent beaucoup. Pour résoudre ce problème nous pouvons activer le
-[sample shading](hhttps://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap27.html#primsrast-sampleshading), qui
+[sample shading](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap27.html#primsrast-sampleshading), qui
 améliore encore la qualité de l'image au prix de performances encore réduites.
 
 ```c++
