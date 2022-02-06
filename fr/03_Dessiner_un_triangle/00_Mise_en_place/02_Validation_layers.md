@@ -294,7 +294,7 @@ fait partie des paramètres de la fonction de rappel.
 
 Notez qu'il existe de nombreuses autres manières de configurer des messagers auprès des validation layers, mais nous
 avons ici une bonne base pour ce tutoriel. Référez-vous à la
-[spécification de l'extension](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap50.html#VK_EXT_debug_utils)
+[spécification de l'extension](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap50.html#VK_EXT_debug_utils)
 pour plus d'informations sur ces possibilités.
 
 Cette structure doit maintenant être passée à la fonction `vkCreateDebugUtilsMessengerEXT` afin de créer l'objet

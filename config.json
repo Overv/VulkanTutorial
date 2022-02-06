@@ -19,7 +19,7 @@
         "links": {
             "GitHub Repository": "https://github.com/Overv/VulkanTutorial",
             "Support the website": "https://www.paypal.me/AOvervoorde",
-            "Vulkan Specification": "https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/",
+            "Vulkan Specification": "https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/",
             "LunarG Vulkan SDK": "https://lunarg.com/vulkan-sdk/",
             "Vulkan Guide": "https://github.com/KhronosGroup/Vulkan-Guide",
             "Vulkan Hardware Database": "https://vulkan.gpuinfo.org/",

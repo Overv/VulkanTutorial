@@ -43,7 +43,7 @@ pipelineInfo.layout = pipelineLayout;
 Finalement nous devons fournir les références à la render pass et aux indices des subpasses. Il est aussi possible
 d'utiliser d'autres render passes avec cette pipeline mais elles doivent être compatibles avec `renderPass`. La 
 signification de compatible est donnée
-[ici](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap8.html#renderpass-compatibility), mais nous 
+[ici](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility), mais nous 
 n'utiliserons pas cette possibilité dans ce tutoriel.
 
 ```c++
