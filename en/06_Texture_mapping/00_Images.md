@@ -534,7 +534,7 @@ operations occur that should happen before the barrier. The second parameter
 specifies the pipeline stage in which operations will wait on the barrier. The
 pipeline stages that you are allowed to specify before and after the barrier
 depend on how you use the resource before and after the barrier. The allowed
-values are listed in [this table](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap7.html#synchronization-access-types)
+values are listed in [this table](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap7.html#synchronization-access-types-supported)
 of the specification. For example, if you're going to read from a uniform after
 the barrier, you would specify a usage of `VK_ACCESS_UNIFORM_READ_BIT` and the
 earliest shader that will read from the uniform as pipeline stage, for example
@@ -700,7 +700,7 @@ may specify an empty access mask and the earliest possible pipeline stage
 `VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT` for the pre-barrier operations. It should be
 noted that `VK_PIPELINE_STAGE_TRANSFER_BIT` is not a *real* stage within the
 graphics and compute pipelines. It is more of a pseudo-stage where transfers
-happen. See [the documentation](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap7.html#synchronization-pipeline-stages)
+happen. See [the documentation](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap7.html#VkPipelineStageFlagBits)
 for more information and other examples of pseudo-stages.
 
 The image will be written in the same pipeline stage and subsequently read by
