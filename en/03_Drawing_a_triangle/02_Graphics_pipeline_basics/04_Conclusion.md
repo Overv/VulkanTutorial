@@ -54,7 +54,7 @@ And finally we have the reference to the render pass and the index of the sub
 pass where this graphics pipeline will be used. It is also possible to use other
 render passes with this pipeline instead of this specific instance, but they
 have to be *compatible* with `renderPass`. The requirements for compatibility
-are described [here](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#renderpass-compatibility),
+are described [here](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility),
 but we won't be using that feature in this tutorial.
 
 ```c++
