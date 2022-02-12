@@ -338,13 +338,14 @@ for us, we can't just use the original `{WIDTH, HEIGHT}`. Instead, we must use
 matching it against the minimum and maximum image extent.
 
 ```c++
-#include <cstdint> // Necessary for UINT32_MAX
+#include <cstdint> // Necessary for uint32_t
+#include <limits> // Necessary for std::numeric_limits
 #include <algorithm> // Necessary for std::clamp
 
 ...
 
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    if (capabilities.currentExtent.width != UINT32_MAX) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
         int width, height;
