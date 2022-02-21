@@ -2,7 +2,7 @@
 
 Notre application nous permet maintenant d'afficher correctement un triangle, mais certains cas de figures ne sont pas
 encore correctement gérés. Il est possible que la surface d'affichage soit redimensionnée  par l'utilisateur et que la
-swap chain ne soit plus parfaitement compatible. Nous devons faire en sorte d'être informés de tels changements pour 
+swap chain ne soit plus parfaitement compatible. Nous devons faire en sorte d'être informés de tels changements pour
 pouvoir recréer la swap chain.
 
 ## Recréer la swap chain
@@ -24,12 +24,12 @@ void recreateSwapChain() {
 ```
 
 Nous appelons d'abord `vkDeviceIdle` car nous ne devons surtout pas toucher à des ressources en cours d'utilisation. La
-première chose à faire est bien sûr de recréer la swap chain. Les image views doivent être recrées également car 
+première chose à faire est bien sûr de recréer la swap chain. Les image views doivent être recrées également car
 elles dépendent des images de la swap chain. La render pass doit être recrée car elle dépend du format des images de
 la swap chain. Il est rare que le format des images de la swap chain soit altéré mais il n'est pas officiellement
 garanti qu'il reste le même, donc nous gérerons ce cas là. La pipeline dépend de la taille des images pour la
 configuration des rectangles de viewport et de ciseau, donc nous devons recréer la pipeline graphique. Il est possible
-d'éviter cela en faisant de la taille de ces rectangles des états dynamiques. Finalement, les framebuffers et les 
+d'éviter cela en faisant de la taille de ces rectangles des états dynamiques. Finalement, les framebuffers et les
 command buffers dépendent des images de la swap chain.
 
 Pour être certains que les anciens objets sont bien détruits avant d'en créer de nouveaux, nous devrions créer une
@@ -110,12 +110,12 @@ buffers existants à l'aide de la fonction `vkFreeCommandBuffers`. Nous pouvons 
 command pool mais changer les command buffers.
 
 Pour bien gérer le redimensionnement de la fenêtre nous devons récupérer la taille actuelle du framebuffer qui lui est
-associé pour s'assurer que les images de la swap chain ont bien la nouvelle taille. Pour cela changez 
+associé pour s'assurer que les images de la swap chain ont bien la nouvelle taille. Pour cela changez
 `chooseSwapExtent` afin que cette fonction prenne en compte la nouvelle taille réelle :
 
 ```c++
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    if (capabilities.currentExtent.width != UINT32_MAX) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
         int width, height;
@@ -132,14 +132,14 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 ```
 
 C'est tout ce que nous avons à faire pour recréer la swap chain! Le problème cependant est que nous devons arrêter
-complètement l'affichage pendant la recréation alors que nous pourrions éviter que les frames en vol soient perdues. 
-Pour cela vous devez passer l'ancienne swap chain en paramètre à `oldSwapChain` dans la structure 
+complètement l'affichage pendant la recréation alors que nous pourrions éviter que les frames en vol soient perdues.
+Pour cela vous devez passer l'ancienne swap chain en paramètre à `oldSwapChain` dans la structure
 `VkSwapchainCreateInfoKHR` et détruire cette ancienne swap chain dès que vous ne l'utilisez plus.
 
 ## Swap chain non-optimales ou dépassées
 
 Nous devons maintenant déterminer quand recréer la swap chain et donc quand appeler `recreateSwapChain`. Heureusement
-pour nous Vulkan nous indiquera quand la swap chain n'est plus adéquate au moment de la présentation. Les fonctions 
+pour nous Vulkan nous indiquera quand la swap chain n'est plus adéquate au moment de la présentation. Les fonctions
 `vkAcquireNextImageKHR` et `vkQueuePresentKHR` peuvent pour cela retourner les valeurs suivantes :
 
 * `VK_ERROR_OUT_OF_DATE_KHR` : la swap chain n'est plus compatible avec la surface de fenêtre et ne peut plus être
@@ -228,7 +228,7 @@ Nous devons utiliser une fonction statique car GLFW ne sait pas correctement app
 avec `this`.
 
 Nous récupérons une référence à la `GLFWwindow` dans la fonction de rappel que nous fournissons. De plus nous pouvons
-paramétrer un pointeur de notre choix qui sera accessible à toutes nos fonctions de rappel. Nous pouvons y mettre la 
+paramétrer un pointeur de notre choix qui sera accessible à toutes nos fonctions de rappel. Nous pouvons y mettre la
 classe elle-même.
 
 ```c++
@@ -271,7 +271,7 @@ void recreateSwapChain() {
 
 L'appel initial à `glfwGetFramebufferSize` prend en charge le cas où la taille est déjà correcte et `glfwWaitEvents` n'aurait rien à attendre.
 
-Félicitations, vous avez codé un programme fonctionnel avec Vulkan! Dans le prochain chapitre nous allons supprimer les 
+Félicitations, vous avez codé un programme fonctionnel avec Vulkan! Dans le prochain chapitre nous allons supprimer les
 sommets du vertex shader et mettre en place un vertex buffer.
 
 [Code C++](/code/16_swap_chain_recreation.cpp) /

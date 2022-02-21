@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <set>
 
@@ -362,7 +363,7 @@ private:
     }
 
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-        if (capabilities.currentExtent.width != UINT32_MAX) {
+        if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;
         } else {
             int width, height;

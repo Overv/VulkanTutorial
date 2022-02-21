@@ -296,13 +296,14 @@ grande valeur d'un `uint32_t`. Dans ce cas nous choisirons la résolution corres
 fenêtre, dans les bornes de `minImageExtent` et `maxImageExtent`.
 
 ```c++
-#include <cstdint> // UINT32_MAX
+#include <cstdint> // uint32_t
+#include <limits> // std::numeric_limits
 #include <algorithm> // std::clamp
 
 ...
 
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    if (capabilities.currentExtent.width != UINT32_MAX) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
         VkExtent2D actualExtent = {WIDTH, HEIGHT};
