@@ -262,6 +262,6 @@ library provided by the GPUOpen initiative. However, for this tutorial it's okay
 to use a separate allocation for every resource, because we won't come close to
 hitting any of these limits for now.
 
-[C++ code](/code/19_staging_buffer.cpp) /
-[Vertex shader](/code/17_shader_vertexbuffer.vert) /
-[Fragment shader](/code/17_shader_vertexbuffer.frag)
+[C++ code](/code/20_staging_buffer.cpp) /
+[Vertex shader](/code/18_shader_vertexbuffer.vert) /
+[Fragment shader](/code/18_shader_vertexbuffer.frag)

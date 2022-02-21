@@ -33,7 +33,7 @@ to contain and how many of them, using `VkDescriptorPoolSize` structures.
 ```c++
 VkDescriptorPoolSize poolSize{};
 poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-poolSize.descriptorCount = static_cast<uint32_t>(swapChainImages.size());
+poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 ```
 
 We will allocate one of these descriptors for every frame. This
@@ -51,7 +51,7 @@ also need to specify the maximum number of descriptor sets that may be
 allocated:
 
 ```c++
-poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
+poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 ```
 
 The structure has an optional flag similar to command pools that determines if
@@ -71,33 +71,7 @@ if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SU
 ```
 
 Add a new class member to store the handle of the descriptor pool and call
-`vkCreateDescriptorPool` to create it. The descriptor pool should be destroyed
-when the swap chain is recreated because it depends on the number of images:
-
-```c++
-void cleanupSwapChain() {
-    ...
-
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
-        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
-    }
-
-    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-}
-```
-
-And recreated in `recreateSwapChain`:
-
-```c++
-void recreateSwapChain() {
-    ...
-
-    createUniformBuffers();
-    createDescriptorPool();
-    createCommandBuffers();
-}
-```
+`vkCreateDescriptorPool` to create it.
 
 ## Descriptor set
 
@@ -131,11 +105,11 @@ struct. You need to specify the descriptor pool to allocate from, the number of
 descriptor sets to allocate, and the descriptor layout to base them on:
 
 ```c++
-std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), descriptorSetLayout);
+std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 VkDescriptorSetAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 allocInfo.descriptorPool = descriptorPool;
-allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImages.size());
+allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 allocInfo.pSetLayouts = layouts.data();
 ```
 
@@ -150,7 +124,7 @@ std::vector<VkDescriptorSet> descriptorSets;
 
 ...
 
-descriptorSets.resize(swapChainImages.size());
+descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate descriptor sets!");
 }
@@ -165,7 +139,7 @@ The descriptor sets have been allocated now, but the descriptors within still ne
 to be configured. We'll now add a loop to populate every descriptor:
 
 ```c++
-for (size_t i = 0; i < swapChainImages.size(); i++) {
+for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
 }
 ```
@@ -176,7 +150,7 @@ structure specifies the buffer and the region within it that contains the data
 for the descriptor.
 
 ```c++
-for (size_t i = 0; i < swapChainImages.size(); i++) {
+for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformBuffers[i];
     bufferInfo.offset = 0;
@@ -408,6 +382,6 @@ You can use this feature to put descriptors that vary per-object and descriptors
 that are shared into separate descriptor sets. In that case you avoid rebinding
 most of the descriptors across draw calls which is potentially more efficient.
 
-[C++ code](/code/22_descriptor_sets.cpp) /
-[Vertex shader](/code/21_shader_ubo.vert) /
-[Fragment shader](/code/21_shader_ubo.frag)
+[C++ code](/code/23_descriptor_sets.cpp) /
+[Vertex shader](/code/22_shader_ubo.vert) /
+[Fragment shader](/code/22_shader_ubo.frag)

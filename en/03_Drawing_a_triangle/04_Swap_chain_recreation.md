@@ -21,7 +21,6 @@ void recreateSwapChain() {
     createRenderPass();
     createGraphicsPipeline();
     createFramebuffers();
-    createCommandBuffers();
 }
 ```
 
@@ -34,8 +33,8 @@ images. It is rare for the swap chain image format to change during an operation
 like a window resize, but it should still be handled. Viewport and scissor
 rectangle size is specified during graphics pipeline creation, so the pipeline
 also needs to be rebuilt. It is possible to avoid this by using dynamic state
-for the viewports and scissor rectangles. Finally, the framebuffers and command
-buffers also directly depend on the swap chain images.
+for the viewports and scissor rectangles. Finally, the framebuffers directly
+depend on the swap chain images.
 
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
@@ -57,7 +56,6 @@ void recreateSwapChain() {
     createRenderPass();
     createGraphicsPipeline();
     createFramebuffers();
-    createCommandBuffers();
 }
 ```
 
@@ -69,8 +67,6 @@ void cleanupSwapChain() {
     for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
         vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
     }
-
-    vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
@@ -108,11 +104,6 @@ void cleanup() {
     glfwTerminate();
 }
 ```
-
-We could recreate the command pool from scratch, but that is rather wasteful.
-Instead I've opted to clean up the existing command buffers with the
-`vkFreeCommandBuffers` function. This way we can reuse the existing pool to
-allocate the new command buffers.
 
 Note that in `chooseSwapExtent` we already query the new window resolution to
 make sure that the swap chain images have the (new) right size, so there's no
@@ -174,13 +165,45 @@ The `vkQueuePresentKHR` function returns the same values with the same meaning.
 In this case we will also recreate the swap chain if it is suboptimal, because
 we want the best possible result.
 
+## Fixing a deadlock
+
+If we try to run the code now, it is possible to encounter a deadlock.
+Debugging the code, we find that the application reaches `vkWaitForFences` but
+never continues past it. This is because when `vkAcquireNextImageKHR` returns
+`VK_ERROR_OUT_OF_DATE_KHR`, we recreate the swapchain and then return from
+`drawFrame`. But before that happens, the current frame's fence was waited upon
+and reset. Since we return immediately, no work is submitted for execution and
+the fence will never be signaled, causing `vkWaitForFences` to halt forever.
+
+There is a simple fix thankfully. Delay resetting the fence until after we
+know for sure we will be submitting work with it. Thus, if we return early, the
+fence is still signaled and `vkWaitForFences` wont deadlock the next time we
+use the same fence object.
+
+The beginning of `drawFrame` should now look like this:
+```c++
+vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+uint32_t imageIndex;
+VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    recreateSwapChain();
+    return;
+} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    throw std::runtime_error("failed to acquire swap chain image!");
+}
+
+// Only reset the fence if we are submitting work
+vkResetFences(device, 1, &inFlightFences[currentFrame]);
+```
+
 ## Handling resizes explicitly
 
 Although many drivers and platforms trigger `VK_ERROR_OUT_OF_DATE_KHR` automatically after a window resize, it is not guaranteed to happen. That's why we'll add some extra code to also handle resizes explicitly. First add a new member variable that flags that a resize has happened:
 
 ```c++
 std::vector<VkFence> inFlightFences;
-size_t currentFrame = 0;
 
 bool framebufferResized = false;
 ```
@@ -259,6 +282,6 @@ Congratulations, you've now finished your very first well-behaved Vulkan
 program! In the next chapter we're going to get rid of the hardcoded vertices in
 the vertex shader and actually use a vertex buffer.
 
-[C++ code](/code/16_swap_chain_recreation.cpp) /
+[C++ code](/code/17_swap_chain_recreation.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
 [Fragment shader](/code/09_shader_base.frag)
