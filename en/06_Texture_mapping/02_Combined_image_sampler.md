@@ -47,15 +47,15 @@ modify it to include a `VkDescriptorPoolSize` for this descriptor:
 ```c++
 std::array<VkDescriptorPoolSize, 2> poolSizes{};
 poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
+poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
+poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 VkDescriptorPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 poolInfo.pPoolSizes = poolSizes.data();
-poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
+poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 ```
 
 Inadequate descriptor pools are a good example of a problem that the validation
@@ -80,7 +80,7 @@ The final step is to bind the actual image and sampler resources to the
 descriptors in the descriptor set. Go to the `createDescriptorSets` function.
 
 ```c++
-for (size_t i = 0; i < swapChainImages.size(); i++) {
+for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformBuffers[i];
     bufferInfo.offset = 0;
@@ -291,6 +291,6 @@ when combined with images that are also written to in framebuffers. You can use
 these images as inputs to implement cool effects like post-processing and camera
 displays within the 3D world.
 
-[C++ code](/code/25_texture_mapping.cpp) /
-[Vertex shader](/code/25_shader_textures.vert) /
-[Fragment shader](/code/25_shader_textures.frag)
+[C++ code](/code/26_texture_mapping.cpp) /
+[Vertex shader](/code/26_shader_textures.vert) /
+[Fragment shader](/code/26_shader_textures.frag)
