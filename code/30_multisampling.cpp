@@ -378,8 +378,16 @@ private:
             createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
 
+            // enable best practices validation
+            VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
+            VkValidationFeaturesEXT features = {};
+            features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+            features.enabledValidationFeatureCount = 1;
+            features.pEnabledValidationFeatures = enables;
+            createInfo.pNext = &features;
+
             populateDebugMessengerCreateInfo(debugCreateInfo);
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+            features.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
         } else {
             createInfo.enabledLayerCount = 0;
 
