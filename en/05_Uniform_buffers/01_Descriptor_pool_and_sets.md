@@ -135,6 +135,14 @@ automatically freed when the descriptor pool is destroyed. The call to
 `vkAllocateDescriptorSets` will allocate descriptor sets, each with one uniform
 buffer descriptor.
 
+```c++
+void cleanup() {
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+    
+    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+}
+```
+
 The descriptor sets have been allocated now, but the descriptors within still need
 to be configured. We'll now add a loop to populate every descriptor:
 
