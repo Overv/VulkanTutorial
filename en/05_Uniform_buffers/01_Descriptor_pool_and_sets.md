@@ -137,9 +137,11 @@ buffer descriptor.
 
 ```c++
 void cleanup() {
+    ...
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
     
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+    ...
 }
 ```
 
