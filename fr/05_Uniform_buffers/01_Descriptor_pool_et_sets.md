@@ -146,6 +146,16 @@ Il n'est pas nécessaire de détruire les sets de descripteurs explicitement, ca
 destruction de la pool. L'appel à `vkAllocateDescriptorSets` alloue donc tous les sets, chacun possédant un unique
 descripteur d'UBO.
 
+```c++
+void cleanup() {
+    ...
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+    
+    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+    ...
+}
+```
+
 Nous avons créé les sets mais nous n'avons pas paramétré les descripteurs. Nous allons maintenant créer une boucle pour
 rectifier ce problème :
 
