@@ -295,16 +295,16 @@ Flushing memory ranges or using a coherent memory heap means that the driver wil
 ## Binding the vertex buffer
 
 All that remains now is binding the vertex buffer during rendering operations.
-We're going to extend the `createCommandBuffers` function to do that.
+We're going to extend the `recordCommandBuffer` function to do that.
 
 ```c++
-vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 VkBuffer vertexBuffers[] = {vertexBuffer};
 VkDeviceSize offsets[] = {0};
-vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 ```
 
 The `vkCmdBindVertexBuffers` function is used to bind vertex buffers to
