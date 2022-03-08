@@ -332,15 +332,15 @@ the viewport, line width and blend constants. If you want to do that, then
 you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
 
 ```c++
-VkDynamicState dynamicStates[] = {
+std::vector<VkDynamicState> dynamicStates = {
     VK_DYNAMIC_STATE_VIEWPORT,
     VK_DYNAMIC_STATE_LINE_WIDTH
 };
 
 VkPipelineDynamicStateCreateInfo dynamicState{};
 dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-dynamicState.dynamicStateCount = 2;
-dynamicState.pDynamicStates = dynamicStates;
+dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+dynamicState.pDynamicStates = dynamicStates.data();
 ```
 
 This will cause the configuration of these values to be ignored and you will be
