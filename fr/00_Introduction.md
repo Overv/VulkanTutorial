@@ -1,6 +1,8 @@
+>NOTICE: The English version of the tutorial has recently changed significantly (for the better) and these changes have not yet been applied to the French translation.
+
 ## À propos
 
-Ce tutoriel vous enseignera les bases de l'utilisation de l'API [Vulkan](https://www.khronos.org/vulkan/) qui expose 
+Ce tutoriel vous enseignera les bases de l'utilisation de l'API [Vulkan](https://www.khronos.org/vulkan/) qui expose
 les graphismes et le calcul sur cartes graphiques. Vulkan est une nouvelle API créée par le
 [groupe Khronos](https://www.khronos.org/) (connu pour OpenGL). Elle fournit une bien meilleure abstraction des cartes
 graphiques modernes. Cette nouvelle interface vous permet de mieux décrire ce que votre application souhaite faire,
@@ -13,10 +15,10 @@ Linux, Mac et Android en même temps.
 
 Il y a cependant un contre-coup à ces avantages. L'API vous impose d'être explicite sur chaque détail. Vous ne pourrez
 rien laisser au hasard, et il n'y a aucune structure, aucun environnement créé pour vous par défaut. Il faudra le
-recréer à partir de rien. Le travail du driver graphique sera ainsi considérablement réduit, ce qui implique un plus 
+recréer à partir de rien. Le travail du driver graphique sera ainsi considérablement réduit, ce qui implique un plus
 grand travail de votre part pour assurer un comportement correct.
 
-Le message véhiculé ici est que Vulkan n'est pas fait pour tout le monde. Cette API est conçue pour les programmeurs 
+Le message véhiculé ici est que Vulkan n'est pas fait pour tout le monde. Cette API est conçue pour les programmeurs
 concernés par la programmation avec GPU de haute performance, et qui sont prêts à y travailler sérieusement. Si vous
 êtes intéressées dans le développement de jeux vidéo, et moins dans les graphismes eux-mêmes, vous devriez plutôt
 continuer d'utiliser OpenGL et DirectX, qui ne seront pas dépréciés en faveur de Vulkan avant un certain temps. Une
@@ -79,7 +81,7 @@ triangle. Chaque chapitre suivra approximativement la structure suivante :
 Bien que chaque chapitre soit écrit comme suite du précédent, il est également possible de lire chacun d'entre eux
 comme un article introduisant une certaine fonctionnalité de Vulkan. Ainsi le site peut vous être utile comme référence.
 Toutes les fonctions et les types Vulkan sont liés à leur spécification, vous pouvez donc cliquer dessus pour en
-apprendre plus. La spécification est par contre en Anglais. Vulkan est une API récente, il peut donc y avoir des 
+apprendre plus. La spécification est par contre en Anglais. Vulkan est une API récente, il peut donc y avoir des
 lacunes dans la spécification elle-même. Vous êtes encouragés à transmettre vos retours dans
 [ce repo Khronos](https://github.com/KhronosGroup/Vulkan-Docs).
 
