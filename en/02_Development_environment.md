@@ -251,7 +251,7 @@ operations, so we'll have to download one. [GLM](http://glm.g-truc.net/) is a
 nice library that is designed for use with graphics APIs and is also commonly
 used with OpenGL.
 
-It is a header-only library that can be installed from the `libglm-dev` or 
+It is a header-only library that can be installed from the `libglm-dev` or
 `glm-devel` package:
 
 ```bash
@@ -347,6 +347,20 @@ LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 ```
 
 The flag `-lglfw` is for GLFW, `-lvulkan` links with the Vulkan function loader and the remaining flags are low-level system libraries that GLFW needs. The remaining flags are dependencies of GLFW itself: the threading and window management.
+
+It is possible that the `Xxf68vm` and `Xi` libraries are not yet installed on your system. You can find them in the following packages:
+
+```bash
+sudo apt install libxxf86vm-dev libxi-dev
+```
+or
+```bash
+sudo dnf install libXi libXxf86vm
+```
+or
+```bash
+sudo pacman -S libxi libxxf86vm
+```
 
 Specifying the rule to compile `VulkanTest` is straightforward now. Make sure to
 use tabs for indentation instead of spaces.
