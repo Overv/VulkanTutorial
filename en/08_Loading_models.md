@@ -239,6 +239,8 @@ When you run your program again, you should now see the correct result:
 
 All that hard work is finally beginning to pay off with a demo like this!
 
+>As the model rotates you may notice that the rear (backside of the walls) looks a bit funny. This is normal and is simply because the model is not really designed to be viewed from that side.
+
 ## Vertex deduplication
 
 Unfortunately we're not really taking advantage of the index buffer yet. The
