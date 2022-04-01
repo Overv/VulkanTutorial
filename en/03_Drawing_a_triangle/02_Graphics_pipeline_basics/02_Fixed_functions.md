@@ -1,3 +1,4 @@
+
 The older graphics APIs provided default state for most of the stages of the
 graphics pipeline. In Vulkan you have to be explicit about everything, from
 viewport size to color blending function. In this chapter we'll fill in all of
@@ -109,11 +110,47 @@ scissor.offset = {0, 0};
 scissor.extent = swapChainExtent;
 ```
 
-Now this viewport and scissor rectangle need to be combined into a viewport
-state using the `VkPipelineViewportStateCreateInfo` struct. It is possible to
-use multiple viewports and scissor rectangles on some graphics cards, so its
-members reference an array of them. Using multiple requires enabling a GPU
-feature (see logical device creation).
+Viewport(s) and scissor rectangle(s) can either be specified as a static part of the pipeline or as a [dynamic state](#dynamic-state) set in the command buffer. While the former is more in line with the other states it's often convenient to make viewport and scissor state dynamic as it gives you a lot more flexibility. This is very common all implementations can handle this dynamic state without performance penalty.
+
+When opting for dynamic viewport(s) and scissor rectangle(s) you need to enable the respective dynamic states for the pipeline:
+
+```c++
+std::vector<VkDynamicState> dynamicStates = {
+    VK_DYNAMIC_STATE_VIEWPORT,
+    VK_DYNAMIC_STATE_SCISSOR
+};
+
+VkPipelineDynamicStateCreateInfo dynamicState{};
+dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+dynamicState.pDynamicStates = dynamicStates.data();
+```
+
+And then only to specify their count at pipeline creation time:
+
+```c++
+VkPipelineViewportStateCreateInfo viewportState{};
+viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+viewportState.viewportCount = 1;
+viewportState.scissorCount = 1;
+```
+
+Viewport(s) and scissor rectangle(s) are then set in the command buffer before issuing the draw commands:
+
+```c++
+vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+vkCmdDraw(commandBuffer, ...)
+
+vkEndCommandBuffer(commandBuffer);
+```
+
+With dynamic state it's even possible to specify different viewports and or scissor rectangles within a single command buffer.
+
+Without dynamic state, viewport and scissor rectangle need to be combined into a viewport
+state for the pipeline using the `VkPipelineViewportStateCreateInfo` struct. This makes the viewport and scissor rectangle setup for this pipeline immutable, so any changes required to these would also require the pipeline to be recreated.
 
 ```c++
 VkPipelineViewportStateCreateInfo viewportState{};
@@ -123,6 +160,8 @@ viewportState.pViewports = &viewport;
 viewportState.scissorCount = 1;
 viewportState.pScissors = &scissor;
 ```
+
+Independent of how you set them, it's is possible to use multiple viewports and scissor rectangles on some graphics cards, so the structure members reference an array of them. Using multiple requires enabling a GPU feature (see logical device creation)
 
 ## Rasterizer
 
