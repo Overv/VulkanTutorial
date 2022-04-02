@@ -19,7 +19,6 @@ void recreateSwapChain() {
     createSwapChain();
     createImageViews();
     createRenderPass();
-    createGraphicsPipeline();
     createFramebuffers();
 }
 ```
@@ -30,10 +29,7 @@ we'll have to do is recreate the swap chain itself. The image views need to be
 recreated because they are based directly on the swap chain images. The render
 pass needs to be recreated because it depends on the format of the swap chain
 images. It is rare for the swap chain image format to change during an operation
-like a window resize, but it should still be handled. Viewport and scissor
-rectangle size is specified during graphics pipeline creation, so the pipeline
-also needs to be rebuilt. It is possible to avoid this by using dynamic state
-for the viewports and scissor rectangles. Finally, the framebuffers directly
+like a window resize, but it should still be handled. Finally, the framebuffers directly
 depend on the swap chain images.
 
 To make sure that the old versions of these objects are cleaned up before
@@ -54,7 +50,6 @@ void recreateSwapChain() {
     createSwapChain();
     createImageViews();
     createRenderPass();
-    createGraphicsPipeline();
     createFramebuffers();
 }
 ```
@@ -68,8 +63,6 @@ void cleanupSwapChain() {
         vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
     }
 
-    vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     vkDestroyRenderPass(device, renderPass, nullptr);
 
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
