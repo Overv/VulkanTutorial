@@ -101,8 +101,7 @@ viewport.
 
 ![](/images/viewports_scissors.png)
 
-In this tutorial we simply want to draw to the entire framebuffer, so we'll
-specify a scissor rectangle that covers it entirely:
+So if we wanted to draw to the entire framebuffer, we would specify a scissor rectangle that covers it entirely:
 
 ```c++
 VkRect2D scissor{};
@@ -362,6 +361,8 @@ attached framebuffer! The `colorWriteMask` will also be used in this mode to
 determine which channels in the framebuffer will actually be affected. It is
 also possible to disable both modes, as we've done here, in which case the
 fragment colors will be written to the framebuffer unmodified.
+
+<a name="dynamic-state"></a>
 
 ## Dynamic state
 
