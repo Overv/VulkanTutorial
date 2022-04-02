@@ -18,7 +18,6 @@ void recreateSwapChain() {
 
     createSwapChain();
     createImageViews();
-    createRenderPass();
     createFramebuffers();
 }
 ```
@@ -26,11 +25,8 @@ void recreateSwapChain() {
 We first call `vkDeviceWaitIdle`, because just like in the last chapter, we
 shouldn't touch resources that may still be in use. Obviously, the first thing
 we'll have to do is recreate the swap chain itself. The image views need to be
-recreated because they are based directly on the swap chain images. The render
-pass needs to be recreated because it depends on the format of the swap chain
-images. It is rare for the swap chain image format to change during an operation
-like a window resize, but it should still be handled. Finally, the framebuffers directly
-depend on the swap chain images.
+recreated because they are based directly on the swap chain images. Finally, the 
+framebuffers directly depend on the swap chain images.
 
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
@@ -49,7 +45,6 @@ void recreateSwapChain() {
 
     createSwapChain();
     createImageViews();
-    createRenderPass();
     createFramebuffers();
 }
 ```
@@ -63,8 +58,6 @@ void cleanupSwapChain() {
         vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
     }
 
-    vkDestroyRenderPass(device, renderPass, nullptr);
-
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         vkDestroyImageView(device, swapChainImageViews[i], nullptr);
     }
@@ -74,6 +67,11 @@ void cleanupSwapChain() {
 
 void cleanup() {
     cleanupSwapChain();
+
+    vkDestroyPipeline(device, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
+    vkDestroyRenderPass(device, renderPass, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
