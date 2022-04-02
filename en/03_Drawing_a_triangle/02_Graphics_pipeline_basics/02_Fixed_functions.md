@@ -384,9 +384,8 @@ dynamicState.pDynamicStates = dynamicStates.data();
 ```
 
 This will cause the configuration of these values to be ignored and you will be
-required to specify the data at drawing time. We'll get back to this in a future
-chapter. This struct can be substituted by a `nullptr` later on if you don't
-have any dynamic state.
+required to specify the data at drawing time. As noted earlier we'll make use
+of dynamic viewport and scissor state.
 
 ## Pipeline layout
 
