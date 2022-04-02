@@ -1,8 +1,35 @@
 
 The older graphics APIs provided default state for most of the stages of the
-graphics pipeline. In Vulkan you have to be explicit about everything, from
-viewport size to color blending function. In this chapter we'll fill in all of
-the structures to configure these fixed-function operations.
+graphics pipeline. In Vulkan you have to be explicit about most pipeline state as
+it'll be baked into an immutable pipeline state object. In this chapter we'll fill 
+in all of the structures to configure these fixed-function operations.
+
+<a name="dynamic-state"></a>
+
+## Dynamic state
+
+While *most* of the pipeline state needs to be baked into the pipeline state, 
+a limited amount of the state *can* actually be changed without recreating the 
+pipeline at draw time instead. Examples are the size of the viewport, line width 
+and blend constants. If you want to use dynamic state and keep these properties out, 
+then you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
+
+```c++
+std::vector<VkDynamicState> dynamicStates = {
+    VK_DYNAMIC_STATE_VIEWPORT,
+    VK_DYNAMIC_STATE_SCISSROR
+};
+
+VkPipelineDynamicStateCreateInfo dynamicState{};
+dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+dynamicState.pDynamicStates = dynamicStates.data();
+```
+
+This will cause the configuration of these values to be ignored and you will be
+able (and required) to specify the data at drawing time. This results in a more flexible
+setup and is very common for things like viewport and scissor state, which would
+result in a more complex setup when being baked into the pipeline state.
 
 ## Vertex input
 
@@ -361,31 +388,6 @@ attached framebuffer! The `colorWriteMask` will also be used in this mode to
 determine which channels in the framebuffer will actually be affected. It is
 also possible to disable both modes, as we've done here, in which case the
 fragment colors will be written to the framebuffer unmodified.
-
-<a name="dynamic-state"></a>
-
-## Dynamic state
-
-A limited amount of the state that we've specified in the previous structs *can*
-actually be changed without recreating the pipeline. Examples are the size of
-the viewport, line width and blend constants. If you want to do that, then
-you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
-
-```c++
-std::vector<VkDynamicState> dynamicStates = {
-    VK_DYNAMIC_STATE_VIEWPORT,
-    VK_DYNAMIC_STATE_LINE_WIDTH
-};
-
-VkPipelineDynamicStateCreateInfo dynamicState{};
-dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-dynamicState.pDynamicStates = dynamicStates.data();
-```
-
-This will cause the configuration of these values to be ignored and you will be
-required to specify the data at drawing time. As noted earlier we'll make use
-of dynamic viewport and scissor state.
 
 ## Pipeline layout
 
