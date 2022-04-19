@@ -10,7 +10,7 @@ in all of the structures to configure these fixed-function operations.
 
 While *most* of the pipeline state needs to be baked into the pipeline state, 
 a limited amount of the state *can* actually be changed without recreating the 
-pipeline at draw time instead. Examples are the size of the viewport, line width 
+pipeline at draw time. Examples are the size of the viewport, line width 
 and blend constants. If you want to use dynamic state and keep these properties out, 
 then you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
 
