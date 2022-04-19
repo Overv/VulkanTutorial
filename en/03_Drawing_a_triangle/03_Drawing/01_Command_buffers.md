@@ -286,8 +286,8 @@ So we need to set them in the command buffer before issuing our draw command:
 VkViewport viewport{};
 viewport.x = 0.0f;
 viewport.y = 0.0f;
-viewport.width = (float) swapChainExtent.width;
-viewport.height = (float) swapChainExtent.height;
+viewport.width = static_cast<float>(swapChainExtent.width);
+viewport.height = static_cast<float>(swapChainExtent.height);
 viewport.minDepth = 0.0f;
 viewport.maxDepth = 1.0f;
 vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
