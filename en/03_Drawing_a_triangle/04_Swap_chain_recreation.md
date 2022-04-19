@@ -23,10 +23,10 @@ void recreateSwapChain() {
 ```
 
 We first call `vkDeviceWaitIdle`, because just like in the last chapter, we
-shouldn't touch resources that may still be in use. Obviously, the first thing
-we'll have to do is recreate the swap chain itself. The image views need to be
-recreated because they are based directly on the swap chain images. Finally, the 
-framebuffers directly depend on the swap chain images.
+shouldn't touch resources that may still be in use. Obviously, we'll have to recreate 
+the swap chain itself. The image views need to be recreated because they are based 
+directly on the swap chain images. Finally, the framebuffers directly depend on the 
+swap chain images.
 
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
