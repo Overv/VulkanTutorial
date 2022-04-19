@@ -175,8 +175,8 @@ vkEndCommandBuffer(commandBuffer);
 
 With dynamic state it's even possible to specify different viewports and or scissor rectangles within a single command buffer.
 
-Without dynamic state, viewport and scissor rectangle need to be combined into a viewport
-state for the pipeline using the `VkPipelineViewportStateCreateInfo` struct. This makes the viewport and scissor rectangle setup for this pipeline immutable, so any changes required to these would also require the pipeline to be recreated.
+Without dynamic state, the viewport and scissor rectangle need to be set in the pipeline using the `VkPipelineViewportStateCreateInfo` struct. This makes the viewport and scissor rectangle for this pipeline immutable.
+Any changes required to these values would require a new pipeline to created with the new values.
 
 ```c++
 VkPipelineViewportStateCreateInfo viewportState{};
