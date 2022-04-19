@@ -1,6 +1,6 @@
 
 The older graphics APIs provided default state for most of the stages of the
-graphics pipeline. In Vulkan you have to be explicit about most pipeline state as
+graphics pipeline. In Vulkan you have to be explicit about most pipeline states as
 it'll be baked into an immutable pipeline state object. In this chapter we'll fill 
 in all of the structures to configure these fixed-function operations.
 
