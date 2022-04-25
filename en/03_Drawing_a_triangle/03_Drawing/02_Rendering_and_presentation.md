@@ -377,7 +377,7 @@ array corresponds to the semaphore with the same index in `pWaitSemaphores`.
 
 ```c++
 submitInfo.commandBufferCount = 1;
-submitInfo.pCommandBuffers = commandBuffer;
+submitInfo.pCommandBuffers = &commandBuffer;
 ```
 
 The next two parameters specify which command buffers to actually submit for
