@@ -273,28 +273,21 @@ void createUniformBuffers() {
 
 We're going to write a separate function that updates the uniform buffer with a
 new transformation every frame, so there will be no `vkMapMemory` here. The
-uniform data will be used for all draw calls, so the buffer containing it should only be destroyed when we stop rendering. Since it also depends on the number of swap chain images, which could change after a recreation, we'll clean it up in `cleanupSwapChain`:
+uniform data will be used for all draw calls, so the buffer containing it should only be destroyed when we stop rendering.
 
 ```c++
-void cleanupSwapChain() {
+void cleanup() {
     ...
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
     }
-}
-```
 
-This means that we also need to recreate it in `recreateSwapChain`:
+    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-```c++
-void recreateSwapChain() {
     ...
 
-    createFramebuffers();
-    createUniformBuffers();
-    createCommandBuffers();
 }
 ```
 
