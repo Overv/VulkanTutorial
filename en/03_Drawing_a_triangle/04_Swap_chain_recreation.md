@@ -49,7 +49,9 @@ void recreateSwapChain() {
 }
 ```
 
-we'll move the cleanup code of all objects that are recreated as part of a swap
+Note that we don't recreate the renderpass here for simplicity. In theory it can be possible for the swap chain image format to change during an applications' lifetime, e.g. when moving a window from an standard range to an high dynamic range monitor. This may require the application to recreate the renderpass to make sure the change between dynamic ranges is properly reflected.
+
+We'll move the cleanup code of all objects that are recreated as part of a swap
 chain refresh from `cleanup` to `cleanupSwapChain`:
 
 ```c++
@@ -210,7 +212,7 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebu
 }
 ```
 
-It is important to do this after `vkQueuePresentKHR` to ensure that the semaphores are in a consistent state, otherwise a signalled semaphore may never be properly waited upon. Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
+It is important to do this after `vkQueuePresentKHR` to ensure that the semaphores are in a consistent state, otherwise a signaled semaphore may never be properly waited upon. Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
 
 ```c++
 void initWindow() {
