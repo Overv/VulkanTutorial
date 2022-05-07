@@ -56,7 +56,7 @@ executed asynchronously. The function calls will return before the operations
 are actually finished and the order of execution is also undefined. That is
 unfortunate, because each of the operations depends on the previous one
 finishing. Thus we need to explore which primitives we can use to achieve
-the desired ordering. 
+the desired ordering.
 
 ### Semaphores
 
@@ -64,7 +64,7 @@ A semaphore is used to add order between queue operations. Queue operations
 refer to the work we submit to a queue, either in a command buffer or from
 within a function as we will see later. Examples of queues are the graphics
 queue and the presentation queue. Semaphores are used both to order work inside
-the same queue and between different queues. 
+the same queue and between different queues.
 
 There happens to be two kinds of semaphores in Vulkan, binary and timeline.
 Because only binary semaphores will be used in this tutorial, we will not
@@ -72,12 +72,12 @@ discuss timeline semaphores. Further mention of the term semaphore exclusively
 refers to binary semaphores.
 
 A semaphore is either unsignaled or signaled. It begins life as unsignaled. The
-way we use a semaphore to order queue operations is by providing the same 
-semaphore as a 'signal' semaphore in one queue operation and as a 'wait' 
+way we use a semaphore to order queue operations is by providing the same
+semaphore as a 'signal' semaphore in one queue operation and as a 'wait'
 semaphore in another queue operation. For example, lets say we have semaphore S
 and queue operations A and B that we want to execute in order. What we tell
 Vulkan is that operation A will 'signal' semaphore S when it finishes executing,
-and operation B will 'wait' on semaphore S before it begins executing. When 
+and operation B will 'wait' on semaphore S before it begins executing. When
 operation A finishes, semaphore S will be signaled, while operation B wont
 start until S is signaled. After operation B begins executing, semaphore S
 is automatically reset back to being unsignaled, allowing it to be used again.
@@ -123,7 +123,7 @@ host save the file to disk, as the memory transfer has completed.
 Pseudo-code for what was described:
 ```
 VkCommandBuffer A = ... // record command buffer with the transfer
-VkFence F = ... // create the fence  
+VkFence F = ... // create the fence
 
 // enqueue A, start work immediately, signal F when done
 vkQueueSubmit(work: A, fence: F)
@@ -136,12 +136,12 @@ save_screenshot_to_disk() // can't run until the transfer has finished
 Unlike the semaphore example, this example *does* block host execution. This
 means the host won't do anything except wait until execution has finished. For
 this case, we had to make sure the transfer was complete before we could save
-the screenshot to disk. 
+the screenshot to disk.
 
 In general, it is preferable to not block the host unless necessary. We want to
 feed the GPU and the host with useful work to do. Waiting on fences to signal
 is not useful work. Thus we prefer semaphores, or other synchronization
-primitives not yet covered, to synchronize our work. 
+primitives not yet covered, to synchronize our work.
 
 Fences must be reset manually to put them back into the unsignaled state. This
 is because fences are used to control the execution of the host, and so the
@@ -149,7 +149,7 @@ host gets to decide when to reset the fence. Contrast this to semaphores which
 are used to order work on the GPU without the host being involved.
 
 In summary, semaphores are used to specify the execution order of operations on
-the GPU while fences are used to keep the CPU and GPU in sync with each-other. 
+the GPU while fences are used to keep the CPU and GPU in sync with each-other.
 
 ### What to choose?
 
@@ -168,8 +168,8 @@ the current contents of the command buffer while the GPU is using it.
 
 We'll need one semaphore to signal that an image has been acquired from the
 swapchain and is ready for rendering, another one to signal that rendering has
-finished and presentation can happen, and a fence to make sure only one frame 
-is rendering at a time. 
+finished and presentation can happen, and a fence to make sure only one frame
+is rendering at a time.
 
 Create three class members to store these semaphore objects and fence object:
 
@@ -232,9 +232,8 @@ Creating the semaphores and fence follows the familiar pattern with
 
 ```c++
 if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-    vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) ||
-    vkCreateFence(device, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS){
-
+    vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+    vkCreateFence(device, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
     throw std::runtime_error("failed to create semaphores!");
 }
 ```
@@ -264,7 +263,7 @@ void drawFrame() {
 ```
 
 The `vkWaitForFences` function takes an array of fences and waits on the host
-for either any or all of the fences to be signaled before returning. The 
+for either any or all of the fences to be signaled before returning. The
 `VK_TRUE` we pass here indicates that we want to wait for all fences, but in
 the case of a single one it doesn't matter. This function also has a timeout
 parameter that we set to the maximum value of a 64 bit unsigned integer,
@@ -280,11 +279,11 @@ Before we can proceed, there is a slight hiccup in our design. On the first
 frame we call `drawFrame()`, which immediately waits on `inFlightFence` to
 be signaled. `inFlightFence` is only signaled after a frame has finished
 rendering, yet since this is the first frame, there are no previous frames in
-which to signal the fence! Thus `vkWaitForFences()` blocks indefinitely, 
+which to signal the fence! Thus `vkWaitForFences()` blocks indefinitely,
 waiting on something which will never happen.
 
 Of the many solutions to this dilemma, there is a clever workaround built into
-the API. Create the fence in the signaled state, so that the first call to 
+the API. Create the fence in the signaled state, so that the first call to
 `vkWaitForFences()` returns immediately since the fence is already signaled.
 
 To do this, we add the `VK_FENCE_CREATE_SIGNALED_BIT` flag to the `VkFenceCreateInfo`:
@@ -489,7 +488,7 @@ presentInfo.pWaitSemaphores = signalSemaphores;
 The first two parameters specify which semaphores to wait on before presentation
 can happen, just like `VkSubmitInfo`. Since we want to wait on the command buffer
 to finish execution, thus our triangle being drawn, we take the semaphores
-which will be signalled and wait on them, thus we use `signalSemaphores`. 
+which will be signalled and wait on them, thus we use `signalSemaphores`.
 
 
 ```c++
