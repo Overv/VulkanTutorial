@@ -95,7 +95,7 @@ dans le chapitre dédié à la swap chain.
 
 Comme dit dans le chapitre sur les validation layers, nous activerons les mêmes que celles que nous avons spécifiées
 lors de la création de l'instance. Nous n'avons pour l'instant besoin d'aucune validation layer en particulier. Notez
-que le standard ne fait plus la différence entre les extensions de l'instance et celles du device, au point que les
+que le standard [ne fait plus la différence](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap40.html#extendingvulkan-layers-devicelayerdeprecation) entre les extensions de l'instance et celles du device, au point que les
 paramètres `enabledLayerCount` et `ppEnabledLayerNames` seront probablement ignorés. Nous les remplissons quand même
 pour s'assurer de la bonne compatibilité avec les anciennes implémentations.
 
