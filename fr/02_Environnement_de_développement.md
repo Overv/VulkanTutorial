@@ -177,7 +177,7 @@ Si le nombre d'extensions est nul, il y a un problème avec la configuration de 
 
 ## Linux
 
-Ces instructions sont conçues pour les utilisateurs d'Ubuntu et Fedora, mais vous devriez pouvoir suivre ces instructions depuis
+Ces instructions sont conçues pour les utilisateurs d'Ubuntu, Fedora et Arch Linux, mais vous devriez pouvoir suivre ces instructions depuis
 une autre distribution si vous adaptez les commandes "apt" ou "dnf" à votre propre gestionnaire de
 packages. Il vous faut un compilateur qui supporte C++17 (GCC 7+ ou Clang 5+). Vous aurez également besoin de make.
 
@@ -187,6 +187,8 @@ Les composants les plus importants pour le développement d'applications Vulkan 
 * `sudo apt install vulkan-tools` ou `sudo dnf install vulkan-tools`: Les utilitaires en ligne de commande, plus précisément `vulkaninfo` et `vkcube`. Lancez ceux-ci pour vérifier le bon fonctionnement de votre machine pour Vulkan.
 * `sudo apt install libvulkan-dev` ou `sudo dnf install vulkan-headers vulkan-loader-devel`: Installe le loader Vulkan. Il sert à aller chercher les fonctions auprès du driver de votre GPU au runtime, de la même façon que GLEW le fait pour OpenGL - si vous êtes familier avec ceci.
 * `sudo apt install vulkan-validationlayers-dev` ou `sudo dnf install mesa-vulkan-devel vulkan-validation-layers-devel`: Installe les layers de validation standards. Ceux-ci sont cruciaux pour débugger vos applications Vulkan, et nous en reparlerons dans un prochain chapitre.
+
+Pour Arch Linux, vous pouvez lancer `sudo pacman -S vulkan-devel` pour installer l'ensemble des outils requis vus ci-dessus.
 
 Si l'installation est un succès, vous devriez être prêt pour la partie Vulkan. N'oubliez pas de lancer `vkcube` et assurez-vous de voir la fenêtre suivante:
 
@@ -208,6 +210,10 @@ ou
 ```bash
 sudo dnf install glfw-devel
 ```
+ou
+```bash
+sudo pacman -S glfw-wayland # ou glfw-x11 pour les utilisateurs de X11
+```
 
 ### GLM
 
@@ -225,13 +231,17 @@ ou
 ```bash
 sudo dnf install glm-devel
 ```
+ou
+```bash
+sudo pacman -S glm
+```
 
 ### Compilateur de shader
 
 Nous avons tout ce qu'il nous faut, excepté un programme qui compile le code [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) lisible par un humain en bytecode.
 
 Deux compilateurs de shader populaires sont `glslangValidator` de Khronos et `glslc` de Google. Ce dernier a l'avantage d'être proche de GCC et Clang à l'usage,.
-Pour cette raison, nous l'utiliserons: Ubuntu, téléchargez les exécutables [non officiels](https://github.com/google/shaderc/blob/main/downloads.md) et copiez `glslc` dans votre répertoire `/usr/local/bin`. Notez que vous aurez certainement besoin d'utiliser `sudo` en fonctions de vos permissions.  Fedora, utilise `sudo dnf install glslc`.
+Pour cette raison, nous l'utiliserons: Sous Ubuntu, téléchargez les exécutables [non officiels](https://github.com/google/shaderc/blob/main/downloads.md) et copiez `glslc` dans votre répertoire `/usr/local/bin`. Notez que vous aurez certainement besoin d'utiliser `sudo` en fonctions de vos permissions. Sous Fedora, utilisez `sudo dnf install glslc` et sous Arch Linux, lancez `sudo pacman -S shaderc`.
 Pour tester, lancez `glslc` depuis le répertoire de votre choix et il devrait se plaindre qu'il n'a reçu aucun shader à compiler de votre part:
 
 `glslc: error: no input files`
@@ -305,6 +315,20 @@ LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 ```
 
 Le premier flag correspond à GLFW, `-lvulkan` correspond au loader dynamique des fonctions Vulkan. Le reste des options correspondent à des bibliothèques systèmes liés à la gestion des fenêtres et aux threads nécessaire pour le bon fonctionnement de GLFW.
+
+Il est possible que les bibliothèques `Xxf86vm` et `Xi` ne soient pas encore installées. vous pouvez les trouvez dans les paquets suivants:
+
+```bash
+sudo apt install libxxf86vm-dev libxi-dev
+```
+ou
+```bash
+sudo dnf isntall libXi libXxf86vm
+```
+ou
+```bash
+sudo pacman -S libxi libxxf86vm
+```
 
 Spécifier les commandes pour la compilation de "VulkanTest" est désormais un jeu d'enfant. Assurez-vous que vous
 utilisez des tabulations et non des espaces pour l'indentation.
@@ -392,11 +416,10 @@ Vulkan, nous utiliserons la [librairie GLFW](http://www.glfw.org/) pour créer u
 et MacOS. Il existe d'autres librairies telles que [SDL](https://www.libsdl.org/), mais GLFW à l'avantage d'abstraire
 d'autres aspects spécifiques à la plateforme requis par Vulkan.
 
-Nous utiliserons le gestionnaire de package Homebrew pour installer GLFW. Le support Vulkan sur MacOS n'étant pas
-parfaitement disponible (à l'écriture du moins) sur la version 3.2.1, nous installerons le package "glfw3" ainsi :
+Nous utiliserons le gestionnaire de package Homebrew pour installer GLFW:
 
 ```bash
-brew install glfw3 --HEAD
+brew install glfw3
 ```
 
 ### GLM
