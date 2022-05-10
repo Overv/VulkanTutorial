@@ -31,7 +31,8 @@ Cela étant dit, présentons quelques prérequis pour ce tutoriel:
 
 * Une carte graphique et un driver compatibles avec Vulkan ([NVIDIA](https://developer.nvidia.com/vulkan-driver),
 [AMD](https://www.amd.com/en/technologies/vulkan),
-[Intel](https://software.intel.com/en-us/blogs/2017/02/10/intel-announces-that-we-are-moving-from-beta-support-to-full-official-support-for))
+[Intel](https://software.intel.com/en-us/blogs/2017/02/10/intel-announces-that-we-are-moving-from-beta-support-to-full-official-support-for),
+[Apple Silicon (Ou Apple M1)](https://www.phoronix.com/scan.php?page=news_item&px=Apple-Silicon-Vulkan-MoltenVK))
 * De l'expérience avec le C++ (familiarité avec RAII, listes d'initialisation, et autres fonctionnalités modernes)
 * Un compilateur avec un support décent des fonctionnalités du C++17 (Visual Studio 2017+, GCC 7+ ou Clang 5+)
 * Un minimum d'expérience dans le domaine de la programmation graphique
@@ -40,7 +41,7 @@ Ce tutoriel ne considérera pas comme acquis les concepts d'OpenGL et de Direct3
 les bases du rendu 3D. Il n'expliquera pas non plus les mathématiques derrière la projection de perspective, par
 exemple. Lisez [ce livre](http://opengl.datenwolf.net/gltut/html/index.html) pour une bonne introduction des concepts
 de rendu 3D. D'autres ressources pour le développement d'application graphiques sont :
-* [Ray tracing en un week-end](https://github.com/petershirley/raytracinginoneweekend)
+* [Ray tracing en un week-end](https://github.com/RayTracing/raytracing.github.io)
 * [Livre sur le Physical Based Rendering](http://www.pbr-book.org/)
 * Une application de Vulkan dans les moteurs graphiques open source [Quake](https://github.com/Novum/vkQuake) et de
 [DOOM 3](https://github.com/DustinHLand/vkDOOM3)
