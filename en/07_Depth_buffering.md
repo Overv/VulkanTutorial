@@ -577,10 +577,6 @@ void recreateSwapChain() {
     createGraphicsPipeline();
     createDepthResources();
     createFramebuffers();
-    createUniformBuffers();
-    createDescriptorPool();
-    createDescriptorSets();
-    createCommandBuffers();
 }
 ```
 

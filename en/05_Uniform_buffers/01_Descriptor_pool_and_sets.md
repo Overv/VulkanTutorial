@@ -106,7 +106,7 @@ allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 allocInfo.pSetLayouts = layouts.data();
 ```
 
-In our case we will create one descriptor set for each frame in flight, all with the same layout. 
+In our case we will create one descriptor set for each frame in flight, all with the same layout.
 Unfortunately we do need all the copies of the layout because the next function expects an array matching the number of sets.
 
 Add a class member to hold the descriptor set handles and allocate them with
@@ -133,7 +133,7 @@ buffer descriptor.
 void cleanup() {
     ...
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-    
+
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
     ...
 }
@@ -212,12 +212,12 @@ as its name implies.
 
 ## Using descriptor sets
 
-We now need to update the `createCommandBuffers` function to actually bind the
+We now need to update the `recordCommandBuffer` function to actually bind the
 right descriptor set for each frame to the descriptors in the shader with `vkCmdBindDescriptorSets`. This needs to be done before the `vkCmdDrawIndexed` call:
 
 ```c++
-vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
-vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
 Unlike vertex and index buffers, descriptor sets are not unique to graphics
