@@ -293,18 +293,15 @@ void cleanup() {
 
 ## Updating uniform data
 
-Create a new function `updateUniformBuffer` and add a call to it from the `drawFrame` function right after we know which swap chain image we're going to acquire:
+Create a new function `updateUniformBuffer` and add a call to it from the `drawFrame` function before submitting the next frame:
 
 ```c++
 void drawFrame() {
     ...
 
-    uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    updateUniformBuffer(currentFrame);
 
     ...
-
-    updateUniformBuffer(imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
