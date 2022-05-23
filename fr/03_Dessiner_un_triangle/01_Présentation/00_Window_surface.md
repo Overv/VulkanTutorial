@@ -36,7 +36,17 @@ du code spécifique à la plateforme. La fonction de GLFW `glfwCreateWindowSurfa
 plateforme. Cet exemple ne servira ainsi qu'à présenter le travail de bas niveau, dont la connaissance est toujours
 utile à une bonne utilisation de Vulkan.
 
-Une window surface est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici 
+Pour avoir accèder aux fonctions natives, vous devez ajouter ces includes au début du fichier:
+
+```c++
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+```
+
+Une window surface est un objet Vulkan comme un autre et nécessite donc de remplir une structure, ici
 `VkWin32SurfaceCreateInfoKHR`. Elle possède deux paramètres importants : `hwnd` et `hinstance`. Ce sont les références
 à la fenêtre et au processus courant.
 
@@ -47,7 +57,7 @@ createInfo.hwnd = glfwGetWin32Window(window);
 createInfo.hinstance = GetModuleHandle(nullptr);
 ```
 
-Nous pouvons extraire `HWND` de la fenêtre à l'aide de la fonction `glfwGetWin32Window`. La fonction 
+Nous pouvons extraire `HWND` de la fenêtre à l'aide de la fonction `glfwGetWin32Window`. La fonction
 `GetModuleHandle` fournit une référence au `HINSTANCE` du thread courant.
 
 La surface peut maintenant être crée avec `vkCreateWin32SurfaceKHR`. Cette fonction prend en paramètre une instance, des
