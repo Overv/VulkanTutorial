@@ -251,8 +251,9 @@ queue est vide pendant le vertical blank. Au lieu d'attendre le prochain vertica
 file d'attente sera immédiatement transmise à l'écran.
 * `VK_PRESENT_MODE_MAILBOX_KHR` : ce mode est une autre variation du second mode. Au lieu de bloquer l'application
 quand le file d'attente est pleine, les images présentes dans la queue sont simplement remplacées par de nouvelles.
-Ce mode peut être utilisé pour implémenter le triple buffering, qui vous permet d'éliminer le tearing tout en réduisant
-le temps de latence entre le rendu et l'affichage qu'une file d'attente implique.
+Ce mode peut être utilisé pour faire le rendu le plus rapidement possible tout en évitant le déchirement de l'image,
+en gardant une latence contenue par rapport à la synchronisation vertical standard. Cette technique est aussi connu
+sous le nom de "triple buffering", mais l'existence de trois buffers seuls n'implique pas forcément que le taux d'image est débloqué.
 
 Seul `VK_PRESENT_MODE_FIFO_KHR` est toujours disponible. Nous aurons donc encore à écrire une fonction pour réaliser
 un choix, car le mode que nous choisirons préférentiellement est `VK_PRESENT_MODE_MAILBOX_KHR` :
@@ -263,7 +264,11 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &avai
 }
 ```
 
-Je pense que le triple buffering est un très bon compromis. Vérifions si ce mode est disponible :
+Je pense que le triple buffering est un très bon compromis si la consommation n'est pas un problème.
+Il permet d'éviter le déchirement de l'image, tout en préservant une latence assez basse, et ce, en rendant des images
+les plus récentes possible jusqu'à l'étape de l'intervalle de rafraichissement vertical. Concernant les appareils mobiles,
+ceux-ci étant plutôt à la recherche d'économie d'énergie, on leur préférera le mode `VK_PRESENT_MODE_FIFO_KHR` à la place.
+Vérifions maintenant si `VK_PRESENT_MODE_MAILBOX_KHR` est disponible :
 
 ```c++
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
@@ -287,13 +292,22 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-Le swap extent donne la résolution des images dans la swap chain et correspond quasiment toujours à la résolution de
-la fenêtre que nous utilisons. L'étendue des résolutions disponibles est définie dans la
+Le swap extent donne la résolution des images dans la swap chain et correspond toujours à la résolution de
+la fenêtre que nous utilisons _en pixels_ (nous y reviendrons). L'étendue des résolutions disponibles est définie dans la
 structure `VkSurfaceCapabilitiesKHR`. Vulkan nous demande de faire correspondre notre résolution à celle de la fenêtre
 fournie par le membre `currentExtent`. Cependant certains gestionnaires de fenêtres nous permettent de choisir une
 résolution différente, ce que nous pouvons détecter grâce aux membres `width` et `height` qui sont alors égaux à la plus
 grande valeur d'un `uint32_t`. Dans ce cas nous choisirons la résolution correspondant le mieux à la taille de la
-fenêtre, dans les bornes de `minImageExtent` et `maxImageExtent`.
+fenêtre, dans les bornes de `minImageExtent` et `maxImageExtent`. Mais nous devons nous assurer de respecter l'unité de résolution.
+
+GLFW utilise deux unités pour mesurer des tailles: le pixel, et [les coordonnées écran](https://www.glfw.org/docs/latest/intro_guide.html#coordinate_systems).
+Par exemple, la résolution `{LARGEUR, HAUTEUR}` que nous avions spécifié plus tôt au moment de créer la fenêtre est mesuré
+en coordonnée écran. Mais Vulkan fonctionne en pixels, donc le swap extent doit être donné en pixels. Malheureusement, si vous utilisez
+un écran a haut DPI (Dot Per Inch, *Points Par Pouces* ou *ppp* en Français) comme les écran Retina d'Apple, les coordonnées écran
+ne correspondent pas aux pixels de votre écran. Dans ce cas, à cause de la densité de pixel plus élevée, la résolution de
+la fenêtre en pixels sera plus élevée que la résolution en coordonées écran. Donc si Vulkan ne corrige pas le swap extent pour nous,
+on ne peut simplement pas utiliser les `{LARGEUR, HAUTEUR}` originales. A la place, nous devons utiliser `glfwGetFrameBufferSize`
+pour demander la résolution de la fenêtre en pixels avant de la comparer aux extents minimum et maximum.
 
 ```c++
 #include <cstdint> // uint32_t
@@ -306,7 +320,13 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
-        VkExtent2D actualExtent = {WIDTH, HEIGHT};
+        int width, height;
+        glfwGetFrameBufferSize(window, &width, &height);
+
+        VkExtent2D actualExtent = {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
+        };
 
         actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
         actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -316,7 +336,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-La fonction `clamp` est utilisée ici pour limiter les valeurs `WIDTH` et `HEIGHT` entre le minimum et le
+La fonction `clamp` est utilisée ici pour limiter les valeurs de largeur de de hauteur entre le minimum et le
 maximum supportés par l'implémentation.
 
 ## Création de la swap chain
