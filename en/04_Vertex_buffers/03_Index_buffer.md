@@ -120,16 +120,16 @@ void cleanup() {
 ## Using an index buffer
 
 Using an index buffer for drawing involves two changes to
-`createCommandBuffers`. We first need to bind the index buffer, just like we did
+`recordCommandBuffer`. We first need to bind the index buffer, just like we did
 for the vertex buffer. The difference is that you can only have a single index
 buffer. It's unfortunately not possible to use different indices for each vertex
 attribute, so we do still have to completely duplicate vertex data even if just
 one attribute varies.
 
 ```c++
-vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 ```
 
 An index buffer is bound with `vkCmdBindIndexBuffer` which has the index buffer,
@@ -142,7 +142,7 @@ the drawing command to tell Vulkan to use the index buffer. Remove the
 `vkCmdDraw` line and replace it with `vkCmdDrawIndexed`:
 
 ```c++
-vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
 A call to this function is very similar to `vkCmdDraw`. The first two parameters

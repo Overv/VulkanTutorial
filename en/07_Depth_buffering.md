@@ -473,7 +473,7 @@ void initVulkan() {
 ## Clear values
 
 Because we now have multiple attachments with `VK_ATTACHMENT_LOAD_OP_CLEAR`, we
-also need to specify multiple clear values. Go to `createCommandBuffers` and
+also need to specify multiple clear values. Go to `recordCommandBuffer` and
 create an array of `VkClearValue` structs:
 
 ```c++
@@ -577,10 +577,6 @@ void recreateSwapChain() {
     createGraphicsPipeline();
     createDepthResources();
     createFramebuffers();
-    createUniformBuffers();
-    createDescriptorPool();
-    createDescriptorSets();
-    createCommandBuffers();
 }
 ```
 

@@ -96,7 +96,7 @@ there are going to be a lot more vertices than 65535. Remember to also change
 the `vkCmdBindIndexBuffer` parameter:
 
 ```c++
-vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 ```
 
 The tinyobjloader library is included in the same way as STB libraries. Include

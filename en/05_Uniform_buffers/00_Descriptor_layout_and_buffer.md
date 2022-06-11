@@ -273,45 +273,35 @@ void createUniformBuffers() {
 
 We're going to write a separate function that updates the uniform buffer with a
 new transformation every frame, so there will be no `vkMapMemory` here. The
-uniform data will be used for all draw calls, so the buffer containing it should only be destroyed when we stop rendering. Since it also depends on the number of swap chain images, which could change after a recreation, we'll clean it up in `cleanupSwapChain`:
+uniform data will be used for all draw calls, so the buffer containing it should only be destroyed when we stop rendering.
 
 ```c++
-void cleanupSwapChain() {
+void cleanup() {
     ...
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
     }
-}
-```
 
-This means that we also need to recreate it in `recreateSwapChain`:
+    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-```c++
-void recreateSwapChain() {
     ...
 
-    createFramebuffers();
-    createUniformBuffers();
-    createCommandBuffers();
 }
 ```
 
 ## Updating uniform data
 
-Create a new function `updateUniformBuffer` and add a call to it from the `drawFrame` function right after we know which swap chain image we're going to acquire:
+Create a new function `updateUniformBuffer` and add a call to it from the `drawFrame` function before submitting the next frame:
 
 ```c++
 void drawFrame() {
     ...
 
-    uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    updateUniformBuffer(currentFrame);
 
     ...
-
-    updateUniformBuffer(imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
