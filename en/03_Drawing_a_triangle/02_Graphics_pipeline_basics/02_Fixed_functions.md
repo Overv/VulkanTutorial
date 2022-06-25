@@ -136,7 +136,7 @@ scissor.offset = {0, 0};
 scissor.extent = swapChainExtent;
 ```
 
-Viewport(s) and scissor rectangle(s) can either be specified as a static part of the pipeline or as a [dynamic state](#dynamic-state) set in the command buffer. While the former is more in line with the other states it's often convenient to make viewport and scissor state dynamic as it gives you a lot more flexibility. This is very common all implementations can handle this dynamic state without performance penalty.
+Viewport(s) and scissor rectangle(s) can either be specified as a static part of the pipeline or as a [dynamic state](#dynamic-state) set in the command buffer. While the former is more in line with the other states it's often convenient to make viewport and scissor state dynamic as it gives you a lot more flexibility. This is very common and all implementations can handle this dynamic state without a performance penalty.
 
 When opting for dynamic viewport(s) and scissor rectangle(s) you need to enable the respective dynamic states for the pipeline:
 
@@ -152,7 +152,7 @@ dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 dynamicState.pDynamicStates = dynamicStates.data();
 ```
 
-And then only to specify their count at pipeline creation time:
+And then you only need to specify their count at pipeline creation time:
 
 ```c++
 VkPipelineViewportStateCreateInfo viewportState{};
@@ -187,7 +187,7 @@ viewportState.scissorCount = 1;
 viewportState.pScissors = &scissor;
 ```
 
-Independent of how you set them, it's is possible to use multiple viewports and scissor rectangles on some graphics cards, so the structure members reference an array of them. Using multiple requires enabling a GPU feature (see logical device creation)
+Independent of how you set them, it's is possible to use multiple viewports and scissor rectangles on some graphics cards, so the structure members reference an array of them. Using multiple requires enabling a GPU feature (see logical device creation).
 
 ## Rasterizer
 
