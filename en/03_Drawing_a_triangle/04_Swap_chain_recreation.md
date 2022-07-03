@@ -18,23 +18,15 @@ void recreateSwapChain() {
 
     createSwapChain();
     createImageViews();
-    createRenderPass();
-    createGraphicsPipeline();
     createFramebuffers();
 }
 ```
 
 We first call `vkDeviceWaitIdle`, because just like in the last chapter, we
-shouldn't touch resources that may still be in use. Obviously, the first thing
-we'll have to do is recreate the swap chain itself. The image views need to be
-recreated because they are based directly on the swap chain images. The render
-pass needs to be recreated because it depends on the format of the swap chain
-images. It is rare for the swap chain image format to change during an operation
-like a window resize, but it should still be handled. Viewport and scissor
-rectangle size is specified during graphics pipeline creation, so the pipeline
-also needs to be rebuilt. It is possible to avoid this by using dynamic state
-for the viewports and scissor rectangles. Finally, the framebuffers directly
-depend on the swap chain images.
+shouldn't touch resources that may still be in use. Obviously, we'll have to recreate 
+the swap chain itself. The image views need to be recreated because they are based 
+directly on the swap chain images. Finally, the framebuffers directly depend on the 
+swap chain images, and thus must be recreated as well.
 
 To make sure that the old versions of these objects are cleaned up before
 recreating them, we should move some of the cleanup code to a separate function
@@ -53,13 +45,13 @@ void recreateSwapChain() {
 
     createSwapChain();
     createImageViews();
-    createRenderPass();
-    createGraphicsPipeline();
     createFramebuffers();
 }
 ```
 
-we'll move the cleanup code of all objects that are recreated as part of a swap
+Note that we don't recreate the renderpass here for simplicity. In theory it can be possible for the swap chain image format to change during an applications' lifetime, e.g. when moving a window from an standard range to an high dynamic range monitor. This may require the application to recreate the renderpass to make sure the change between dynamic ranges is properly reflected.
+
+We'll move the cleanup code of all objects that are recreated as part of a swap
 chain refresh from `cleanup` to `cleanupSwapChain`:
 
 ```c++
@@ -67,10 +59,6 @@ void cleanupSwapChain() {
     for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
         vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
     }
-
-    vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    vkDestroyRenderPass(device, renderPass, nullptr);
 
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         vkDestroyImageView(device, swapChainImageViews[i], nullptr);
@@ -81,6 +69,11 @@ void cleanupSwapChain() {
 
 void cleanup() {
     cleanupSwapChain();
+
+    vkDestroyPipeline(device, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
+    vkDestroyRenderPass(device, renderPass, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -219,7 +212,7 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebu
 }
 ```
 
-It is important to do this after `vkQueuePresentKHR` to ensure that the semaphores are in a consistent state, otherwise a signalled semaphore may never be properly waited upon. Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
+It is important to do this after `vkQueuePresentKHR` to ensure that the semaphores are in a consistent state, otherwise a signaled semaphore may never be properly waited upon. Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
 
 ```c++
 void initWindow() {

@@ -276,8 +276,29 @@ vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeli
 
 The second parameter specifies if the pipeline object is a graphics or compute
 pipeline. We've now told Vulkan which operations to execute in the graphics
-pipeline and which attachment to use in the fragment shader, so all that remains
-is telling it to draw the triangle:
+pipeline and which attachment to use in the fragment shader.
+
+As noted in the [fixed functions chapter](../02_Graphics_pipeline_basics/02_Fixed_functions.md#dynamic-state), 
+we did specify viewport and scissor state for this pipeline to be dynamic.
+So we need to set them in the command buffer before issuing our draw command:
+
+```c++
+VkViewport viewport{};
+viewport.x = 0.0f;
+viewport.y = 0.0f;
+viewport.width = static_cast<float>(swapChainExtent.width);
+viewport.height = static_cast<float>(swapChainExtent.height);
+viewport.minDepth = 0.0f;
+viewport.maxDepth = 1.0f;
+vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+VkRect2D scissor{};
+scissor.offset = {0, 0};
+scissor.extent = swapChainExtent;
+vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+```
+
+Now we are ready to issue the draw command for the triangle:
 
 ```c++
 vkCmdDraw(commandBuffer, 3, 1, 0, 0);
