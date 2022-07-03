@@ -4,8 +4,6 @@ graphics pipeline. In Vulkan you have to be explicit about most pipeline states 
 it'll be baked into an immutable pipeline state object. In this chapter we'll fill 
 in all of the structures to configure these fixed-function operations.
 
-<a name="dynamic-state"></a>
-
 ## Dynamic state
 
 While *most* of the pipeline state needs to be baked into the pipeline state, 
