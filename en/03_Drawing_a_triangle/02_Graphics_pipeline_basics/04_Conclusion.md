@@ -33,7 +33,7 @@ pipelineInfo.pRasterizationState = &rasterizer;
 pipelineInfo.pMultisampleState = &multisampling;
 pipelineInfo.pDepthStencilState = nullptr; // Optional
 pipelineInfo.pColorBlendState = &colorBlending;
-pipelineInfo.pDynamicState = nullptr; // Optional
+pipelineInfo.pDynamicState = &dynamicState;
 ```
 
 Then we reference all of the structures describing the fixed-function stage.
