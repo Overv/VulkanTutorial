@@ -159,17 +159,7 @@ viewportState.viewportCount = 1;
 viewportState.scissorCount = 1;
 ```
 
-Viewport(s) and scissor rectangle(s) are then set in the command buffer before issuing the draw commands:
-
-```c++
-vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-vkCmdDraw(commandBuffer, ...)
-
-vkEndCommandBuffer(commandBuffer);
-```
+The actual viewport(s) and scissor rectangle(s) will then later be set up at drawing time.
 
 With dynamic state it's even possible to specify different viewports and or scissor rectangles within a single command buffer.
 
