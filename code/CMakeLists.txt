@@ -20,7 +20,7 @@ set_property (TARGET glslang::validator PROPERTY IMPORTED_LOCATION "${GLSLANG_VA
 ###########################################################################
 # stb
 
-if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/stb")
+if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/stb/.github")
   message(FATAL_ERROR "The stb submodule directory is missing! "
     "You probably did not clone the project with --recursive. It is possible to recover "
     "by running \"git submodule update --init --recursive\"")
@@ -31,7 +31,7 @@ set (STB_INCLUDEDIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/stb)
 ###########################################################################
 # tinyobjloader
 
-if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyobjloader")
+if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyobjloader/.github")
   message(FATAL_ERROR "The tinyobjloader submodule directory is missing! "
     "You probably did not clone the project with --recursive. It is possible to recover "
     "by running \"git submodule update --init --recursive\"")
