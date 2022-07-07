@@ -4,14 +4,17 @@ project (VulkanTutorial)
 
 ###########################################################################
 # glfw3
+
 find_package (glfw3 REQUIRED)
 
 ###########################################################################
 # glm
+
 find_package (glm REQUIRED)
 
 ###########################################################################
 # Vulkan
+
 find_package (Vulkan REQUIRED)
 add_executable (glslang::validator IMPORTED)
 find_program (GLSLANG_VALIDATOR "glslangValidator" HINTS $ENV{VULKAN_SDK}/bin REQUIRED)
