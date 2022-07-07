@@ -2,24 +2,43 @@ cmake_minimum_required (VERSION 3.8)
 
 project (VulkanTutorial)
 
+###########################################################################
+# glfw3
 find_package (glfw3 REQUIRED)
+
+###########################################################################
+# glm
 find_package (glm REQUIRED)
+
+###########################################################################
+# Vulkan
 find_package (Vulkan REQUIRED)
-find_package (tinyobjloader REQUIRED)
-
-find_package (PkgConfig)
-pkg_get_variable (STB_INCLUDEDIR stb includedir)
-if (NOT STB_INCLUDEDIR)
-  unset (STB_INCLUDEDIR)
-  find_path (STB_INCLUDEDIR stb_image.h PATH_SUFFIXES stb)
-endif ()
-if (NOT STB_INCLUDEDIR)
-  message (FATAL_ERROR "stb_image.h not found")
-endif ()
-
 add_executable (glslang::validator IMPORTED)
 find_program (GLSLANG_VALIDATOR "glslangValidator" HINTS $ENV{VULKAN_SDK}/bin REQUIRED)
 set_property (TARGET glslang::validator PROPERTY IMPORTED_LOCATION "${GLSLANG_VALIDATOR}")
+
+###########################################################################
+# stb
+
+if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/stb")
+  message(FATAL_ERROR "The stb submodule directory is missing! "
+    "You probably did not clone the project with --recursive. It is possible to recover "
+    "by running \"git submodule update --init --recursive\"")
+endif()
+
+set (STB_INCLUDEDIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/stb)
+
+###########################################################################
+# tinyobjloader
+
+if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyobjloader")
+  message(FATAL_ERROR "The tinyobjloader submodule directory is missing! "
+    "You probably did not clone the project with --recursive. It is possible to recover "
+    "by running \"git submodule update --init --recursive\"")
+endif()
+
+add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyobjloader)
+add_library (tinyobjloader::tinyobjloader ALIAS tinyobjloader)
 
 function (add_shaders_target TARGET)
   cmake_parse_arguments ("SHADER" "" "CHAPTER_NAME" "SOURCES" ${ARGN})
