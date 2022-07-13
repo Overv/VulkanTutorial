@@ -13,9 +13,9 @@ and blend constants. If you want to use dynamic state and keep these properties 
 then you'll have to fill in a `VkPipelineDynamicStateCreateInfo` structure like this:
 
 ```c++
-std::vector<VkDynamicState> dynamicStates = {
+std::vector<VkDynamicState> dynamicStates = 
     VK_DYNAMIC_STATE_VIEWPORT,
-    VK_DYNAMIC_STATE_SCISSROR
+    VK_DYNAMIC_STATE_SCISSOR
 };
 
 VkPipelineDynamicStateCreateInfo dynamicState{};
