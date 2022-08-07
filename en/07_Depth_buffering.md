@@ -573,8 +573,6 @@ void recreateSwapChain() {
 
     createSwapChain();
     createImageViews();
-    createRenderPass();
-    createGraphicsPipeline();
     createDepthResources();
     createFramebuffers();
 }
