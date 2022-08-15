@@ -355,7 +355,7 @@ sudo apt install libxxf86vm-dev libxi-dev
 ```
 or
 ```bash
-sudo dnf install libXi libXxf86vm
+sudo dnf install libXi-devel libXxf86vm-devel
 ```
 or
 ```bash
