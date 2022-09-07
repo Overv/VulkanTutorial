@@ -174,6 +174,8 @@ window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 You should now have a `initWindow` function that looks like this:
 
 ```c++
+GLFWwindow* window;
+
 void initWindow() {
     glfwInit();
 
