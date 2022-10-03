@@ -243,6 +243,7 @@ VkDeviceMemory indexBufferMemory;
 
 std::vector<VkBuffer> uniformBuffers;
 std::vector<VkDeviceMemory> uniformBuffersMemory;
+std::vector<void*> uniformBuffersMapped;
 ```
 
 Similarly, create a new function `createUniformBuffers` that is called after
@@ -267,13 +268,15 @@ void createUniformBuffers() {
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+
+        vkMapMemory(device, uniformBuffersMemory[i], 0, sizeof(ubo), 0, &uniformBuffersMapped[i]);
     }
 }
 ```
 
-We're going to write a separate function that updates the uniform buffer with a
-new transformation every frame, so there will be no `vkMapMemory` here. The
-uniform data will be used for all draw calls, so the buffer containing it should only be destroyed when we stop rendering.
+We map the buffer right after creation using `vkMapMemory` to get a pointer to which we can write the data later on. The buffer stays mapped to this pointer for the applications whole lifetime. This technique is called **"persistent mapping"** and works on all Vulkan implementations. Not having to map the buffer every time we need to update it increases performances, as mapping is not free.
+
+The uniform data will be used for all draw calls, so the buffer containing it should only be destroyed when we stop rendering.
 
 ```c++
 void cleanup() {
@@ -393,13 +396,10 @@ do this, then the image will be rendered upside down.
 
 All of the transformations are defined now, so we can copy the data in the
 uniform buffer object to the current uniform buffer. This happens in exactly the same
-way as we did for vertex buffers, except without a staging buffer:
+way as we did for vertex buffers, except without a staging buffer. As noted earlier, we only map the uniform buffer once, so we can directly write to it without having to map again:
 
 ```c++
-void* data;
-vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
-    memcpy(data, &ubo, sizeof(ubo));
-vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
+memcpy(uniformBuffersMapped[i], &ubo, sizeof(ubo));
 ```
 
 Using a UBO this way is not the most efficient way to pass frequently changing
