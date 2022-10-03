@@ -399,7 +399,7 @@ uniform buffer object to the current uniform buffer. This happens in exactly the
 way as we did for vertex buffers, except without a staging buffer. As noted earlier, we only map the uniform buffer once, so we can directly write to it without having to map again:
 
 ```c++
-memcpy(uniformBuffersMapped[i], &ubo, sizeof(ubo));
+memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 ```
 
 Using a UBO this way is not the most efficient way to pass frequently changing
