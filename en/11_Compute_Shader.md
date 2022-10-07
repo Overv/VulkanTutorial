@@ -113,8 +113,7 @@ imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), pixel);
 
 ## The compute shader stage
 
-In the graphics samples we have used different pipeline stages to load shaders and access descriptors. Compute shaders are accessed in a similar way by using the `VK_SHADER_STAGE_COMPUTE_BIT` pipeline. So loading a compute shader is just the same as loading a vertex shader, but with a different shader stage. We'll talk about this in 
-detail in the next paragraphs.
+In the graphics samples we have used different pipeline stages to load shaders and access descriptors. Compute shaders are accessed in a similar way by using the `VK_SHADER_STAGE_COMPUTE_BIT` pipeline. So loading a compute shader is just the same as loading a vertex shader, but with a different shader stage. We'll talk about this in detail in the next paragraphs. Compute also introduces a new binding point type for descriptors and pipelines named `VK_PIPELINE_BIND_POINT_COMPUTE` that we'll have to use later on.
 
 ## Loading compute shaders
 
@@ -191,9 +190,18 @@ descriptorWrites[1].pBufferInfo = &uniformBufferInfo;
 vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 ```
 
-## Compute work groups
+## Compute space
 
-Before we get into how a compute shader works and how we submit it to the GPU, we need to talk about two important compute concepts: **work groups** and **invocations**. These two define how compute workloads are distributed across the GPU's compute units. 
+@todo: add image
+@todo: global and local terms may be misleading and are contrary to the spec
+
+Before we get into how a compute shader works and how we submit compute workloads to the GPU, we need to talk about two important compute concepts: **work groups** and **invocations**. They define an abstract execution model for the compute shaders in three dimensions (x,y,z) and are often referred to as "compute space".
+
+**Work groups** define how the compute workloads are formed and processed by the the compute hardware of the GPU. You can think of them as work items the GPU has to work through. This is called the **global space**. 
+
+The (shader) **local space** on the other hand is defined by **invocations**. They define how often the compute shader is invoked within a single work group.
+
+We'll set the work groups dimensions at dispatch time in the command buffer and invocation dimensions in the compute shader.
 
 ## Compute shaders
 
@@ -235,11 +243,37 @@ The interesting part here, that needs some explanation is this declaration:
 ```glsl
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 ```
-This defines the size of local invocations of this compute shader in at max. three dimensions. We'll get into the details of what this is and how this actually works later on. For now the most interesting takeaway here is that we work on a linear array of particles which means 1 dimension. So we only need to specify a number for `local_size_x`. In this case we could even omit the declarations for `local_size_y` and `local_size_z`.
+This defines the number invocations of this compute shader in the current work group. As noted earlier this is the local part of the compute space. Hence the `local_` prefix. As we work on a linear 1D array of particles we only need to specify a number for x dimension in `local_size_x`.
 
-## Dispatching work
+Similar to other shader types, compute shaders have their own set of builtin input variables. Built-ins are always prefixed with `gl_`. One such built-in is `gl_GlobalInvocationID`, a variable that uniquely identifies the current compute shader invocation across the current dispatch. As such it's often used to index into e.g. buffers. In our sample we use this to index into our particle array.
 
-## Submitting work
+## Running compute commands 
+
+### Dispatch
+
+Now it's time to actually tell the GPU to do some compute. This is done by calling  `vkCmdDispatch` inside a command buffer. While not perfectly true, a dispatch is for compute what a draw call like ´vkCmdDraw` is for graphics. This dispatches a given number of compute work items in at max. three dimensions.
+
+```c++
+VkCommandBufferBeginInfo beginInfo{};
+beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+    throw std::runtime_error("failed to begin recording command buffer!");
+}
+
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
+vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 0, 1, &computeDescriptorSets[i], 0, 0);
+
+vkCmdDispatch(computeCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
+
+if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+    throw std::runtime_error("failed to record command buffer!");
+}
+```
+
+The `vkCmdDispatch` will dispatch `PARTICLE_COUNT / 256` local work groups in the x dimensions. As our particles array is linear, we leave the other two dimensions at one. This will result in a one-dimensional dispatch. But why do we divide the number of particles (in our array) by 256? That's because in the previous paragraph we defined that every compute shader in on such work group will do 256 invocations. So if we were to have 4096 particles, we would dispatch 16 work groups, with each work groups running 256 compute shader invocations. Getting the two number right usually takes some tinkering and profiling, depending on your workload and the hardware you're running on.
+
+## Submit
 
 ## Synchronization
 
@@ -248,5 +282,8 @@ Synchronization is an important part of Vulkan, even more so When doing compute 
 So we must make sure that those cases don't happen by synchronizing the graphics and the compute load. There are different ways of doing so, which also depends on how you submit your compute workload. But as this tutorial is aimed at beginners, we'll go for the easiest way of syncing both: putting graphics and compute into the same command buffer.
 
 ## Shared compute shader memory
+
+Spec:
+An invocation within a local workgroup can share data with other members of the local workgroup through shared variables and issue memory and control flow barriers to synchronize with other members of the local workgroup.
 
 ## @todo: compute queue family
