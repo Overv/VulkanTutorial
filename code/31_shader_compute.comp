@@ -3,6 +3,7 @@
 struct Particle {
 	vec2 position;
 	vec2 velocity;
+    vec4 color;
 };
 
 layout (binding = 0) uniform ParameterUBO {

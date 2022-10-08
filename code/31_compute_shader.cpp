@@ -82,6 +82,7 @@ struct UniformBufferObject {
 struct Particle {
     glm::vec2 position;
     glm::vec2 velocity;
+    glm::vec4 color;
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
@@ -92,13 +93,18 @@ struct Particle {
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 1> attributeDescriptions{};
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
         attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[0].offset = offsetof(Particle, position);
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Particle, color);
 
         return attributeDescriptions;
     }
@@ -647,7 +653,13 @@ private:
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 
         VkPipelineColorBlendStateCreateInfo colorBlending{};
         colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -777,11 +789,16 @@ private:
         std::default_random_engine rndEngine((unsigned)time(nullptr));
         std::uniform_real_distribution<float> rndDist(-1.0f, 1.0f);
 
-        // Initial particle positions
+        // Initial particle positions on a circle
         std::vector<Particle> particles(PARTICLE_COUNT);
         for (auto& particle : particles) {
-            particle.position = glm::vec2(rndDist(rndEngine), rndDist(rndEngine));
-            particle.velocity = glm::vec2(rndDist(rndEngine) * 0.001f, rndDist(rndEngine) * 0.001f);
+            float r = 0.2f * sqrt(rndDist(rndEngine));
+            float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
+            float x = r * cos(theta) * HEIGHT / WIDTH;
+            float y = r * sin(theta);
+            particle.position = glm::vec2(x, y);
+            particle.velocity = glm::normalize(glm::vec2(x,y)) * 0.0001f;
+            particle.color = glm::vec4(rndDist(rndEngine) + 1.0f, rndDist(rndEngine) + 1.0f, rndDist(rndEngine) + 1.0f, 1.0f);
         }
 
         VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
@@ -1176,9 +1193,9 @@ private:
         submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame], computeFinishedSemaphores[currentFrame]};
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.waitSemaphoreCount = 2;
+        VkSemaphore waitSemaphores[] = {/*imageAvailableSemaphores[currentFrame],*/ computeFinishedSemaphores[currentFrame]};
+        VkPipelineStageFlags waitStages[] = { /*VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,*/ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.waitSemaphoreCount = 1 /*2*/;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
 
