@@ -21,7 +21,16 @@ layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 void main() 
 {
     uint index = gl_GlobalInvocationID.x;  
-    vec2 vVel = particles[index].velocity.xy;
     vec2 vPos = particles[index].position.xy;
-    particles[index].position.xy += vVel * ubo.deltaTime;
+
+    particles[index].position += particles[index].velocity.xy * ubo.deltaTime;
+
+    // Flip movement at window border
+    if ((particles[index].position.x <= -1.0) || (particles[index].position.x >= 1.0)) {
+        particles[index].velocity.x = -particles[index].velocity.x;
+    }
+    if ((particles[index].position.y <= -1.0) || (particles[index].position.y >= 1.0)) {
+        particles[index].velocity.y = -particles[index].velocity.y;
+    }
+
 }
