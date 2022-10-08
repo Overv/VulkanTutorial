@@ -73,10 +73,7 @@ struct SwapChainSupportDetails {
 };
 
 struct UniformBufferObject {
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-    alignas(16) float deltaTime = 1.0f;
+    float deltaTime = 1.0f;
 };
 
 struct Particle {
@@ -151,9 +148,8 @@ private:
 
     VkCommandPool commandPool;
 
-    // @todo: per frame in flight
-    std::vector<VkBuffer> shaderStorageBuffers;
-    std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+    VkBuffer shaderStorageBuffer;
+    VkDeviceMemory shaderStorageBufferMemory;
 
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
@@ -170,6 +166,8 @@ private:
     std::vector<VkSemaphore> computeFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
+
+    float lastFrameTime = 0.0f;
 
     bool framebufferResized = false;
 
@@ -256,10 +254,8 @@ private:
         
         vkDestroyDescriptorSetLayout(device, computeDescriptorSetLayout, nullptr);
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            vkDestroyBuffer(device, shaderStorageBuffers[i], nullptr);
-            vkFreeMemory(device, shaderStorageBuffersMemory[i], nullptr);
-        }
+        vkDestroyBuffer(device, shaderStorageBuffer, nullptr);
+        vkFreeMemory(device, shaderStorageBufferMemory, nullptr);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -628,7 +624,7 @@ private:
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST; // @todo
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
 
         VkPipelineViewportStateCreateInfo viewportState{};
@@ -787,18 +783,18 @@ private:
 
         // Initialize particles
         std::default_random_engine rndEngine((unsigned)time(nullptr));
-        std::uniform_real_distribution<float> rndDist(-1.0f, 1.0f);
+        std::uniform_real_distribution<float> rndDist(0.0f, 1.0f);
 
         // Initial particle positions on a circle
         std::vector<Particle> particles(PARTICLE_COUNT);
         for (auto& particle : particles) {
-            float r = 0.2f * sqrt(rndDist(rndEngine));
+            float r = 0.25f * sqrt(rndDist(rndEngine));
             float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
             float x = r * cos(theta) * HEIGHT / WIDTH;
             float y = r * sin(theta);
             particle.position = glm::vec2(x, y);
             particle.velocity = glm::normalize(glm::vec2(x,y)) * 0.0001f;
-            particle.color = glm::vec4(rndDist(rndEngine) + 1.0f, rndDist(rndEngine) + 1.0f, rndDist(rndEngine) + 1.0f, 1.0f);
+            particle.color = glm::vec4(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine), 1.0f);
         }
 
         VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
@@ -812,13 +808,8 @@ private:
         memcpy(data, particles.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
 
-        shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-        shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
-            copyBuffer(stagingBuffer, shaderStorageBuffers[i], bufferSize);
-        }
+        createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffer, shaderStorageBufferMemory);
+        copyBuffer(stagingBuffer, shaderStorageBuffer, bufferSize);
 
         vkDestroyBuffer(device, stagingBuffer, nullptr);
         vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -907,7 +898,7 @@ private:
             uniformBufferInfo.range = sizeof(UniformBufferObject);
 
             VkDescriptorBufferInfo storageBufferInfo{};
-            storageBufferInfo.buffer = shaderStorageBuffers[i];
+            storageBufferInfo.buffer = shaderStorageBuffer;
             storageBufferInfo.offset = 0;
             storageBufferInfo.range = sizeof(Particle) * PARTICLE_COUNT;
 
@@ -1070,9 +1061,8 @@ private:
             scissor.extent = swapChainExtent;
             vkCmdSetScissor(commandBuffer, 0, 1, &scissor);            
 
-            VkBuffer vertexBuffers[] = {shaderStorageBuffers[currentFrame]};
             VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffer, offsets);
 
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
@@ -1129,16 +1119,9 @@ private:
     }
 
     void updateUniformBuffer(uint32_t currentImage) {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
         UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1;
+        ubo.deltaTime = lastFrameTime * 2.5f;
+        //ubo.deltaTime = (float)currentImage;
 
         void* data;
         vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
@@ -1147,6 +1130,8 @@ private:
     }
 
     void drawFrame() {
+        auto startTime = std::chrono::high_resolution_clock::now();
+        
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;
@@ -1166,14 +1151,13 @@ private:
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
-        // @todo
         vkResetCommandBuffer(computeCommandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        // compute
+        // Compute
 
         VkPipelineStageFlags computeWaitStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
@@ -1184,27 +1168,24 @@ private:
         submitInfo.pWaitDstStageMask = &computeWaitStage;
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
-        if (vkQueueSubmit(computeQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+        if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit compute command buffer!");
         };
 
-        // graphics
+        // Graphics
+
+        VkPipelineStageFlags graphicsWaitStage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
 
         submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = {/*imageAvailableSemaphores[currentFrame],*/ computeFinishedSemaphores[currentFrame]};
-        VkPipelineStageFlags waitStages[] = { /*VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,*/ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.waitSemaphoreCount = 1 /*2*/;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
-
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = &computeFinishedSemaphores[currentFrame];
+        submitInfo.pWaitDstStageMask = &graphicsWaitStage;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
-
-        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
+        submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
         if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
@@ -1214,7 +1195,7 @@ private:
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
         presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
+        presentInfo.pWaitSemaphores = &renderFinishedSemaphores[currentFrame];
 
         VkSwapchainKHR swapChains[] = {swapChain};
         presentInfo.swapchainCount = 1;
@@ -1232,6 +1213,10 @@ private:
         }
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+        auto endTime = std::chrono::high_resolution_clock::now();
+
+        lastFrameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
     }
 
     VkShaderModule createShaderModule(const std::vector<char>& code) {
