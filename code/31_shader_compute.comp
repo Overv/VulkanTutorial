@@ -1,0 +1,27 @@
+#version 450
+
+struct Particle {
+	vec2 position;
+	vec2 velocity;
+};
+
+layout (binding = 0) uniform ParameterUBO {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+    float deltaTime;
+} ubo;
+
+layout(std140, binding = 1) buffer ParticleSSBO {
+   Particle particles[ ];
+};
+
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+void main() 
+{
+    uint index = gl_GlobalInvocationID.x;  
+    vec2 vVel = particles[index].velocity.xy;
+    vec2 vPos = particles[index].position.xy;
+    particles[index].position.xy += vVel * ubo.deltaTime;
+}
