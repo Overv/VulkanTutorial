@@ -22,17 +22,21 @@ In this diagram we can see the traditional graphics part of the pipeline on the 
 
 ## An example
 
-An easy to understand example would be a particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing fpr collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
+An easy to understand example that we implement in this chapter is a GPU based particle particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing for collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
 
 A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
 
 With a GPU based particle system, this round-trip is no longer required. Vertices are only uploaded to the GPU once and all updates are done by the GPU using compute shaders inside GPU memory. This is faster than the CPU based method not only, but mostly due to the much higher bandwidth between the GPU and it's memory. And doing this on a GPU with a dedicated compute queue, you can update particles in parallel to the rendering part of the graphics pipeline.
 
+![](/images/compute_shader_particles.png)
+
+A screenshot from this chapter's code. The particles shown here are updated by a compute shader directly on the GPU, without any CPU interaction.
+
 ## Data manipulation
 
-An important concept introduced with compute shaders is the possibility to manipulate data passed to it. In this tutorial you already learned about different buffer types like vertex and index buffer for passing primitives and uniform buffers for passing data to a shader (which can also be used to pass data to compute shaders). And you also used images do to texture mapping. But all of these have only been for reading data by the CPU.
+In this tutorial we already learned about different buffer types like vertex and index buffer for passing primitives and uniform buffers for passing data to a shader. And we also used images do to texture mapping. But up until know we always wrote data using the CPU and only did reads on the GPU.
 
-But with compute shaders we also want to write data to buffers and images. And for that, Vulkan introduces two dedicated storage types.
+An important concept introduced with compute shaders is the possibility to arbitrarily read from **and write** to buffers. For this, Vulkan offers two dedicated storage types.
 
 ### Shader storage buffer objects (SSBO)
 
@@ -40,12 +44,12 @@ A shader storage buffer (SSBO) allows you to read from and write to a buffer. Us
 
 Going back to the GPU based particle system you might now wonder how to deal with vertices being updated (written) by the compute shader and read (drawn) by the vertex shader, as both usages would seemingly require different buffer types.
 
-But that's not the case. In Vulkan you can specify multiple usages for buffers and images. So for the particle vertex buffer to be used as a vertex buffer (in the graphics pass) and as a storage buffer (in the compute pass) you simply create the buffer with two usage flags:
+But that's not the case. In Vulkan you can specify multiple usages for buffers and images. So for the particle vertex buffer to be used as a vertex buffer (in the graphics pass) and as a storage buffer (in the compute pass) you simply create the buffer with those two usage flags:
 
 ```c++
 VkBufferCreateInfo bufferInfo{};
 ...
-bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 ...
 
 if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
@@ -53,12 +57,17 @@ if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
 }
 ```
 
+Note that we also added the `VK_BUFFER_USAGE_TRANSFER_DST_BIT` flag in here, as we want the shader storage buffer to stay in GPU memory only which requires us to transfer data from the host to this buffer.
+
+@todo: also show simplified code with createBuffer helper?
+
 The GLSL shader declaration for a SSBO looks like this:
 
 ```glsl
 struct Particle {
-	vec4 position;
-	vec4 velocity;
+	vec2 position;
+	vec2 velocity;
+    vec4 color;
 };
 
 layout(std140, binding = 0) buffer ParticleSSBO {
@@ -111,6 +120,41 @@ vec3 pixel = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.xy)).rgb;
 imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), pixel);
 ```
 
+## Compute queue families
+
+In the physical device and queue families chapter (@todo: link) we already learned about queue families and how to select a graphics queue family. Compute introduces the new queue family type bit `VK_QUEUE_COMPUTE_BIT`. So if we want to do compute, we need to get a queue for this queue family type.
+
+Note that Vulkan requires an implementation to have at least one queue family that supports both graphics and compute, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute. This will also save us some advanced synchronization. (@todo: check if correct)
+
+So for our compute sample we need to change the device creation code a bit:
+
+```c++
+uint32_t queueFamilyCount = 0;
+vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+int i = 0;
+for (const auto& queueFamily : queueFamilies) {
+    if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+        indices.graphicsAndComputeFamily = i;
+    }
+
+    i++;
+}
+```
+
+The changed queue family index selection code will now try to find a queue family that supports both graphics and compute. 
+
+We can then get a compute queue from this queue family in `createLogicalDevice`:
+
+```c++
+vkGetDeviceQueue(device, indices.graphicsAndComputeFamily.value(), 0, &computeQueue);
+```
+
+@todo: note on separate compute queue?
+
 ## The compute shader stage
 
 In the graphics samples we have used different pipeline stages to load shaders and access descriptors. Compute shaders are accessed in a similar way by using the `VK_SHADER_STAGE_COMPUTE_BIT` pipeline. So loading a compute shader is just the same as loading a vertex shader, but with a different shader stage. We'll talk about this in detail in the next paragraphs. Compute also introduces a new binding point type for descriptors and pipelines named `VK_PIPELINE_BIND_POINT_COMPUTE` that we'll have to use later on.
@@ -156,10 +200,10 @@ uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPU
 As compute is not a part of the graphics pipeline, we can't use `vkCreateGraphicsPipelines` to attach the compute shader to it. Instead we need to create a dedicated compute pipeline `vkCreateComputePipelines` for running our compute commands. Since a compute pipeline does not touch any of the rasterization state, it has a lot less state than a graphics pipeline:
 
 ```c++
-VkGraphicsPipelineCreateInfo pipelineInfo{};
+VkComputePipelineCreateInfo pipelineInfo{};
 pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 pipelineInfo.layout = computePipelineLayout;
-pipelineInfo.stage = computeShaderStage;
+pipelineInfo.stage = computeShaderStageInfo;
 
 if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &computePipeline) != VK_SUCCESS) {
     throw std::runtime_error("failed to create compute pipeline!");
@@ -215,6 +259,7 @@ A very basic compute shader for updating a linear array of particles may look li
 struct Particle {
 	vec2 position;
 	vec2 velocity;
+    vec4 color;
 };
 
 layout(std140, binding = 0) buffer ParticleSSBO {
@@ -230,9 +275,7 @@ layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 void main() 
 {
     uint index = gl_GlobalInvocationID.x;  
-    vec2 vVel = particles[index].velocity.xy;
-    vec2 vPos = particles[index].position.xy;
-    particles[index].position.xy += vVel * ubo.deltaTime;
+    particles[index].position.xy += particles[index].velocity.xy * ubo.deltaTime;
 }
 ```
 
@@ -251,7 +294,7 @@ Similar to other shader types, compute shaders have their own set of builtin inp
 
 ### Dispatch
 
-Now it's time to actually tell the GPU to do some compute. This is done by calling  `vkCmdDispatch` inside a command buffer. While not perfectly true, a dispatch is for compute what a draw call like ´vkCmdDraw` is for graphics. This dispatches a given number of compute work items in at max. three dimensions.
+Now it's time to actually tell the GPU to do some compute. This is done by calling `vkCmdDispatch` inside a command buffer. While not perfectly true, a dispatch is for compute what a draw call like `vkCmdDraw` is for graphics. This dispatches a given number of compute work items in at max. three dimensions.
 
 ```c++
 VkCommandBufferBeginInfo beginInfo{};
@@ -261,29 +304,155 @@ if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
     throw std::runtime_error("failed to begin recording command buffer!");
 }
 
+...
+
 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 0, 1, &computeDescriptorSets[i], 0, 0);
 
 vkCmdDispatch(computeCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
+
+...
 
 if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to record command buffer!");
 }
 ```
 
-The `vkCmdDispatch` will dispatch `PARTICLE_COUNT / 256` local work groups in the x dimensions. As our particles array is linear, we leave the other two dimensions at one. This will result in a one-dimensional dispatch. But why do we divide the number of particles (in our array) by 256? That's because in the previous paragraph we defined that every compute shader in on such work group will do 256 invocations. So if we were to have 4096 particles, we would dispatch 16 work groups, with each work groups running 256 compute shader invocations. Getting the two number right usually takes some tinkering and profiling, depending on your workload and the hardware you're running on.
+The `vkCmdDispatch` will dispatch `PARTICLE_COUNT / 256` local work groups in the x dimension. As our particles array is linear, we leave the other two dimensions at one, resulting in a one-dimensional dispatch. But why do we divide the number of particles (in our array) by 256? That's because in the previous paragraph we defined that every compute shader in a work group will do 256 invocations. So if we were to have 4096 particles, we would dispatch 16 work groups, with each work group running 256 compute shader invocations. Getting the two number right usually takes some tinkering and profiling, depending on your workload and the hardware you're running on.
 
-## Submit
+And just as was the case for the compute pipeline, a compute command buffer contains a lot less state then a graphics command buffer. There's no need to start a render pass or set a viewport.
 
-## Synchronization
+### Submitting work
 
-Synchronization is an important part of Vulkan, even more so When doing compute in conjunction with graphics. For our sample, a GPU based particle system, not doing proper synchronization may result in the vertex starting to read (and draw) particles while the compute shader hasn't finished updating them, or the compute shader could start updating particles that are still in use by the vertex part of the pipeline.
+As our sample does both compute and graphics operations, we'll be doing two submits to both the graphics and compute queue per frame (see the `drawFrame` function):
 
-So we must make sure that those cases don't happen by synchronizing the graphics and the compute load. There are different ways of doing so, which also depends on how you submit your compute workload. But as this tutorial is aimed at beginners, we'll go for the easiest way of syncing both: putting graphics and compute into the same command buffer.
+```c++
+...
+if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS) {
+    throw std::runtime_error("failed to submit compute command buffer!");
+};
+...
+if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+    throw std::runtime_error("failed to submit draw command buffer!");
+}
+```
 
-## Shared compute shader memory
+The first submit to the compute queue updates the particle positions using the compute shader, and the second submit will then use that updated data to draw the particle system.
 
-Spec:
-An invocation within a local workgroup can share data with other members of the local workgroup through shared variables and issue memory and control flow barriers to synchronize with other members of the local workgroup.
+### Synchronizing graphics and compute
 
-## @todo: compute queue family
+Synchronization is an important part of Vulkan, even more so When doing compute in conjunction with graphics. Not doing proper synchronization may result in the vertex starting to read (and draw) particles while the compute shader hasn't finished writing them (read-after-write hazard), or the compute shader could start updating particles that are still in use by the vertex part of the pipeline (write-after-read hazard).
+
+So we must make sure that those cases don't happen by synchronizing the graphics and the compute load. There are different ways of doing so, which also depends on how you submit your compute workload but in our case with two separate submits we'll be using semaphores (@todo: link to chapter) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
+
+This is necessary as even though the two `vkQueueSubmit` are ordered one-after-another, there is no guarantee that they execute on the GPU in this order. Adding in wait and signal semaphores ensures this execution order.
+
+So we first add a new set of semaphores for the compute work:
+
+```c++
+std::vector<VkSemaphore> computeFinishedSemaphores;
+...
+computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+
+for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    if (...
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS
+        ...) {
+        throw std::runtime_error("failed to create synchronization objects for a frame!");
+    }
+}
+```
+And then use that to synchronize the compute buffer submission with the graphics submission:
+
+```c++
+vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+...
+
+// Compute submission
+submitInfo.waitSemaphoreCount = 0;
+submitInfo.pWaitSemaphores = nullptr;
+submitInfo.commandBufferCount = 1;
+submitInfo.pCommandBuffers = &computeCommandBuffers[currentFrame];
+submitInfo.signalSemaphoreCount = 1;
+submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+
+if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS) {
+    throw std::runtime_error("failed to submit compute command buffer!");
+};
+
+// Graphics submission
+VkSemaphore waitSemaphores[] = { computeFinishedSemaphores[currentFrame], imageAvailableSemaphores[currentFrame] };
+VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+submitInfo = {};
+submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+submitInfo.waitSemaphoreCount = 2;
+submitInfo.pWaitSemaphores = waitSemaphores;
+submitInfo.pWaitDstStageMask = waitStages;
+submitInfo.commandBufferCount = 1;
+submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
+submitInfo.signalSemaphoreCount = 1;
+submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
+
+if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+    throw std::runtime_error("failed to submit draw command buffer!");
+}
+```
+
+If we remember the sample in the (// @todo: link to 02_rendering_and_presentation#semaphores) chapter, this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the graphics command buffer to finish execution before the compute submission with the `vkWaitForFences` command.
+
+The graphics submission on the other hand needs to wait for the compute work to finish so it doesn't start fetching vertices while the compute buffer is still updating them. So we wait on the `computeFinishedSemaphores` for the current frame and have the graphics submission wait on the `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` stage, where vertex buffer is consumed.
+
+But it also needs to wait for presentation so the fragment shader won't output to the color attachments until the image has been presented. So we wait also wait on the `imageAvailableSemaphores` on the current frame at the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` stage.
+
+## Drawing the particle system
+
+Earlier on we learned that buffers in Vulkan can have multiple use-cases and so we created the shader storage buffer that contains our particles with both the shader storage buffer bit and the vertex buffer bit. This means that we can use the shader storage buffer for drawing just as we used "pure" vertex buffers in the previous chapters.
+
+We first setup the vertex input state to match our particle structure:
+
+```c++
+struct Particle {
+    ...
+
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Particle, position);
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Particle, color);
+
+        return attributeDescriptions;
+    }
+};
+```
+
+Note that we don't add `velocity` to the vertex input attributes, as this is only used by the compute shader.
+
+And then bind and draw it like we would with any vertex buffer:
+
+```c++
+vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffer, offsets);
+
+vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+```
+
+## Conclusion
+
+@todo: descriptor pool
+
+Once you have learned how to use compute shaders you may take a look at some advanced topics like:
+
+- Shared memory
+- Asynchronous compute
+
+[C++ code](/code/31_compute_shader.cpp) /
+[Vertex shader](/code/31_shader_compute.vert) /
+[Fragment shader](/code/31_shader_compute.frag) /
+[Compute shader](/code/31_shader_compute.comp)
