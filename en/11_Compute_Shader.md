@@ -14,7 +14,7 @@ Aside from these, GPUs are heavily parallelized with some of them having tens of
 
 ## The Vulkan pipeline
 
-For the understanding of this chapter, it's important to know that compute is separated from the graphics part of the pipeline. This is visible in this block diagram of the Vulkan pipeline from the official specification:
+It's important to know that compute is completely separated from the graphics part of the pipeline. This is visible in the following block diagram of the Vulkan pipeline from the official specification:
 
 ![](/images/vulkan_pipeline_block_diagram.png)
 
@@ -26,11 +26,13 @@ An easy to understand example that we implement in this chapter is a GPU based p
 
 A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
 
-With a GPU based particle system, this round-trip is no longer required. Vertices are only uploaded to the GPU once and all updates are done by the GPU using compute shaders inside GPU memory. This is faster than the CPU based method not only, but mostly due to the much higher bandwidth between the GPU and it's memory. And doing this on a GPU with a dedicated compute queue, you can update particles in parallel to the rendering part of the graphics pipeline.
+With a GPU based particle system, this round-trip is no longer required. Vertices are only uploaded to the GPU once and all updates are done in the GPU's memory by using compute shaders. One of the main reasons why this is faster is the much higher bandwidth between the GPU and it's local memory. In a CPU based scenario, you'd be limited by main memory and PCI-express bandwidth, which is often just a fraction of the GPU's memory bandwidth.
+
+And doing this on a GPU with a dedicated compute queue, you can update particles in parallel to the rendering part of the graphics pipeline. This is called "async compute", and is an advanced topic not covered in this tutorial.
+
+A screenshot from this chapter's code. The particles shown here are updated by a compute shader directly on the GPU, without any CPU interaction:
 
 ![](/images/compute_shader_particles.png)
-
-A screenshot from this chapter's code. The particles shown here are updated by a compute shader directly on the GPU, without any CPU interaction.
 
 ## Data manipulation
 
@@ -122,7 +124,7 @@ imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), pixel);
 
 ## Compute queue families
 
-In the physical device and queue families chapter (@todo: link) we already learned about queue families and how to select a graphics queue family. Compute introduces the new queue family type bit `VK_QUEUE_COMPUTE_BIT`. So if we want to do compute, we need to get a queue for this queue family type.
+In the [physical device and queue families chapter](03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.md#page_Queue-families) we already learned about queue families and how to select a graphics queue family. Compute introduces the new queue family type bit `VK_QUEUE_COMPUTE_BIT`. So if we want to do compute, we need to get a queue for this queue family type.
 
 Note that Vulkan requires an implementation to have at least one queue family that supports both graphics and compute, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute. This will also save us some advanced synchronization. (@todo: check if correct)
 
@@ -236,16 +238,17 @@ vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), d
 
 ## Compute space
 
-@todo: add image
-@todo: global and local terms may be misleading and are contrary to the spec
+Before we get into how a compute shader works and how we submit compute workloads to the GPU, we need to talk about two important compute concepts: **work groups** and **invocations**. They define an abstract execution model for how compute workloads are processed by the compute hardware of the GPU in three dimensions (x,y and z).
 
-Before we get into how a compute shader works and how we submit compute workloads to the GPU, we need to talk about two important compute concepts: **work groups** and **invocations**. They define an abstract execution model for the compute shaders in three dimensions (x,y,z) and are often referred to as "compute space".
+**Work groups** define how the compute workloads are formed and processed by the the compute hardware of the GPU. You can think of them as work items the GPU has to work through. Work group dimensions are set by the application at command buffer time using a dispatch command.
 
-**Work groups** define how the compute workloads are formed and processed by the the compute hardware of the GPU. You can think of them as work items the GPU has to work through. This is called the **global space**. 
+And each work group then is a collection of **invocations** that execute the same compute shader. Invocations can potentially run in parallel and their dimensions are set in the compute shader. Invocations within a single workgroup have access to shared memory.
 
-The (shader) **local space** on the other hand is defined by **invocations**. They define how often the compute shader is invoked within a single work group.
+This image shows the relation between these two in three dimensions:
 
-We'll set the work groups dimensions at dispatch time in the command buffer and invocation dimensions in the compute shader.
+![](/images/compute_space.svg)
+
+The number of dimensions for work groups and invocations depends on how input data is structured. If you e.g. work on a one-dimensional array, like we do in this chapter, you only have to specify the x dimension for both.
 
 ## Compute shaders
 
@@ -343,7 +346,7 @@ The first submit to the compute queue updates the particle positions using the c
 
 Synchronization is an important part of Vulkan, even more so When doing compute in conjunction with graphics. Not doing proper synchronization may result in the vertex starting to read (and draw) particles while the compute shader hasn't finished writing them (read-after-write hazard), or the compute shader could start updating particles that are still in use by the vertex part of the pipeline (write-after-read hazard).
 
-So we must make sure that those cases don't happen by synchronizing the graphics and the compute load. There are different ways of doing so, which also depends on how you submit your compute workload but in our case with two separate submits we'll be using semaphores (@todo: link to chapter) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
+So we must make sure that those cases don't happen by synchronizing the graphics and the compute load. There are different ways of doing so, which also depends on how you submit your compute workload but in our case with two separate submits we'll be using [semaphores](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
 
 This is necessary as even though the two `vkQueueSubmit` are ordered one-after-another, there is no guarantee that they execute on the GPU in this order. Adding in wait and signal semaphores ensures this execution order.
 
@@ -446,6 +449,7 @@ vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 ## Conclusion
 
 @todo: descriptor pool
+@todo: talk about limits
 
 Once you have learned how to use compute shaders you may take a look at some advanced topics like:
 
