@@ -250,6 +250,8 @@ This image shows the relation between these two in three dimensions:
 
 The number of dimensions for work groups and invocations depends on how input data is structured. If you e.g. work on a one-dimensional array, like we do in this chapter, you only have to specify the x dimension for both.
 
+As an example: If we dispatch a work group count of [64, 1, 1] with a compute shader local size of [32, 32, ,1], our compute shader will be invoked 64 x 32 x 32 = 65,536 times.
+
 ## Compute shaders
 
 Now that we learned about all the parts required to setup a compute shader pipeline, it's time to take a look at compute shaders. All of the things we learned about using GLSL shaders e.g. for vertex and fragment shaders also applies to compute shaders. The syntax is the same, and many concepts like passing data between the application and the shader is the same. But there are some important differences.
@@ -402,7 +404,7 @@ if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) !
 }
 ```
 
-If we remember the sample in the (// @todo: link to 02_rendering_and_presentation#semaphores) chapter, this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the graphics command buffer to finish execution before the compute submission with the `vkWaitForFences` command.
+If we remember the sample in the [semaphores chapter](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores), this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the graphics command buffer to finish execution before the compute submission with the `vkWaitForFences` command.
 
 The graphics submission on the other hand needs to wait for the compute work to finish so it doesn't start fetching vertices while the compute buffer is still updating them. So we wait on the `computeFinishedSemaphores` for the current frame and have the graphics submission wait on the `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` stage, where vertex buffer is consumed.
 
@@ -450,11 +452,14 @@ vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 
 @todo: descriptor pool
 @todo: talk about limits
+@todo: add author to bonus chapter?
 
 Once you have learned how to use compute shaders you may take a look at some advanced topics like:
 
 - Shared memory
 - Asynchronous compute
+- Atomic operations
+- Subgroups
 
 [C++ code](/code/31_compute_shader.cpp) /
 [Vertex shader](/code/31_shader_compute.vert) /
