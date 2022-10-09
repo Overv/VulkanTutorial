@@ -1157,31 +1157,26 @@ private:
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        // Compute
-
-        VkPipelineStageFlags computeWaitStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
+        // Compute submission
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &computeCommandBuffers[currentFrame];
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &imageAvailableSemaphores[currentFrame];
-        submitInfo.pWaitDstStageMask = &computeWaitStage;
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+
         if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit compute command buffer!");
         };
 
-        // Graphics
+        // Graphics submission
 
-        VkPipelineStageFlags graphicsWaitStage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-
+        VkSemaphore waitSemaphores[] = { computeFinishedSemaphores[currentFrame], imageAvailableSemaphores[currentFrame] };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &computeFinishedSemaphores[currentFrame];
-        submitInfo.pWaitDstStageMask = &graphicsWaitStage;
+        submitInfo.waitSemaphoreCount = 2;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
         submitInfo.signalSemaphoreCount = 1;
