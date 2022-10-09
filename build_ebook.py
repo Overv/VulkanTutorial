@@ -94,7 +94,7 @@ def create_ebook(path):
         ['pandoc', 'ebook.md', '--toc', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.epub', '--epub-cover-image=ebook/cover.png', '-V CJKmainfont=Microsoft YaHei'])
 
     # Clean up
-    #os.remove('ebook.md')
+    os.remove('ebook.md')
 
 
 # Convert all SVG images to PNG for pandoc
@@ -111,8 +111,8 @@ for fn in os.listdir('images'):
         generatedPngs.append('images/' + parts[0] + '.png')
 
 create_ebook('ch')
-#create_ebook('en')
-#create_ebook('fr')
+create_ebook('en')
+create_ebook('fr')
 
 for fn in generatedPngs:
     os.remove(fn)
