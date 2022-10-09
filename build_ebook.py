@@ -82,8 +82,11 @@ def create_ebook(path):
 
     print(' '.join(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
                              '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', '\"ebook/Vulkan Tutorial ' + name_path + '.pdf\"', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"']))
-    subprocess.run(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
-                             '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.pdf', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"'])
+    #subprocess.run(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
+    #                         '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.pdf', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"'])
+    os.system(' '.join(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
+                             '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', '\"ebook/Vulkan Tutorial ' + name_path + '.pdf\"', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"']))                             
+
 
     print('building epub...')
     print(' '.join(['pandoc', 'ebook.md', '--toc', '-o', '\"ebook/Vulkan Tutorial ' + name_path + '.epub\"', '--epub-cover-image=ebook/cover.png', '-V CJKmainfont="Microsoft YaHei"']))
