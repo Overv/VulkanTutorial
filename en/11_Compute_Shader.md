@@ -4,7 +4,7 @@ In this bonus chapter we'll take a look at compute shaders. Up until now all pre
 
 This opens up the world of general purpose computing on graphics processor units (GPGPU), no matter where your application is running. GPGPU means that you can do general computations on your GPU, something that has traditionally been a domain of CPUs. But with GPUs having become more and more powerful and more flexible, many workloads that would require the general purpose capabilities of a CPU can now be done on the GPU in realtime.
 
-A few examples of where the compute capabilities of a GPU can be used are image manipulation and physics, e.g. for a particle system. And it's even possible to use only compute for doing computational only work that does not require any graphics output, e.g. number crunching or AI related things. This is called "headless compute".
+A few examples of where the compute capabilities of a GPU can be used are image manipulation, post processing, lighting calculations, physics (e.g. for a particle system) and much more. And it's even possible to use only compute for doing computational only work that does not require any graphics output, e.g. number crunching or AI related things. This is called "headless compute".
 
 ## Advantages
 
@@ -19,6 +19,8 @@ It's important to know that compute is completely separated from the graphics pa
 ![](/images/vulkan_pipeline_block_diagram.png)
 
 In this diagram we can see the traditional graphics part of the pipeline on the left, and several stages on the right that are not part of this graphics pipeline, including the compute shader (stage). With the compute shader stage being detached from the graphics pipeline we'll be able to use it anywhere where we see fit. This is very different from e.g. the fragment shader which is always applied to the transformed output of the vertex shader.
+
+The center of the diagram also shows that e.g. descriptor sets are also used by compute. So everything we learned about descriptors layouts, descriptor sets and descriptors also applies here.
 
 ## An example
 
@@ -54,16 +56,19 @@ VkBufferCreateInfo bufferInfo{};
 bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 ...
 
-if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
+if (vkCreateBuffer(device, &bufferInfo, nullptr, &shaderStorageBuffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to create vertex buffer!");
 }
 ```
+The two flags `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT` and `VK_BUFFER_USAGE_STORAGE_BUFFER_BIT` set with `bufferInfo.usage` tell the implementation that we want to use this buffer for two different scenarios: as a vertex buffer in the vertex shader and as a store buffer. Note that we also added the `VK_BUFFER_USAGE_TRANSFER_DST_BIT` flag in here so we can transfer data from the host to the GPU. This is crucial as we want the shader storage buffer to stay in GPU memory only (`VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT`) we need to to transfer data from the host to this buffer.
 
-Note that we also added the `VK_BUFFER_USAGE_TRANSFER_DST_BIT` flag in here, as we want the shader storage buffer to stay in GPU memory only which requires us to transfer data from the host to this buffer.
+Here is the same code using using the `createBuffer` helper function:
 
-@todo: also show simplified code with createBuffer helper?
+```c++
+createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffer, shaderStorageBufferMemory);
+```
 
-The GLSL shader declaration for a SSBO looks like this:
+The GLSL shader declaration for accessing such a buffer looks like this:
 
 ```glsl
 struct Particle {
@@ -78,8 +83,6 @@ layout(std140, binding = 0) buffer ParticleSSBO {
 ```
 
 In this example we have a typed SSBO with each particle having a position and velocity value (see the `Particle` struct). The SSBO then contains an unbound number of particles as marked by the `[]`. Not having to specify the number of elements in an SSBO is one of the advantages over e.g. uniform buffers.
-
-The two flags `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT` and `VK_BUFFER_USAGE_STORAGE_BUFFER_BIT` set with `bufferInfo.usage` tell the implementation that we want to use this buffer for two different scenarios: as a vertex buffer in the vertex shader and as a store buffer.
 
 Writing to such a storage buffer object in the compute shader is straight-forward and similar to how you'd write to the buffer on the C++ side:
 
@@ -195,6 +198,16 @@ Note that you can combine shader stages here, so if you want the descriptor to b
 uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 ```
 
+Remember that we'll also have to request the new descriptor type from our pool:
+
+```c++
+std::array<VkDescriptorPoolSize, 2> poolSizes{};
+...
+
+poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+poolSizes[1].descriptorCount = 1;
+```
+
 ## Compute pipelines
 
 As compute is not a part of the graphics pipeline, we can't use `vkCreateGraphicsPipelines` to attach the compute shader to it. Instead we need to create a dedicated compute pipeline `vkCreateComputePipelines` for running our compute commands. Since a compute pipeline does not touch any of the rasterization state, it has a lot less state than a graphics pipeline:
@@ -249,6 +262,8 @@ This image shows the relation between these two in three dimensions:
 The number of dimensions for work groups and invocations depends on how input data is structured. If you e.g. work on a one-dimensional array, like we do in this chapter, you only have to specify the x dimension for both.
 
 As an example: If we dispatch a work group count of [64, 1, 1] with a compute shader local size of [32, 32, ,1], our compute shader will be invoked 64 x 32 x 32 = 65,536 times.
+
+@todo: talk about limits
 
 ## Compute shaders
 
@@ -448,11 +463,9 @@ vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 
 ## Conclusion
 
-@todo: descriptor pool
-@todo: talk about limits
 @todo: add author to bonus chapter?
 
-Once you have learned how to use compute shaders you may take a look at some advanced topics like:
+Once you have learned how to use compute shaders you may take a look at some advanced compute topics like:
 
 - Shared memory
 - Asynchronous compute
