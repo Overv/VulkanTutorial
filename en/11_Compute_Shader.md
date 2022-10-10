@@ -124,9 +124,9 @@ imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), pixel);
 
 ## Compute queue families
 
-In the [physical device and queue families chapter](03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.md#page_Queue-families) we already learned about queue families and how to select a graphics queue family. Compute introduces the new queue family type bit `VK_QUEUE_COMPUTE_BIT`. So if we want to do compute, we need to get a queue for this queue family type.
+In the [physical device and queue families chapter](03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.md#page_Queue-families) we already learned about queue families and how to select a graphics queue family. Compute introduces the new queue family type bit `VK_QUEUE_COMPUTE_BIT`. So if we want to do compute, we need to get a queue from a queue family type that supports compute.
 
-Note that Vulkan requires an implementation to have at least one queue family that supports both graphics and compute, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute. This will also save us some advanced synchronization. (@todo: check if correct)
+Note that Vulkan requires an implementation that supports graphics operations to have at least one queue family that supports both graphics and compute, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute. This will also save us some advanced synchronization.
 
 So for our compute sample we need to change the device creation code a bit:
 
@@ -154,8 +154,6 @@ We can then get a compute queue from this queue family in `createLogicalDevice`:
 ```c++
 vkGetDeviceQueue(device, indices.graphicsAndComputeFamily.value(), 0, &computeQueue);
 ```
-
-@todo: note on separate compute queue?
 
 ## The compute shader stage
 
