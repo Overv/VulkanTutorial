@@ -10,8 +10,12 @@ layout (binding = 0) uniform ParameterUBO {
     float deltaTime;
 } ubo;
 
-layout(std140, binding = 1) buffer ParticleSSBO {
-   Particle particles[ ];
+layout(std140, binding = 1) readonly buffer ParticleSSBOIn {
+   Particle particlesIn[ ];
+};
+
+layout(std140, binding = 2) buffer ParticleSSBOOut {
+   Particle particlesOut[ ];
 };
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
@@ -19,16 +23,18 @@ layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 void main() 
 {
     uint index = gl_GlobalInvocationID.x;  
-    vec2 vPos = particles[index].position.xy;
 
-    particles[index].position += particles[index].velocity.xy * ubo.deltaTime;
+    Particle particleIn = particlesIn[index];
+
+    particlesOut[index].position = particleIn.position + particleIn.velocity.xy * ubo.deltaTime;
+    particlesOut[index].velocity = particleIn.velocity;
 
     // Flip movement at window border
-    if ((particles[index].position.x <= -1.0) || (particles[index].position.x >= 1.0)) {
-        particles[index].velocity.x = -particles[index].velocity.x;
+    if ((particlesOut[index].position.x <= -1.0) || (particlesOut[index].position.x >= 1.0)) {
+        particlesOut[index].velocity.x = -particlesOut[index].velocity.x;
     }
-    if ((particles[index].position.y <= -1.0) || (particles[index].position.y >= 1.0)) {
-        particles[index].velocity.y = -particles[index].velocity.y;
+    if ((particlesOut[index].position.y <= -1.0) || (particlesOut[index].position.y >= 1.0)) {
+        particlesOut[index].velocity.y = -particlesOut[index].velocity.y;
     }
 
 }

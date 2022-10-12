@@ -26,7 +26,7 @@ The center of the diagram also shows that e.g. descriptor sets are also used by 
 
 An easy to understand example that we implement in this chapter is a GPU based particle particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing for collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
 
-A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
+A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop s ystems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
 
 With a GPU based particle system, this round-trip is no longer required. Vertices are only uploaded to the GPU once and all updates are done in the GPU's memory by using compute shaders. One of the main reasons why this is faster is the much higher bandwidth between the GPU and it's local memory. In a CPU based scenario, you'd be limited by main memory and PCI-express bandwidth, which is often just a fraction of the GPU's memory bandwidth.
 
@@ -56,7 +56,7 @@ VkBufferCreateInfo bufferInfo{};
 bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 ...
 
-if (vkCreateBuffer(device, &bufferInfo, nullptr, &shaderStorageBuffer) != VK_SUCCESS) {
+if (vkCreateBuffer(device, &bufferInfo, nullptr, &shaderStorageBuffers[i]) != VK_SUCCESS) {
     throw std::runtime_error("failed to create vertex buffer!");
 }
 ```
@@ -65,20 +65,45 @@ The two flags `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT` and `VK_BUFFER_USAGE_STORAGE_B
 Here is the same code using using the `createBuffer` helper function:
 
 ```c++
-createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffer, shaderStorageBufferMemory);
+createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+```
+
+In the [frames in flight](03_Drawing_a_triangle/03_Drawing/03_Frames_in_flight.md) chapter we talked about duplicating resources per frame in flight, so we can keep the CPU and the GPU busy. So we'll also create one shader storage buffer per frame and upload the initial particle data to those buffers:
+
+```c++
+std::vector<VkBuffer> shaderStorageBuffers;
+std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+
+...
+
+void createShaderStorageBuffers() {
+    ...
+
+    shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+        copyBuffer(stagingBuffer, shaderStorageBuffers[i], bufferSize);
+    }
+}
 ```
 
 The GLSL shader declaration for accessing such a buffer looks like this:
 
 ```glsl
 struct Particle {
-	vec2 position;
-	vec2 velocity;
-    vec4 color;
+  vec2 position;
+  vec2 velocity;
+  vec4 color;
 };
 
-layout(std140, binding = 0) buffer ParticleSSBO {
-   Particle particles[ ];
+layout(std140, binding = 1) readonly buffer ParticleSSBOIn {
+   Particle particlesIn[ ];
+};
+
+layout(std140, binding = 2) buffer ParticleSSBOOut {
+   Particle particlesOut[ ];
 };
 ```
 
@@ -87,7 +112,7 @@ In this example we have a typed SSBO with each particle having a position and ve
 Writing to such a storage buffer object in the compute shader is straight-forward and similar to how you'd write to the buffer on the C++ side:
 
 ```glsl
-particles[index].position += deltaTime * particles[index].velocity;
+particlesOut[index].position = particlesIn[index].position + particlesIn[index].velocity.xy * ubo.deltaTime;
 ```
 
 ### Storage images
@@ -181,32 +206,111 @@ computeShaderStageInfo.pName = "main";
 
 ## Descriptors
 
-Descriptors that we want to access in a compute shader also need to have this stage flag set:
+Setting up descriptors for compute is almost identical to graphics. The only difference is that descriptors need to have the `VK_SHADER_STAGE_COMPUTE_BIT` set to make them accessible by the compute stage:
 
 ```c++
-VkDescriptorSetLayoutBinding uboLayoutBinding{};
-uboLayoutBinding.binding = 0;
-uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-uboLayoutBinding.descriptorCount = 1;
-uboLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
+layoutBindings[0].binding = 0;
+layoutBindings[0].descriptorCount = 1;
+layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+layoutBindings[0].pImmutableSamplers = nullptr;
+layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 ...
 ```
 
 Note that you can combine shader stages here, so if you want the descriptor to be accessible from the vertex and compute stage, e.g. for a uniform buffer with parameters shared across them, you simply set the bits for both stages:
 
 ```c++
-uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 ```
 
-Remember that we'll also have to request the new descriptor type from our pool:
+Here is the descriptor setup for our sample. The layout looks like this:
+
+```c++
+std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
+layoutBindings[0].binding = 0;
+layoutBindings[0].descriptorCount = 1;
+layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+layoutBindings[0].pImmutableSamplers = nullptr;
+layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+layoutBindings[1].binding = 1;
+layoutBindings[1].descriptorCount = 1;
+layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+layoutBindings[1].pImmutableSamplers = nullptr;
+layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+layoutBindings[2].binding = 2;
+layoutBindings[2].descriptorCount = 1;
+layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+layoutBindings[2].pImmutableSamplers = nullptr;
+layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+VkDescriptorSetLayoutCreateInfo layoutInfo{};
+layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+layoutInfo.bindingCount = 3;
+layoutInfo.pBindings = layoutBindings.data();
+
+if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &computeDescriptorSetLayout) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create compute descriptor set layout!");
+}
+```
+
+Looking at this setup you might wonder why we have two layout bindings for shader storage buffer objects, even though we'll only render a single particle system. This is because the particle positions are updated based on the last frame's time, so the compute shader needs to have access to the last and current frame's SSBO. This is done by passing both to the compute shader in our descriptor setup:
+
+```c++
+for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    VkDescriptorBufferInfo uniformBufferInfo{};
+    uniformBufferInfo.buffer = uniformBuffers[i];
+    uniformBufferInfo.offset = 0;
+    uniformBufferInfo.range = sizeof(UniformBufferObject);
+
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+    ...
+
+    VkDescriptorBufferInfo storageBufferInfoLastFrame{};
+    storageBufferInfoLastFrame.buffer = shaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT];
+    storageBufferInfoLastFrame.offset = 0;
+    storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
+
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = computeDescriptorSets[i];
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].dstArrayElement = 0;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pBufferInfo = &storageBufferInfoLastFrame;
+
+    VkDescriptorBufferInfo storageBufferInfoCurrentFrame{};
+    storageBufferInfoCurrentFrame.buffer = shaderStorageBuffers[i];
+    storageBufferInfoCurrentFrame.offset = 0;
+    storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
+
+    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[2].dstSet = computeDescriptorSets[i];
+    descriptorWrites[2].dstBinding = 2;
+    descriptorWrites[2].dstArrayElement = 0;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    descriptorWrites[2].descriptorCount = 1;
+    descriptorWrites[2].pBufferInfo = &storageBufferInfoCurrentFrame;
+
+    vkUpdateDescriptorSets(device, 3, descriptorWrites.data(), 0, nullptr);
+}
+```
+
+Remember that we also have to request the descriptor types for the SSBOs from our descriptor pool:
 
 ```c++
 std::array<VkDescriptorPoolSize, 2> poolSizes{};
 ...
 
 poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-poolSizes[1].descriptorCount = 1;
+poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
 ```
+
+We need to double the number of `VK_DESCRIPTOR_TYPE_STORAGE_BUFFER` types requested from the pool by two because our sets reference the SSBOs of the last and current frame.
+
+@todo: add in image to explain how this works
 
 ## Compute pipelines
 
@@ -223,28 +327,17 @@ if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, 
 }
 ```
 
-The setup is a lot simpler, as we only require one shader stage and a pipeline layout. The pipeline layout works the same as with the graphics pipeline but may use storage types where required:
+The setup is a lot simpler, as we only require one shader stage and a pipeline layout. The pipeline layout works the same as with the graphics pipeline:
 
 ```c++
-std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+pipelineLayoutInfo.setLayoutCount = 1;
+pipelineLayoutInfo.pSetLayouts = &computeDescriptorSetLayout;
 
-descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[0].dstSet = computeDescriptorSets[i];
-descriptorWrites[0].dstBinding = 0;
-descriptorWrites[0].dstArrayElement = 0;
-descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-descriptorWrites[0].descriptorCount = 1;
-descriptorWrites[0].pBufferInfo = &storageBufferInfo;
-
-descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[1].dstSet = computeDescriptorSets[i];
-descriptorWrites[1].dstBinding = 1;
-descriptorWrites[1].dstArrayElement = 0;
-descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-descriptorWrites[1].descriptorCount = 1;
-descriptorWrites[1].pBufferInfo = &uniformBufferInfo;
-
-vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &computePipelineLayout) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create compute pipeline layout!");
+}
 ```
 
 ## Compute space
@@ -263,7 +356,7 @@ The number of dimensions for work groups and invocations depends on how input da
 
 As an example: If we dispatch a work group count of [64, 1, 1] with a compute shader local size of [32, 32, ,1], our compute shader will be invoked 64 x 32 x 32 = 65,536 times.
 
-@todo: talk about limits
+Note that the max. count for work groups and local sizes differs from implementation to implementation, so you should always check the compute related limits in `VkPhysicalDeviceLimits`.
 
 ## Compute shaders
 
@@ -274,39 +367,48 @@ A very basic compute shader for updating a linear array of particles may look li
 ```glsl
 #version 450
 
+layout (binding = 0) uniform ParameterUBO {
+    float deltaTime;
+} ubo;
+
 struct Particle {
 	vec2 position;
 	vec2 velocity;
     vec4 color;
 };
 
-layout(std140, binding = 0) buffer ParticleSSBO {
-   Particle particles[ ];
+layout(std140, binding = 1) readonly buffer ParticleSSBOIn {
+   Particle particlesIn[ ];
 };
 
-layout (binding = 1) uniform ParameterUBO {
-	float deltaTime;
-} ubo;
+layout(std140, binding = 2) buffer ParticleSSBOOut {
+   Particle particlesOut[ ];
+};
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 void main() 
 {
     uint index = gl_GlobalInvocationID.x;  
-    particles[index].position.xy += particles[index].velocity.xy * ubo.deltaTime;
+
+    Particle particleIn = particlesIn[index];
+
+    particlesOut[index].position = particleIn.position + particleIn.velocity.xy * ubo.deltaTime;
+    particlesOut[index].velocity = particleIn.velocity;
+    ...
 }
 ```
 
-The top part references the shader storage buffer object (SSBO) we learned about earlier and also has a uniform buffer object that contains a delta time as a parameter passed to this shader. The `main` function is also pretty simplistic, but shows how to read and write to the SSBO containing the particles.
+The top part of the shader contains the declarations for the shader's input. First is a uniform buffer object at binding 0, something we already learned about in this tutorial. Below we declare our Particle structure that matches the declaration in the C++ code. Binding 1 then refers to the shader storage buffer object with the particle data from the last frame (see the descriptor setup), and binding 2 points o the SSBO for the current frame, which is the one we'll be updating with this shader.
 
-The interesting part here, that needs some explanation is this declaration:
+An interesting thing is this compute-inly declaration related to the compute space:
 
 ```glsl
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 ```
 This defines the number invocations of this compute shader in the current work group. As noted earlier this is the local part of the compute space. Hence the `local_` prefix. As we work on a linear 1D array of particles we only need to specify a number for x dimension in `local_size_x`.
 
-Similar to other shader types, compute shaders have their own set of builtin input variables. Built-ins are always prefixed with `gl_`. One such built-in is `gl_GlobalInvocationID`, a variable that uniquely identifies the current compute shader invocation across the current dispatch. As such it's often used to index into e.g. buffers. In our sample we use this to index into our particle array.
+The `main` function then reads from the last frame's SSBO and writes the updated particle position to the SSBO for the current frame. Similar to other shader types, compute shaders have their own set of builtin input variables. Built-ins are always prefixed with `gl_`. One such built-in is `gl_GlobalInvocationID`, a variable that uniquely identifies the current compute shader invocation across the current dispatch. We use this to index into our particle array.
 
 ## Running compute commands 
 
@@ -359,46 +461,60 @@ The first submit to the compute queue updates the particle positions using the c
 
 ### Synchronizing graphics and compute
 
-Synchronization is an important part of Vulkan, even more so When doing compute in conjunction with graphics. Not doing proper synchronization may result in the vertex starting to read (and draw) particles while the compute shader hasn't finished writing them (read-after-write hazard), or the compute shader could start updating particles that are still in use by the vertex part of the pipeline (write-after-read hazard).
+Synchronization is an important part of Vulkan, even more so when doing compute in conjunction with graphics. Wrong or lacking synchronization may result in the vertex stage starting to draw (=read) particles while the compute shader hasn't finished updating (=write) them (read-after-write hazard), or the compute shader could start updating particles that are still in use by the vertex part of the pipeline (write-after-read hazard).
 
-So we must make sure that those cases don't happen by synchronizing the graphics and the compute load. There are different ways of doing so, which also depends on how you submit your compute workload but in our case with two separate submits we'll be using [semaphores](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
+So we must make sure that those cases don't happen by properly synchronizing the graphics and the compute load. There are different ways of doing so, depending on how you submit your compute workload but in our case with two separate submits we'll be using [semaphores](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores) and [fences](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Fences) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
 
-This is necessary as even though the two `vkQueueSubmit` are ordered one-after-another, there is no guarantee that they execute on the GPU in this order. Adding in wait and signal semaphores ensures this execution order.
+This is necessary as even though the two submits are ordered one-after-another, there is no guarantee that they execute on the GPU in this order. Adding in wait and signal semaphores ensures this execution order.
 
-So we first add a new set of semaphores for the compute work:
+So we first add a new set of synchronization primitives for the compute work in `createSyncObjects`:
 
 ```c++
+std::vector<VkFence> computeInFlightFences;
 std::vector<VkSemaphore> computeFinishedSemaphores;
 ...
 computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    if (...
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS
-        ...) {
-        throw std::runtime_error("failed to create synchronization objects for a frame!");
+    ...
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create compute synchronization objects for a frame!");
     }
 }
 ```
-And then use that to synchronize the compute buffer submission with the graphics submission:
+And then use these to synchronize the compute buffer submission with the graphics submission:
 
 ```c++
-vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-...
-
 // Compute submission
-submitInfo.waitSemaphoreCount = 0;
-submitInfo.pWaitSemaphores = nullptr;
+vkWaitForFences(device, 1, &computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+updateUniformBuffer(currentFrame);
+
+vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
+
+vkResetCommandBuffer(computeCommandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
+
 submitInfo.commandBufferCount = 1;
 submitInfo.pCommandBuffers = &computeCommandBuffers[currentFrame];
 submitInfo.signalSemaphoreCount = 1;
 submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
 
-if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS) {
+if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS) {
     throw std::runtime_error("failed to submit compute command buffer!");
 };
 
 // Graphics submission
+vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+...
+
+vkResetFences(device, 1, &inFlightFences[currentFrame]);
+
+vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+
 VkSemaphore waitSemaphores[] = { computeFinishedSemaphores[currentFrame], imageAvailableSemaphores[currentFrame] };
 VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 submitInfo = {};
@@ -417,9 +533,9 @@ if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) !
 }
 ```
 
-If we remember the sample in the [semaphores chapter](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores), this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the graphics command buffer to finish execution before the compute submission with the `vkWaitForFences` command.
+If you look at the sample in the [semaphores chapter](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores), this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the compute command buffer of the current frame to finish execution before the compute submission with the `vkWaitForFences` command.
 
-The graphics submission on the other hand needs to wait for the compute work to finish so it doesn't start fetching vertices while the compute buffer is still updating them. So we wait on the `computeFinishedSemaphores` for the current frame and have the graphics submission wait on the `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` stage, where vertex buffer is consumed.
+The graphics submission on the other hand needs to wait for the compute work to finish so it doesn't start fetching vertices while the compute buffer is still updating them. So we wait on the `computeFinishedSemaphores` for the current frame and have the graphics submission wait on the `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` stage, where vertices are consumed.
 
 But it also needs to wait for presentation so the fragment shader won't output to the color attachments until the image has been presented. So we wait also wait on the `imageAvailableSemaphores` on the current frame at the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` stage.
 
@@ -456,7 +572,7 @@ Note that we don't add `velocity` to the vertex input attributes, as this is onl
 And then bind and draw it like we would with any vertex buffer:
 
 ```c++
-vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffer, offsets);
+vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffer[currentFrame], offsets);
 
 vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 ```
