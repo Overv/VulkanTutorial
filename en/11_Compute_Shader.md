@@ -256,7 +256,11 @@ if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &computeDescriptor
 }
 ```
 
-Looking at this setup you might wonder why we have two layout bindings for shader storage buffer objects, even though we'll only render a single particle system. This is because the particle positions are updated based on the last frame's time, so the compute shader needs to have access to the last and current frame's SSBO. This is done by passing both to the compute shader in our descriptor setup:
+Looking at this setup you might wonder why we have two layout bindings for shader storage buffer objects, even though we'll only render a single particle system. This is because the particle positions are updated frame by frame based on a delta time. This means that each frame needs to know about the last frames' particle positions, so it can update them with a new delta time and write them to it's own SSBO:
+
+![](/images/compute_ssbo_read_write.svg)
+
+For that the compute shader needs to have access to the last and current frame's SSBOs This is done by passing both to the compute shader in our descriptor setup. See the `storageBufferInfoLastFrame` and `storageBufferInfoCurrentFrame`: 
 
 ```c++
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -309,8 +313,6 @@ poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
 ```
 
 We need to double the number of `VK_DESCRIPTOR_TYPE_STORAGE_BUFFER` types requested from the pool by two because our sets reference the SSBOs of the last and current frame.
-
-@todo: add in image to explain how this works
 
 ## Compute pipelines
 
@@ -533,7 +535,7 @@ if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) !
 }
 ```
 
-If you look at the sample in the [semaphores chapter](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores), this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the compute command buffer of the current frame to finish execution before the compute submission with the `vkWaitForFences` command.
+Similar to the sample in the [semaphores chapter](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores), this setup will immediately run the compute shader as we haven't specified any wait semaphores. This is fine, as we are waiting for the compute command buffer of the current frame to finish execution before the compute submission with the `vkWaitForFences` command.
 
 The graphics submission on the other hand needs to wait for the compute work to finish so it doesn't start fetching vertices while the compute buffer is still updating them. So we wait on the `computeFinishedSemaphores` for the current frame and have the graphics submission wait on the `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` stage, where vertices are consumed.
 
