@@ -4,7 +4,7 @@ In this bonus chapter we'll take a look at compute shaders. Up until now all pre
 
 This opens up the world of general purpose computing on graphics processor units (GPGPU), no matter where your application is running. GPGPU means that you can do general computations on your GPU, something that has traditionally been a domain of CPUs. But with GPUs having become more and more powerful and more flexible, many workloads that would require the general purpose capabilities of a CPU can now be done on the GPU in realtime.
 
-A few examples of where the compute capabilities of a GPU can be used are image manipulation, post processing, lighting calculations, physics (e.g. for a particle system) and much more. And it's even possible to use only compute for doing computational only work that does not require any graphics output, e.g. number crunching or AI related things. This is called "headless compute".
+A few examples of where the compute capabilities of a GPU can be used are image manipulation, visibility testing, post processing, advanced lighting calculations, animations, physics (e.g. for a particle system) and much more. And it's even possible to use compute for non-visual computational only work that does not require any graphics output, e.g. number crunching or AI related things. This is called "headless compute".
 
 ## Advantages
 
@@ -26,7 +26,7 @@ The center of the diagram also shows that e.g. descriptor sets are also used by 
 
 An easy to understand example that we implement in this chapter is a GPU based particle particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing for collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
 
-A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop s ystems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
+A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
 
 With a GPU based particle system, this round-trip is no longer required. Vertices are only uploaded to the GPU once and all updates are done in the GPU's memory by using compute shaders. One of the main reasons why this is faster is the much higher bandwidth between the GPU and it's local memory. In a CPU based scenario, you'd be limited by main memory and PCI-express bandwidth, which is often just a fraction of the GPU's memory bandwidth.
 
@@ -581,9 +581,7 @@ vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 
 ## Conclusion
 
-@todo: add author to bonus chapter?
-
-Once you have learned how to use compute shaders you may take a look at some advanced compute topics like:
+In this chapter we learned we learned how to use compute shaders to offload work from the CPU to the GPU. Without compute shaders, many effects in modern games and applications would either not be possible or would run a lot slower. But even more than graphics, compute has a lot of use-cases, and this chapter only gave you a glimpse of what's possible. So now that you know how to use compute shaders you may want to take look at some advanced compute topics like:
 
 - Shared memory
 - Asynchronous compute
