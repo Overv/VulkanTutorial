@@ -55,18 +55,18 @@ To access native platform functions, you need to update the includes at the top:
 Because a window surface is a Vulkan object, it comes with a
 `VkWin32SurfaceCreateInfoKHR` struct that needs to be filled in. It has two
 important parameters: `hwnd` and `hinstance`. These are the handles to the
-window and the process.
+window and the dll or executable that created the window.
 
 ```c++
 VkWin32SurfaceCreateInfoKHR createInfo{};
 createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 createInfo.hwnd = glfwGetWin32Window(window);
-createInfo.hinstance = GetModuleHandle(nullptr);
+createInfo.hinstance = GetWindowLongPtr(createInfo.hwnd, GWLP_HINSTANCE);
 ```
 
 The `glfwGetWin32Window` function is used to get the raw `HWND` from the GLFW
-window object. The `GetModuleHandle` call returns the `HINSTANCE` handle of the
-current process.
+window object. The `GetWindowLongPtr` call returns the `HINSTANCE` handle of the
+module (dll or exe) that created the window.
 
 After that the surface can be created with `vkCreateWin32SurfaceKHR`, which includes a parameter for the instance, surface creation details, custom allocators and the variable for the surface handle to be stored in. Technically this is a WSI extension function, but it is so commonly used that the standard Vulkan loader includes it, so unlike other extensions you don't need to explicitly load it.
 
