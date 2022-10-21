@@ -469,13 +469,20 @@ So we must make sure that those cases don't happen by properly synchronizing the
 
 This is necessary as even though the two submits are ordered one-after-another, there is no guarantee that they execute on the GPU in this order. Adding in wait and signal semaphores ensures this execution order.
 
-So we first add a new set of synchronization primitives for the compute work in `createSyncObjects`:
+So we first add a new set of synchronization primitives for the compute work in `createSyncObjects`. The compute fences, just like the graphics fences, are created in the signaled state cause otherwise the first draw would time out while waiting for the fences to be signaled as detailed [here](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Waiting-for-the-previous-frame):
 
 ```c++
 std::vector<VkFence> computeInFlightFences;
 std::vector<VkSemaphore> computeFinishedSemaphores;
 ...
 computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+
+VkSemaphoreCreateInfo semaphoreInfo{};
+semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+VkFenceCreateInfo fenceInfo{};
+fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     ...
