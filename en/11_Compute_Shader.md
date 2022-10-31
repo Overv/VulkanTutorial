@@ -8,7 +8,7 @@ A few examples of where the compute capabilities of a GPU can be used are image 
 
 ## Advantages
 
-Doing computational expensive calculations on the GPU has several advantages. The most obvious one is offloading work from the CPU. Another one is not requiring a round-trip to the CPU and it's main memory, so all data can stay on the GPU without having to resolve to slow main memory reads.
+Doing computationally expensive calculations on the GPU has several advantages. The most obvious one is offloading work from the CPU. Another one is not requiring a round-trip to the CPU and it's main memory, so all data can stay on the GPU without having to resolve to slow main memory reads.
 
 Aside from these, GPUs are heavily parallelized with some of them having tens of thousands of small compute units. This often makes them a better fit for highly parallel workflows than a CPU with a few large units.
 
@@ -18,37 +18,37 @@ It's important to know that compute is completely separated from the graphics pa
 
 ![](/images/vulkan_pipeline_block_diagram.png)
 
-In this diagram we can see the traditional graphics part of the pipeline on the left, and several stages on the right that are not part of this graphics pipeline, including the compute shader (stage). With the compute shader stage being detached from the graphics pipeline we'll be able to use it anywhere where we see fit. This is very different from e.g. the fragment shader which is always applied to the transformed output of the vertex shader.
+In this diagram we can see the traditional graphics part of the pipeline on the left, and several stages on the right that are not part of this graphics pipeline, including the compute shader (stage). With the compute shader stage being detached from the graphics pipeline we'll be able to use it anywhere we see fit. This is very different from e.g. the fragment shader which is always applied to the transformed output of the vertex shader.
 
-The center of the diagram also shows that e.g. descriptor sets are also used by compute. So everything we learned about descriptors layouts, descriptor sets and descriptors also applies here.
+The center of the diagram also shows that e.g. descriptor sets are also used by compute, so everything we learned about descriptors layouts, descriptor sets and descriptors also applies here.
 
 ## An example
 
-An easy to understand example that we implement in this chapter is a GPU based particle particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing for collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
+An easy to understand example that we implement in this chapter is a GPU based particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing for collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
 
-A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. And after the update, the vertices need to be transferred to the GPU's memory again, so it'll display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new dta each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you'd choose, you always require a "round-trip" to the CPU to update the particles.
+A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. After the update, the vertices need to be transferred to the GPU's memory again so it will display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new data for each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you choose, you always require a "round-trip" to the CPU to update the particles.
 
 With a GPU based particle system, this round-trip is no longer required. Vertices are only uploaded to the GPU once and all updates are done in the GPU's memory by using compute shaders. One of the main reasons why this is faster is the much higher bandwidth between the GPU and it's local memory. In a CPU based scenario, you'd be limited by main memory and PCI-express bandwidth, which is often just a fraction of the GPU's memory bandwidth.
 
-And doing this on a GPU with a dedicated compute queue, you can update particles in parallel to the rendering part of the graphics pipeline. This is called "async compute", and is an advanced topic not covered in this tutorial.
+When doing this on a GPU with a dedicated compute queue, you can update particles in parallel to the rendering part of the graphics pipeline. This is called "async compute", and is an advanced topic not covered in this tutorial.
 
-A screenshot from this chapter's code. The particles shown here are updated by a compute shader directly on the GPU, without any CPU interaction:
+Here is a screenshot from this chapter's code. The particles shown here are updated by a compute shader directly on the GPU, without any CPU interaction:
 
 ![](/images/compute_shader_particles.png)
 
 ## Data manipulation
 
-In this tutorial we already learned about different buffer types like vertex and index buffer for passing primitives and uniform buffers for passing data to a shader. And we also used images do to texture mapping. But up until know we always wrote data using the CPU and only did reads on the GPU.
+In this tutorial we already learned about different buffer types like vertex and index buffers for passing primitives and uniform buffers for passing data to a shader. And we also used images do to texture mapping. But up until know, we always wrote data using the CPU and only did reads on the GPU.
 
-An important concept introduced with compute shaders is the possibility to arbitrarily read from **and write** to buffers. For this, Vulkan offers two dedicated storage types.
+An important concept introduced with compute shaders is the ability to arbitrarily read from **and write to** buffers. For this, Vulkan offers two dedicated storage types.
 
 ### Shader storage buffer objects (SSBO)
 
-A shader storage buffer (SSBO) allows you to read from and write to a buffer. Using these is similar to using uniform buffer objects. The biggest difference is that you can alias other buffer types to SSBOs and that they can be arbitrarily large.
+A shader storage buffer (SSBO) allows you to read from and write to a buffer. Using these is similar to using uniform buffer objects. The biggest differences are that you can alias other buffer types to SSBOs and that they can be arbitrarily large.
 
-Going back to the GPU based particle system you might now wonder how to deal with vertices being updated (written) by the compute shader and read (drawn) by the vertex shader, as both usages would seemingly require different buffer types.
+Going back to the GPU based particle system, you might now wonder how to deal with vertices being updated (written) by the compute shader and read (drawn) by the vertex shader, as both usages would seemingly require different buffer types.
 
-But that's not the case. In Vulkan you can specify multiple usages for buffers and images. So for the particle vertex buffer to be used as a vertex buffer (in the graphics pass) and as a storage buffer (in the compute pass) you simply create the buffer with those two usage flags:
+But that's not the case. In Vulkan you can specify multiple usages for buffers and images. So for the particle vertex buffer to be used as a vertex buffer (in the graphics pass) and as a storage buffer (in the compute pass), you simply create the buffer with those two usage flags:
 
 ```c++
 VkBufferCreateInfo bufferInfo{};
@@ -68,7 +68,7 @@ Here is the same code using using the `createBuffer` helper function:
 createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 ```
 
-In the [frames in flight](03_Drawing_a_triangle/03_Drawing/03_Frames_in_flight.md) chapter we talked about duplicating resources per frame in flight, so we can keep the CPU and the GPU busy. So we'll also create one shader storage buffer per frame and upload the initial particle data to those buffers:
+In the [frames in flight](03_Drawing_a_triangle/03_Drawing/03_Frames_in_flight.md) chapter we talked about duplicating resources per frame in flight, so we can keep the CPU and the GPU busy. Here, we'll also create one shader storage buffer per frame and upload the initial particle data to those buffers:
 
 ```c++
 std::vector<VkBuffer> shaderStorageBuffers;
@@ -256,11 +256,11 @@ if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &computeDescriptor
 }
 ```
 
-Looking at this setup you might wonder why we have two layout bindings for shader storage buffer objects, even though we'll only render a single particle system. This is because the particle positions are updated frame by frame based on a delta time. This means that each frame needs to know about the last frames' particle positions, so it can update them with a new delta time and write them to it's own SSBO:
+Looking at this setup, you might wonder why we have two layout bindings for shader storage buffer objects, even though we'll only render a single particle system. This is because the particle positions are updated frame by frame based on a delta time. This means that each frame needs to know about the last frames' particle positions, so it can update them with a new delta time and write them to it's own SSBO:
 
 ![](/images/compute_ssbo_read_write.svg)
 
-For that the compute shader needs to have access to the last and current frame's SSBOs This is done by passing both to the compute shader in our descriptor setup. See the `storageBufferInfoLastFrame` and `storageBufferInfoCurrentFrame`: 
+For that, the compute shader needs to have access to the last and current frame's SSBOs. This is done by passing both to the compute shader in our descriptor setup. See the `storageBufferInfoLastFrame` and `storageBufferInfoCurrentFrame`: 
 
 ```c++
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -362,7 +362,7 @@ Note that the max. count for work groups and local sizes differs from implementa
 
 ## Compute shaders
 
-Now that we learned about all the parts required to setup a compute shader pipeline, it's time to take a look at compute shaders. All of the things we learned about using GLSL shaders e.g. for vertex and fragment shaders also applies to compute shaders. The syntax is the same, and many concepts like passing data between the application and the shader is the same. But there are some important differences.
+Now that we have learned about all the parts required to setup a compute shader pipeline, it's time to take a look at compute shaders. All of the things we learned about using GLSL shaders e.g. for vertex and fragment shaders also applies to compute shaders. The syntax is the same, and many concepts like passing data between the application and the shader are the same. But there are some important differences.
 
 A very basic compute shader for updating a linear array of particles may look like this:
 
@@ -401,14 +401,14 @@ void main()
 }
 ```
 
-The top part of the shader contains the declarations for the shader's input. First is a uniform buffer object at binding 0, something we already learned about in this tutorial. Below we declare our Particle structure that matches the declaration in the C++ code. Binding 1 then refers to the shader storage buffer object with the particle data from the last frame (see the descriptor setup), and binding 2 points o the SSBO for the current frame, which is the one we'll be updating with this shader.
+The top part of the shader contains the declarations for the shader's input. First is a uniform buffer object at binding 0, something we already learned about in this tutorial. Below we declare our Particle structure that matches the declaration in the C++ code. Binding 1 then refers to the shader storage buffer object with the particle data from the last frame (see the descriptor setup), and binding 2 points to the SSBO for the current frame, which is the one we'll be updating with this shader.
 
-An interesting thing is this compute-inly declaration related to the compute space:
+An interesting thing is this compute-only declaration related to the compute space:
 
 ```glsl
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 ```
-This defines the number invocations of this compute shader in the current work group. As noted earlier this is the local part of the compute space. Hence the `local_` prefix. As we work on a linear 1D array of particles we only need to specify a number for x dimension in `local_size_x`.
+This defines the number invocations of this compute shader in the current work group. As noted earlier, this is the local part of the compute space. Hence the `local_` prefix. As we work on a linear 1D array of particles we only need to specify a number for x dimension in `local_size_x`.
 
 The `main` function then reads from the last frame's SSBO and writes the updated particle position to the SSBO for the current frame. Similar to other shader types, compute shaders have their own set of builtin input variables. Built-ins are always prefixed with `gl_`. One such built-in is `gl_GlobalInvocationID`, a variable that uniquely identifies the current compute shader invocation across the current dispatch. We use this to index into our particle array.
 
@@ -416,7 +416,7 @@ The `main` function then reads from the last frame's SSBO and writes the updated
 
 ### Dispatch
 
-Now it's time to actually tell the GPU to do some compute. This is done by calling `vkCmdDispatch` inside a command buffer. While not perfectly true, a dispatch is for compute what a draw call like `vkCmdDraw` is for graphics. This dispatches a given number of compute work items in at max. three dimensions.
+Now it's time to actually tell the GPU to do some compute. This is done by calling `vkCmdDispatch` inside a command buffer. While not perfectly true, a dispatch is for compute as a draw call like `vkCmdDraw` is for graphics. This dispatches a given number of compute work items in at max. three dimensions.
 
 ```c++
 VkCommandBufferBeginInfo beginInfo{};
@@ -440,7 +440,7 @@ if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 }
 ```
 
-The `vkCmdDispatch` will dispatch `PARTICLE_COUNT / 256` local work groups in the x dimension. As our particles array is linear, we leave the other two dimensions at one, resulting in a one-dimensional dispatch. But why do we divide the number of particles (in our array) by 256? That's because in the previous paragraph we defined that every compute shader in a work group will do 256 invocations. So if we were to have 4096 particles, we would dispatch 16 work groups, with each work group running 256 compute shader invocations. Getting the two number right usually takes some tinkering and profiling, depending on your workload and the hardware you're running on.
+The `vkCmdDispatch` will dispatch `PARTICLE_COUNT / 256` local work groups in the x dimension. As our particles array is linear, we leave the other two dimensions at one, resulting in a one-dimensional dispatch. But why do we divide the number of particles (in our array) by 256? That's because in the previous paragraph we defined that every compute shader in a work group will do 256 invocations. So if we were to have 4096 particles, we would dispatch 16 work groups, with each work group running 256 compute shader invocations. Getting the two numbers right usually takes some tinkering and profiling, depending on your workload and the hardware you're running on.
 
 And just as was the case for the compute pipeline, a compute command buffer contains a lot less state then a graphics command buffer. There's no need to start a render pass or set a viewport.
 
@@ -465,11 +465,11 @@ The first submit to the compute queue updates the particle positions using the c
 
 Synchronization is an important part of Vulkan, even more so when doing compute in conjunction with graphics. Wrong or lacking synchronization may result in the vertex stage starting to draw (=read) particles while the compute shader hasn't finished updating (=write) them (read-after-write hazard), or the compute shader could start updating particles that are still in use by the vertex part of the pipeline (write-after-read hazard).
 
-So we must make sure that those cases don't happen by properly synchronizing the graphics and the compute load. There are different ways of doing so, depending on how you submit your compute workload but in our case with two separate submits we'll be using [semaphores](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores) and [fences](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Fences) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
+So we must make sure that those cases don't happen by properly synchronizing the graphics and the compute load. There are different ways of doing so, depending on how you submit your compute workload but in our case with two separate submits, we'll be using [semaphores](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Semaphores) and [fences](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Fences) to ensure that the vertex shader won't start fetching vertices until the compute shader has finished updating them.
 
 This is necessary as even though the two submits are ordered one-after-another, there is no guarantee that they execute on the GPU in this order. Adding in wait and signal semaphores ensures this execution order.
 
-So we first add a new set of synchronization primitives for the compute work in `createSyncObjects`. The compute fences, just like the graphics fences, are created in the signaled state cause otherwise the first draw would time out while waiting for the fences to be signaled as detailed [here](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Waiting-for-the-previous-frame):
+So we first add a new set of synchronization primitives for the compute work in `createSyncObjects`. The compute fences, just like the graphics fences, are created in the signaled state because otherwise, the first draw would time out while waiting for the fences to be signaled as detailed [here](03_Drawing_a_triangle/03_Drawing/02_Rendering_and_presentation.md#page_Waiting-for-the-previous-frame):
 
 ```c++
 std::vector<VkFence> computeInFlightFences;
@@ -492,7 +492,7 @@ for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     }
 }
 ```
-And then use these to synchronize the compute buffer submission with the graphics submission:
+We then use these to synchronize the compute buffer submission with the graphics submission:
 
 ```c++
 // Compute submission
@@ -546,11 +546,11 @@ Similar to the sample in the [semaphores chapter](03_Drawing_a_triangle/03_Drawi
 
 The graphics submission on the other hand needs to wait for the compute work to finish so it doesn't start fetching vertices while the compute buffer is still updating them. So we wait on the `computeFinishedSemaphores` for the current frame and have the graphics submission wait on the `VK_PIPELINE_STAGE_VERTEX_INPUT_BIT` stage, where vertices are consumed.
 
-But it also needs to wait for presentation so the fragment shader won't output to the color attachments until the image has been presented. So we wait also wait on the `imageAvailableSemaphores` on the current frame at the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` stage.
+But it also needs to wait for presentation so the fragment shader won't output to the color attachments until the image has been presented. So we also wait on the `imageAvailableSemaphores` on the current frame at the `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` stage.
 
 ## Drawing the particle system
 
-Earlier on we learned that buffers in Vulkan can have multiple use-cases and so we created the shader storage buffer that contains our particles with both the shader storage buffer bit and the vertex buffer bit. This means that we can use the shader storage buffer for drawing just as we used "pure" vertex buffers in the previous chapters.
+Earlier on, we learned that buffers in Vulkan can have multiple use-cases and so we created the shader storage buffer that contains our particles with both the shader storage buffer bit and the vertex buffer bit. This means that we can use the shader storage buffer for drawing just as we used "pure" vertex buffers in the previous chapters.
 
 We first setup the vertex input state to match our particle structure:
 
@@ -578,7 +578,7 @@ struct Particle {
 
 Note that we don't add `velocity` to the vertex input attributes, as this is only used by the compute shader.
 
-And then bind and draw it like we would with any vertex buffer:
+We then bind and draw it like we would with any vertex buffer:
 
 ```c++
 vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffer[currentFrame], offsets);
@@ -588,7 +588,7 @@ vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 
 ## Conclusion
 
-In this chapter we learned we learned how to use compute shaders to offload work from the CPU to the GPU. Without compute shaders, many effects in modern games and applications would either not be possible or would run a lot slower. But even more than graphics, compute has a lot of use-cases, and this chapter only gave you a glimpse of what's possible. So now that you know how to use compute shaders you may want to take look at some advanced compute topics like:
+In this chapter, we learned we learned how to use compute shaders to offload work from the CPU to the GPU. Without compute shaders, many effects in modern games and applications would either not be possible or would run a lot slower. But even more than graphics, compute has a lot of use-cases, and this chapter only gives you a glimpse of what's possible. So now that you know how to use compute shaders, you may want to take look at some advanced compute topics like:
 
 - Shared memory
 - Asynchronous compute
