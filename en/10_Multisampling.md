@@ -139,7 +139,7 @@ And update the `recreateSwapChain` so that the new color image can be recreated 
 ```c++
 void recreateSwapChain() {
     ...
-    createGraphicsPipeline();
+    createImageViews();
     createColorResources();
     createDepthResources();
     ...
