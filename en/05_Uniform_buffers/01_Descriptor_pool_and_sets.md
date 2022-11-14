@@ -162,7 +162,7 @@ for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 }
 ```
 
-If you're overwriting the whole buffer, like we are in this case, then it is is also possible to use the `VK_WHOLE_SIZE` value for the range. The configuration of descriptors is updated using the `vkUpdateDescriptorSets`
+If you're overwriting the whole buffer, like we are in this case, then it is also possible to use the `VK_WHOLE_SIZE` value for the range. The configuration of descriptors is updated using the `vkUpdateDescriptorSets`
 function, which takes an array of `VkWriteDescriptorSet` structs as parameter.
 
 ```c++
