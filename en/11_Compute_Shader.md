@@ -117,7 +117,9 @@ particlesOut[index].position = particlesIn[index].position + particlesIn[index].
 
 ### Storage images
 
-A storage image allows you read from and write to an image. Typical use cases are applying image effects to textures or doing post processing (which in turn is very similar).
+*Note that we won't be doing image manipulation in this chapter. This paragraph is here to make readers aware that compute shaders can also be used for image manipulation.*
+
+A storage image allows you read from and write to an image. Typical use cases are applying image effects to textures, doing post processing (which in turn is very similar) or generating mip-maps.
 
 This is similar for images:
 
