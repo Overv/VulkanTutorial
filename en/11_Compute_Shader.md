@@ -156,7 +156,7 @@ imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), pixel);
 
 In the [physical device and queue families chapter](03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.md#page_Queue-families) we already learned about queue families and how to select a graphics queue family. Compute uses the queue family properties flag bit `VK_QUEUE_COMPUTE_BIT`. So if we want to do compute work, we need to get a queue from a queue family that supports compute.
 
-Note that Vulkan requires an implementation that supports graphics operations to have at least one queue family that supports both graphics and compute, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute. This will also save us some advanced synchronization.
+Note that Vulkan requires an implementation which supports graphics operations to have at least one queue family that supports both graphics and compute operations, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute operations. This will also save us from dealing with several advanced synchronization mechanisms.
 
 So for our compute sample we need to change the device creation code a bit:
 
