@@ -143,7 +143,7 @@ layout (binding = 0, rgba8) uniform readonly image2D inputImage;
 layout (binding = 1, rgba8) uniform writeonly image2D outputImage;
 ```
 
-A few differences here are additional attributes like `rgba8` for the format of the image, the `readonly` and `writeonly` qualifiers, telling the implementation that we'll only read from the input and write to the output image. And last but not least we need to use the `image2D` type do declare a storage image.
+A few differences here are additional attributes like `rgba8` for the format of the image, the `readonly` and `writeonly` qualifiers, telling the implementation that we will only read from the input image and write to the output image. And last but not least we need to use the `image2D` type to declare a storage image.
 
 Reading from and writing to storage images in the compute shader is then done using `imageLoad` and `imageStore`: 
 
