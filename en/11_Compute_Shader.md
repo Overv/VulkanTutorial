@@ -360,7 +360,7 @@ The number of dimensions for work groups and invocations depends on how input da
 
 As an example: If we dispatch a work group count of [64, 1, 1] with a compute shader local size of [32, 32, ,1], our compute shader will be invoked 64 x 32 x 32 = 65,536 times.
 
-Note that the max. count for work groups and local sizes differs from implementation to implementation, so you should always check the compute related limits in `VkPhysicalDeviceLimits`.
+Note that the maximum count for work groups and local sizes differs from implementation to implementation, so you should always check the compute related `maxComputeWorkGroupCount`, `maxComputeWorkGroupInvocations` and `maxComputeWorkGroupSize` limits in `VkPhysicalDeviceLimits`.
 
 ## Compute shaders
 
