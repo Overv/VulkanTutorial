@@ -24,7 +24,7 @@ The center of the diagram also shows that e.g. descriptor sets are also used by 
 
 ## An example
 
-An easy to understand example that we implement in this chapter is a GPU based particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. And sometimes even with complex physics applied, e.g. when testing for collisions. So rendering such a system requires vertices (passed as vertex buffers) and a way to update them based on some equation.
+An easy to understand example that we will implement in this chapter is a GPU based particle system. Such systems are used in many games and often consist of thousands of particles that need to be updated at interactive frame rates. Rendering such a system requires 2 main components: vertices, passed as vertex buffers, and a way to update them based on some equation.
 
 A "classical" CPU based particle system would store particles in the system's main memory and then use the CPU to update them. After the update, the vertices need to be transferred to the GPU's memory again so it will display the updated particles in the next frame. The most straight-forward way would be recreating the vertex buffer with the new data for each frame. This is obviously very costly. Depending on your implementation, there are other options like mapping GPU memory so it can be written by the CPU (called "resizable BAR" on desktop systems, or unified memory on integrated GPUs) or just using a host local buffer (which would be the slowest method due to PCI-E bandwidth). But no matter what buffer update you choose, you always require a "round-trip" to the CPU to update the particles.
 
