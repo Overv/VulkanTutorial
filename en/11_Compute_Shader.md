@@ -477,6 +477,7 @@ So we first add a new set of synchronization primitives for the compute work in 
 std::vector<VkFence> computeInFlightFences;
 std::vector<VkSemaphore> computeFinishedSemaphores;
 ...
+computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 
 VkSemaphoreCreateInfo semaphoreInfo{};
