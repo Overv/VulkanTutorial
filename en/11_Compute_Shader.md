@@ -318,7 +318,7 @@ We need to double the number of `VK_DESCRIPTOR_TYPE_STORAGE_BUFFER` types reques
 
 ## Compute pipelines
 
-As compute is not a part of the graphics pipeline, we can't use `vkCreateGraphicsPipelines` to attach the compute shader to it. Instead we need to create a dedicated compute pipeline `vkCreateComputePipelines` for running our compute commands. Since a compute pipeline does not touch any of the rasterization state, it has a lot less state than a graphics pipeline:
+As compute is not a part of the graphics pipeline, we can't use `vkCreateGraphicsPipelines`. Instead we need to create a dedicated compute pipeline with `vkCreateComputePipelines` for running our compute commands. Since a compute pipeline does not touch any of the rasterization state, it has a lot less state than a graphics pipeline:
 
 ```c++
 VkComputePipelineCreateInfo pipelineInfo{};
