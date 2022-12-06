@@ -134,7 +134,7 @@ if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS) {
 }
 ```
 
-The two flags `VK_IMAGE_USAGE_SAMPLED_BIT` and `VK_IMAGE_USAGE_STORAGE_BIT` set with `bufferInfo.usage` tell the implementation that we want to use this image for two different scenarios: as an image sampled in the fragment shader and as a storage image in the computer shader;
+The two flags `VK_IMAGE_USAGE_SAMPLED_BIT` and `VK_IMAGE_USAGE_STORAGE_BIT` set with `imageInfo.usage` tell the implementation that we want to use this image for two different scenarios: as an image sampled in the fragment shader and as a storage image in the computer shader;
 
 The GLSL shader declaration for storage image looks similar to sampled images used e.g. in the fragment shader:
 
