@@ -158,7 +158,7 @@ In the [physical device and queue families chapter](03_Drawing_a_triangle/00_Set
 
 Note that Vulkan requires an implementation which supports graphics operations to have at least one queue family that supports both graphics and compute operations, but it's also possible that implementations offer a dedicated compute queue. This dedicated compute queue (that does not have the graphics bit) hints at an asynchronous compute queue. To keep this tutorial beginner friendly though, we'll use a queue that can do both graphics and compute operations. This will also save us from dealing with several advanced synchronization mechanisms.
 
-So for our compute sample we need to change the device creation code a bit:
+For our compute sample we need to change the device creation code a bit:
 
 ```c++
 uint32_t queueFamilyCount = 0;
