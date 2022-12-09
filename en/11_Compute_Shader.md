@@ -420,8 +420,8 @@ layout (binding = 0) uniform ParameterUBO {
 } ubo;
 
 struct Particle {
-	vec2 position;
-	vec2 velocity;
+    vec2 position;
+    vec2 velocity;
     vec4 color;
 };
 
