@@ -68,49 +68,6 @@ Here is the same code using using the `createBuffer` helper function:
 createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 ```
 
-In the [frames in flight](03_Drawing_a_triangle/03_Drawing/03_Frames_in_flight.md) chapter we talked about duplicating resources per frame in flight, so we can keep the CPU and the GPU busy. Here, we'll also create one shader storage buffer per frame and upload the initial particle data to those buffers:
-
-```c++
-std::vector<VkBuffer> shaderStorageBuffers;
-std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
-
-...
-
-void createShaderStorageBuffers() {
-    // Initialize particles
-    std::default_random_engine rndEngine((unsigned)time(nullptr));
-    std::uniform_real_distribution<float> rndDist(0.0f, 1.0f);
-
-    // Initial particle positions on a circle
-    std::vector<Particle> particles(PARTICLE_COUNT);
-    for (auto& particle : particles) {
-        particle.position = glm::vec2(x, y);
-        ...
-    }
-
-    VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
-
-    // Create a staging buffer used to upload data to the gpu
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, particles.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    // Copy initial particle data to all storage buffers
-    shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-    shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
-        copyBuffer(stagingBuffer, shaderStorageBuffers[i], bufferSize);
-    }
-}
-```
-
 The GLSL shader declaration for accessing such a buffer looks like this:
 
 ```glsl
@@ -226,6 +183,71 @@ computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
 computeShaderStageInfo.module = computeShaderModule;
 computeShaderStageInfo.pName = "main";
 ...
+```
+
+## Preparing the shader storage buffers
+
+Earlier on we learned that we can use shader storage buffers to pass arbitrary data to compute shaders. For this example we will upload an array of particles to the GPU, so we can manipulate it directly in the GPU's memory.
+
+In the [frames in flight](03_Drawing_a_triangle/03_Drawing/03_Frames_in_flight.md) chapter we talked about duplicating resources per frame in flight, so we can keep the CPU and the GPU busy. First we declare a vector for the buffer object and the device memory backing it up:
+
+```c++
+std::vector<VkBuffer> shaderStorageBuffers;
+std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+```
+
+In the `createShaderStorageBuffers` we then resize those vectors to match the max. number of frames in flight:
+
+```c++
+shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+```
+
+With this setup in place we can start to move the initial particle information to the GPU. We first initialize a vector of particles on the host side:
+
+```c++
+    // Initialize particles
+    std::default_random_engine rndEngine((unsigned)time(nullptr));
+    std::uniform_real_distribution<float> rndDist(0.0f, 1.0f);
+
+    // Initial particle positions on a circle
+    std::vector<Particle> particles(PARTICLE_COUNT);
+    for (auto& particle : particles) {
+        float r = 0.25f * sqrt(rndDist(rndEngine));
+        float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
+        float x = r * cos(theta) * HEIGHT / WIDTH;
+        float y = r * sin(theta);
+        particle.position = glm::vec2(x, y);
+        particle.velocity = glm::normalize(glm::vec2(x,y)) * 0.00025f;
+        particle.color = glm::vec4(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine), 1.0f);
+    }
+
+```
+
+We then create a [staging buffer](04_Vertex_buffers/02_Staging_buffer.md) in the host's memory to hold the initial particle properties:
+
+```c++
+    VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, particles.data(), (size_t)bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+```    
+
+Using this staging buffer as a source we then create the per-frame shader storage buffers and copy the particle properties from the staging buffer to each of these:
+
+```c++
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+        // Copy data from the staging buffer (host) to the shader storage buffer (GPU)
+        copyBuffer(stagingBuffer, shaderStorageBuffers[i], bufferSize);
+    }
+}
 ```
 
 ## Descriptors
