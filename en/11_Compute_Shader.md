@@ -356,7 +356,7 @@ This image shows the relation between these two in three dimensions:
 
 ![](/images/compute_space.svg)
 
-The number of dimensions for work groups and invocations depends on how input data is structured. If you e.g. work on a one-dimensional array, like we do in this chapter, you only have to specify the x dimension for both.
+The number of dimensions for work groups (defined by `vkCmdDispatch`) and invocations depends (defined by the local sizes in the compute shader) on how input data is structured. If you e.g. work on a one-dimensional array, like we do in this chapter, you only have to specify the x dimension for both.
 
 As an example: If we dispatch a work group count of [64, 1, 1] with a compute shader local size of [32, 32, ,1], our compute shader will be invoked 64 x 32 x 32 = 65,536 times.
 
