@@ -111,7 +111,7 @@ Now run the program to make sure that the instance is created successfully.
 
 ## Encountered VK_ERROR_INCOMPATIBLE_DRIVER:
 If using MacOS with the latest MoltenVK sdk, you may get `VK_ERROR_INCOMPATIBLE_DRIVER`
-returned from `vkCreateInstance`. Accroding to the [Getting Start Notes](https://vulkan.lunarg.com/doc/sdk/1.3.216.0/mac/getting_started.html). Beginning with the 1.3.216 Vulkan SDK, the `VK_KHR_PORTABILITY_subset`
+returned from `vkCreateInstance`. According to the [Getting Start Notes](https://vulkan.lunarg.com/doc/sdk/1.3.216.0/mac/getting_started.html). Beginning with the 1.3.216 Vulkan SDK, the `VK_KHR_PORTABILITY_subset`
 extension is mandatory.
 
 To get over this error, first add the `VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR` bit
