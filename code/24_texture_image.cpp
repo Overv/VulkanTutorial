@@ -1325,8 +1325,10 @@ private:
 
         int i = 0;
         for (const auto& queueFamily : queueFamilies) {
-            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT && !indices.graphicsFamily.has_value()) {
                 indices.graphicsFamily = i;
+                i ++;
+                continue;
             }
 
             VkBool32 presentSupport = false;

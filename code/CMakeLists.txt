@@ -5,17 +5,17 @@ project (VulkanTutorial)
 find_package (glfw3 REQUIRED)
 find_package (glm REQUIRED)
 find_package (Vulkan REQUIRED)
-find_package (tinyobjloader REQUIRED)
+#find_package (tinyobjloader REQUIRED)
 
-find_package (PkgConfig)
-pkg_get_variable (STB_INCLUDEDIR stb includedir)
-if (NOT STB_INCLUDEDIR)
-  unset (STB_INCLUDEDIR)
-  find_path (STB_INCLUDEDIR stb_image.h PATH_SUFFIXES stb)
-endif ()
-if (NOT STB_INCLUDEDIR)
-  message (FATAL_ERROR "stb_image.h not found")
-endif ()
+#find_package (PkgConfig)
+##pkg_get_variable (STB_INCLUDEDIR stb includedir)
+#if (NOT STB_INCLUDEDIR)
+#  unset (STB_INCLUDEDIR)
+#  find_path (STB_INCLUDEDIR stb_image.h PATH_SUFFIXES stb)
+#endif ()
+#if (NOT STB_INCLUDEDIR)
+#  message (FATAL_ERROR "stb_image.h not found")
+#endif ()
 
 add_executable (glslang::validator IMPORTED)
 find_program (GLSLANG_VALIDATOR "glslangValidator" HINTS $ENV{VULKAN_SDK}/bin REQUIRED)
@@ -79,97 +79,3 @@ add_chapter (04_logical_device)
 
 add_chapter (05_window_surface)
 
-add_chapter (06_swap_chain_creation)
-
-add_chapter (07_image_views)
-
-add_chapter (08_graphics_pipeline)
-
-add_chapter (09_shader_modules
-  SHADER 09_shader_base)
-
-add_chapter (10_fixed_functions
-  SHADER 09_shader_base)
-
-add_chapter (11_render_passes
-  SHADER 09_shader_base)
-
-add_chapter (12_graphics_pipeline_complete
-  SHADER 09_shader_base)
-
-add_chapter (13_framebuffers
-  SHADER 09_shader_base)
-
-add_chapter (14_command_buffers
-  SHADER 09_shader_base)
-
-add_chapter (15_hello_triangle
-  SHADER 09_shader_base)
-
-add_chapter (16_frames_in_flight
-  SHADER 09_shader_base)
-
-add_chapter (17_swap_chain_recreation
-  SHADER 09_shader_base)
-
-add_chapter (18_vertex_input
-  SHADER 18_shader_vertexbuffer
-  LIBS glm::glm)
-
-add_chapter (19_vertex_buffer
-  SHADER 18_shader_vertexbuffer
-  LIBS glm::glm)
-
-add_chapter (20_staging_buffer
-  SHADER 18_shader_vertexbuffer
-  LIBS glm::glm)
-
-add_chapter (21_index_buffer
-  SHADER 18_shader_vertexbuffer
-  LIBS glm::glm)
-
-add_chapter (22_descriptor_layout
-  SHADER 22_shader_ubo
-  LIBS glm::glm)
-
-add_chapter (23_descriptor_sets
-  SHADER 22_shader_ubo
-  LIBS glm::glm)
-
-add_chapter (24_texture_image
-  SHADER 22_shader_ubo
-  TEXTURES ../images/texture.jpg
-  LIBS glm::glm)
-
-add_chapter (25_sampler
-  SHADER 22_shader_ubo
-  TEXTURES ../images/texture.jpg
-  LIBS glm::glm)
-
-add_chapter (26_texture_mapping
-  SHADER 26_shader_textures
-  TEXTURES ../images/texture.jpg
-  LIBS glm::glm)
-
-add_chapter (27_depth_buffering
-  SHADER 27_shader_depth
-  TEXTURES ../images/texture.jpg
-  LIBS glm::glm)
-
-add_chapter (28_model_loading
-  SHADER 27_shader_depth
-  MODELS ../resources/viking_room.obj
-  TEXTURES ../resources/viking_room.png
-  LIBS glm::glm tinyobjloader::tinyobjloader)
-
-add_chapter (29_mipmapping
-  SHADER 27_shader_depth
-  MODELS ../resources/viking_room.obj
-  TEXTURES ../resources/viking_room.png
-  LIBS glm::glm tinyobjloader::tinyobjloader)
-
-add_chapter (30_multisampling
-  SHADER 27_shader_depth
-  MODELS ../resources/viking_room.obj
-  TEXTURES ../resources/viking_room.png
-  LIBS glm::glm tinyobjloader::tinyobjloader)
