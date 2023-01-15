@@ -220,12 +220,10 @@ private:
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             drawFrame();
+            // We want to animate the particle system using the last frames time to get smooth, frame-rate independent animation
             double currentTime = glfwGetTime();
-            lastFrameTime = (currentTime - lastTime) * 1000.0f;
+            lastFrameTime = (currentTime - lastTime) * 1000.0;
             lastTime = currentTime;
-            char buffer[64];
-            int ret = snprintf(buffer, sizeof buffer, "%f", lastFrameTime);
-            glfwSetWindowTitle(window, buffer);
         }
 
         vkDeviceWaitIdle(device);
@@ -788,7 +786,7 @@ private:
         std::vector<Particle> particles(PARTICLE_COUNT);
         for (auto& particle : particles) {
             float r = 0.25f * sqrt(rndDist(rndEngine));
-            float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
+            float theta = rndDist(rndEngine) * 2.0f * 3.14159265358979323846f;
             float x = r * cos(theta) * HEIGHT / WIDTH;
             float y = r * sin(theta);
             particle.position = glm::vec2(x, y);
@@ -798,6 +796,7 @@ private:
 
         VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
 
+        // Create a staging buffer used to upload data to the gpu
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
