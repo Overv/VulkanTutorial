@@ -12,8 +12,7 @@ plus sur l'intégration des sommets dans le programme, plutôt que sur les aspec
 
 Nous utiliserons la librairie [tinyobjloader](https://github.com/syoyo/tinyobjloader) pour charger les vertices et les
 faces depuis un fichier OBJ. Elle est facile à utiliser et à intégrer, car elle est contenue dans un seul fichier.
-Téléchargez-la depuis le lien GitHub, elle est contenue dans le fichier `tiny_obj_loader.h`. Téléchargez bien le fichier
-de la branche `master` car la version "release" n'est plus assez à jour.
+Téléchargez-la depuis le lien GitHub, elle est contenue dans le fichier `tiny_obj_loader.h`.
 
 **Visual Studio**
 
@@ -38,7 +37,7 @@ CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(TINYO
 ## Exemple de modèle
 
 Nous n'allons pas utiliser de lumières pour l'instant. Il est donc préférable de charger un modèle qui comprend les
-ombres pour que nous ayons un rendu plus intéressant. Vous pouvez trouver de tels modèles sur 
+ombres pour que nous ayons un rendu plus intéressant. Vous pouvez trouver de tels modèles sur
 [Sketchfab](https://sketchfab.com/).
 
 Pour ce tutoriel j'ai choisi d'utiliser le [Viking room](https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38) créé par [nigelgoh](https://sketchfab.com/nigelgoh) ([CC BY 4.0](https://web.archive.org/web/20200428202538/https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)).
@@ -87,7 +86,7 @@ Changez également le paramètre de type dans l'appel à `vkCmdBindIndexBuffer`.
 vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 ```
 
-La librairie que nous utilisons s'inclue de la même manière que les librairies STB. Il faut définir la macro 
+La librairie que nous utilisons s'inclue de la même manière que les librairies STB. Il faut définir la macro
 `TINYOBJLOADER_IMLEMENTATION` pour que le fichier comprenne les définitions des fonctions.
 
 ```c++
@@ -133,7 +132,7 @@ Dans un fichier OBJ on trouve des positions, des normales, des coordonnées de t
 sont une collection de vertices, avec chaque vertex lié à une position, une normale et/ou un coordonnée de texture à
 l'aide d'un indice. Il est ainsi possible de réutiliser les attributs de manière indépendante.
 
-Le conteneur `attrib` contient les positions, les normales et les coordonnées de texture dans les vecteurs 
+Le conteneur `attrib` contient les positions, les normales et les coordonnées de texture dans les vecteurs
 `attrib.vertices`, `attrib.normals` et `attrib.texcoords`. Le conteneur `shapes` contient tous les objets et leurs
 faces. Ces dernières se réfèrent donc aux données stockées dans `attrib`. Les modèles peuvent aussi définir un matériau
 et une texture par face, mais nous ignorerons ces attributs pour le moment.
@@ -185,7 +184,7 @@ vertex.color = {1.0f, 1.0f, 1.0f};
 ```
 
 Le tableau `attrib.vertices` est constitués de floats et non de vecteurs à trois composants comme `glm::vec3`. Il faut
-donc multiplier les indices par 3. De même on trouve deux coordonnées de texture par entrée. Les décalages `0`, `1` et 
+donc multiplier les indices par 3. De même on trouve deux coordonnées de texture par entrée. Les décalages `0`, `1` et
 `2` permettent ensuite d'accéder aux composant X, Y et Z, ou aux U et V dans le cas des textures.
 
 Lancez le programme avec les optimisation activées (`Release` avec Visual Studio ou avec l'argument `-03` pour GCC).
@@ -238,7 +237,7 @@ for (const auto& shape : shapes) {
 ```
 
 Chaque fois que l'on extrait un vertex du fichier, nous devons vérifier si nous avons déjà manipulé un vertex possédant
-les mêmes attributs. Si il est nouveau, nous le stockerons dans `vertices` et placerons son indice dans 
+les mêmes attributs. Si il est nouveau, nous le stockerons dans `vertices` et placerons son indice dans
 `uniqueVertices` et dans `indices`. Si nous avons déjà un tel vertex nous regarderons son indice depuis `uniqueVertices`
 et copierons cette valeur dans `indices`.
 

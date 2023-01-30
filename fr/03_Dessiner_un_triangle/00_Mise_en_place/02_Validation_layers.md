@@ -373,7 +373,7 @@ est nécessaire d'avoir une instance pour appeler `vkCreateDebugUtilsMessengerEX
 couverte par le messager. Le même problème apparait avec la destruction de l'instance.
 
 En lisant
-[la documentation](https://github.com/KhronosGroup/Vulkan-Docs/blob/master/appendices/VK_EXT_debug_utils.txt#L120) on
+[la documentation](https://github.com/KhronosGroup/Vulkan-Docs/blob/main/appendices/VK_EXT_debug_utils.adoc#examples) on
 voit qu'il existe un messager spécifiquement créé pour ces deux fonctions. Il suffit de passer un pointeur vers une
 instance de `VkDebugUtilsMessengerCreateInfoEXT` au membre `pNext` de `VkInstanceCreateInfo`. Plaçons le remplissage de
 la structure de création du messager dans une fonction :
