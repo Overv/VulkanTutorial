@@ -38,7 +38,7 @@ Here is a screenshot from this chapter's code. The particles shown here are upda
 
 ## Data manipulation
 
-In this tutorial we already learned about different buffer types like vertex and index buffers for passing primitives and uniform buffers for passing data to a shader. And we also used images do to texture mapping. But up until know, we always wrote data using the CPU and only did reads on the GPU.
+In this tutorial we already learned about different buffer types like vertex and index buffers for passing primitives and uniform buffers for passing data to a shader. And we also used images to do texture mapping. But up until know, we always wrote data using the CPU and only did reads on the GPU.
 
 An important concept introduced with compute shaders is the ability to arbitrarily read from **and write to** buffers. For this, Vulkan offers two dedicated storage types.
 
