@@ -173,3 +173,7 @@ add_chapter (30_multisampling
   MODELS ../resources/viking_room.obj
   TEXTURES ../resources/viking_room.png
   LIBS glm::glm tinyobjloader::tinyobjloader)
+
+add_chapter (31_compute_shader
+  SHADER 31_shader_compute
+  LIBS glm::glm)
