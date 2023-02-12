@@ -421,7 +421,7 @@ renderPassInfo.dependencyCount = 1;
 renderPassInfo.pDependencies = &dependency;
 ```
 
-Next, update the `VkRenderPassCreateInfo` struct to refer to both
+Next, update the `VkSubpassDependency` struct to refer to both
 attachments.
 
 ```c++
