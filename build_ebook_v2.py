@@ -2,6 +2,7 @@
 
 import pathlib
 import re
+import shutil
 import subprocess
 
 
@@ -209,13 +210,17 @@ class VTEBookBuilder:
 
 if __name__ == "__main__":
 
-    log = VTLogger("./build_ebook.log")
+    out_dir = pathlib.Path("./_out")
+    if not out_dir.exists():
+        out_dir.mkdir()
+
+    log = VTLogger(f"{out_dir.as_posix()}/build_ebook.log")
     eBookBuilder = VTEBookBuilder(log)
 
     generated_pngs = eBookBuilder.convert_svg_to_png("./images")
 
     LANGUAGES = [ "en", "fr" ]
-    OUTPUT_FILENAME = pathlib.Path("./temp_ebook.md")
+    OUTPUT_FILENAME = pathlib.Path(f"{out_dir.as_posix()}/temp_ebook.md")
 
     for lang in LANGUAGES:
         lang = f"./{lang}"
@@ -226,7 +231,8 @@ if __name__ == "__main__":
         # eBookBuilder.build_pdf_book(lang)
 
         # Clean up
-        OUTPUT_FILENAME.unlink()
+        if OUTPUT_FILENAME.exists():
+            OUTPUT_FILENAME.unlink()
 
     # Clean up temporary files
     for png_path in generated_pngs:
@@ -234,3 +240,7 @@ if __name__ == "__main__":
             png_path.unlink()
         except FileNotFoundError as fileError:
             log.error(fileError)
+
+    # Comment to view log
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
