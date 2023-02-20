@@ -219,7 +219,7 @@ class VTEBookBuilder:
             prefix = f"{parent_prefix}{title_tokens[0]}."
 
             if entry.is_dir() is True:
-                log.info(f"Processing directory: {entry}")
+                log.detail(f"Processing directory: {entry}")
 
                 self._collect_markdown_files_from_source(
                     entry,
@@ -227,7 +227,7 @@ class VTEBookBuilder:
                     prefix, markdown_files
                 )
             else:
-                log.info(f"Processing: {entry}")
+                log.detail(f"Processing: {entry}")
 
                 title = ' '.join(title_tokens[1:])
 
@@ -279,7 +279,7 @@ if __name__ == "__main__":
         except FileNotFoundError as fileError:
             log.error(fileError)
 
-    # Comment to view log
+    # Comment out to view log file
     if out_dir.exists():
         shutil.rmtree(out_dir)
 
