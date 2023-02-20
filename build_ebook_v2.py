@@ -81,7 +81,7 @@ class VTEBookBuilder:
                     "--version",
                 ]
             )
-        except subprocess.CalledProcessError as error:
+        except (FileNotFoundError, subprocess.CalledProcessError) as error:
             log.error(error)
             self.log.warning("Please, install 'xelatex'!")
 
@@ -105,6 +105,7 @@ class VTEBookBuilder:
             )
         except subprocess.CalledProcessError as error:
             log.error(error)
+            self.log.warning("'pandoc' process failed!")
 
             raise RuntimeError from error
 
@@ -126,6 +127,7 @@ class VTEBookBuilder:
             )
         except subprocess.CalledProcessError as error:
             log.error(error)
+            self.log.warning("'pandoc' process failed!")
 
             raise RuntimeError from error
 
