@@ -8,34 +8,34 @@ import subprocess
 
 class VTLogger:
     """A logger"""
-    def __init__(self, filename:str, log_to_file:bool=True):
+    def __init__(self, filename:str, log_to_file:bool=True) -> None:
         if log_to_file is True:
             self.log_file = open(filename, "w", encoding="utf-8")
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.log_file is not None:
             self.log_file.close()
 
-    def detail(self, message: str):
+    def detail(self, message: str) -> None:
         """Logs a detail message without printing it."""
         self._log(message, True)
 
-    def error(self, message: str):
+    def error(self, message: str) -> None:
         """Logs an error."""
         message = f"Error: {message}"
         self._log(message)
 
-    def info(self, message: str):
+    def info(self, message: str) -> None:
         """Logs an info message."""
         print(message)
         self._log(f"Info: {message}", True)
 
-    def warning(self, message: str):
+    def warning(self, message: str) -> None:
         """Logs an warning."""
         message = f"Warning: {message}"
         self._log(message)
 
-    def _log(self, message: str, no_print:bool=False):
+    def _log(self, message: str, no_print:bool=False) -> None:
         if no_print is False:
             print(message)
 
@@ -51,13 +51,13 @@ class VTEMarkdownFile:
         self.prefix: str = prefix
         self.title: str = title
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<VTEMarkdownFile depth: {self.depth}, prefix: '{self.prefix}',"
             f" title: '{self.title}', content: '{self.content}'>"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"<VTEMarkdownFile depth: {self.depth}, prefix: '{self.prefix}',"
             f" title: '{self.title}', content: '{self.content}'>"
@@ -66,43 +66,53 @@ class VTEMarkdownFile:
 class VTEBookBuilder:
     """A 'Markdown' to 'epub' and 'pdf' converter."""
 
-    def __init__(self, logger: VTLogger):
+    def __init__(self, logger: VTLogger) -> None:
         self.log = logger
 
-    def build_pdf_book(self, language: str):
+    def build_pdf_book(self, language: str, markdown_filepath: pathlib.Path) -> None:
         """Builds a pdf file"""
 
         self.log.info("Building 'pdf'...")
 
-        subprocess.check_output(
-            [
-                'pandoc',
-                'ebook.md',
-                '-V', 'documentclass=report',
-                '-t', 'latex',
-                '-s',
-                '--toc',
-                '--listings',
-                '-H', 'ebook/listings-setup.tex',
-                '-o', 'ebook/Vulkan Tutorial ' + language + '.pdf',
-                '--pdf-engine=xelatex'
-            ]
-        )
+        try:
+            subprocess.check_output(
+                [
+                    'pandoc',
+                    markdown_filepath.as_posix(),
+                    '-V', 'documentclass=report',
+                    '-t', 'latex',
+                    '-s',
+                    '--toc',
+                    '--listings',
+                    '-H', './ebook/listings-setup.tex',
+                    '-o', './ebook/Vulkan Tutorial ' + language + '.pdf',
+                    '--pdf-engine=xelatex'
+                ]
+            )
+        except subprocess.CalledProcessError as error:
+            log.error(error)
 
-    def build_epub_book(self, language: str):
+            raise error
+
+    def build_epub_book(self, language: str, markdown_filepath: pathlib.Path) -> None:
         """Buids a epub file"""
 
         self.log.info("Building 'epub'...")
 
-        subprocess.check_output(
-            [
-                'pandoc',
-                'ebook.md',
-                '--toc',
-                '-o', 'ebook/Vulkan Tutorial ' + language + '.epub',
-                '--epub-cover-image=ebook/cover.png'
-            ]
-        )
+        try:
+            subprocess.check_output(
+                [
+                    'pandoc',
+                    markdown_filepath.as_posix(),
+                    '--toc',
+                    '-o', './ebook/Vulkan Tutorial ' + language + '.epub',
+                    '--epub-cover-image=ebook/cover.png'
+                ]
+            )
+        except subprocess.CalledProcessError as error:
+            log.error(error)
+
+            raise error
 
     def convert_svg_to_png(self, images_folder: str) -> list[pathlib.Path]:
         """Converts *.svg images to *.png using Inkscape"""
@@ -132,7 +142,7 @@ class VTEBookBuilder:
 
         return pngs
 
-    def generate_markdown_from_sources(self, language: str, output_filename: pathlib.Path):
+    def generate_joined_markdown(self, language: str, output_filename: pathlib.Path) -> None:
         """Processes the markdown sources and produces a joined file."""
 
         self.log.info(
@@ -140,7 +150,7 @@ class VTEBookBuilder:
             f" for language '{language}'..."
         )
 
-        md_files = self._process_files_in_directory(language)
+        md_files = self._collect_markdown_files_from_source(language)
         md_files = sorted(md_files, key=lambda file: file.prefix)
 
         temp_markdown: str = str()
@@ -174,7 +184,7 @@ class VTEBookBuilder:
         with open(output_filename, "w", encoding="utf-8") as file:
             file.write(temp_markdown)
 
-    def _process_files_in_directory(
+    def _collect_markdown_files_from_source(
         self,
         directory_path: pathlib.Path,
         current_depth: int=int(0),
@@ -192,7 +202,7 @@ class VTEBookBuilder:
             if entry.is_dir() is True:
                 log.info(f"Processing directory: {entry}")
 
-                self._process_files_in_directory(entry, (current_depth + 1), prefix, markdown_files)
+                self._collect_markdown_files_from_source(entry, (current_depth + 1), prefix, markdown_files)
             else:
                 log.info(f"Processing: {entry}")
 
@@ -220,19 +230,19 @@ if __name__ == "__main__":
     generated_pngs = eBookBuilder.convert_svg_to_png("./images")
 
     LANGUAGES = [ "en", "fr" ]
-    OUTPUT_FILENAME = pathlib.Path(f"{out_dir.as_posix()}/temp_ebook.md")
+    OUTPUT_MARKDOWN_FILEPATH = pathlib.Path(f"{out_dir.as_posix()}/temp_ebook.md")
 
     for lang in LANGUAGES:
         lang = f"./{lang}"
 
-        eBookBuilder.generate_markdown_from_sources(lang, OUTPUT_FILENAME)
+        eBookBuilder.generate_joined_markdown(lang, OUTPUT_MARKDOWN_FILEPATH)
 
-        # eBookBuilder.build_epub_book(lang)
-        # eBookBuilder.build_pdf_book(lang)
+        eBookBuilder.build_epub_book(lang, OUTPUT_MARKDOWN_FILEPATH)
+        eBookBuilder.build_pdf_book(lang, OUTPUT_MARKDOWN_FILEPATH)
 
         # Clean up
-        if OUTPUT_FILENAME.exists():
-            OUTPUT_FILENAME.unlink()
+        if OUTPUT_MARKDOWN_FILEPATH.exists():
+            OUTPUT_MARKDOWN_FILEPATH.unlink()
 
     # Clean up temporary files
     for png_path in generated_pngs:
