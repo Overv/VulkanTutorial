@@ -77,22 +77,36 @@ class VTEBookBuilder:
         try:
             subprocess.check_output(
                 [
-                    'pandoc',
+                    "xelatex",
+                    "--version",
+                ]
+            )
+        except subprocess.CalledProcessError as error:
+            log.error(error)
+            self.log.warning("Please, install 'xelatex'!")
+
+            raise RuntimeError from error
+
+        try:
+            subprocess.check_output(
+                [
+                    "pandoc",
                     markdown_filepath.as_posix(),
-                    '-V', 'documentclass=report',
-                    '-t', 'latex',
-                    '-s',
-                    '--toc',
-                    '--listings',
-                    '-H', './ebook/listings-setup.tex',
-                    '-o', './ebook/Vulkan Tutorial ' + language + '.pdf',
-                    '--pdf-engine=xelatex'
+                    "-V", "documentclass=report",
+                    "-t", "latex",
+                    "-s",
+                    "--toc",
+                    "--listings",
+                    "-H", "./ebook/listings-setup.tex",
+                    "-o", f"./ebook/Vulkan Tutorial {language}.pdf",
+                    "--pdf-engine=xelatex",
+                    "--metadata=title:Vulkan Tutorial"
                 ]
             )
         except subprocess.CalledProcessError as error:
             log.error(error)
 
-            raise error
+            raise RuntimeError from error
 
     def build_epub_book(self, language: str, markdown_filepath: pathlib.Path) -> None:
         """Buids a epub file"""
@@ -102,17 +116,18 @@ class VTEBookBuilder:
         try:
             subprocess.check_output(
                 [
-                    'pandoc',
+                    "pandoc",
                     markdown_filepath.as_posix(),
-                    '--toc',
-                    '-o', './ebook/Vulkan Tutorial ' + language + '.epub',
-                    '--epub-cover-image=ebook/cover.png'
+                    "--toc",
+                    "-o", f"./ebook/Vulkan Tutorial {language}.epub",
+                    "--epub-cover-image=ebook/cover.png",
+                    "--metadata=title:Vulkan Tutorial"
                 ]
             )
         except subprocess.CalledProcessError as error:
             log.error(error)
 
-            raise error
+            raise RuntimeError from error
 
     def convert_svg_to_png(self, images_folder: str) -> list[pathlib.Path]:
         """Converts *.svg images to *.png using Inkscape"""
@@ -128,8 +143,8 @@ class VTEBookBuilder:
                 try:
                     subprocess.check_output(
                         [
-                            'inkscape',
-                            '--export-filename=' + new_path.as_posix(),
+                            "inkscape",
+                            f"--export-filename={new_path.as_posix()}",
                             entry.as_posix()
                         ],
                         stderr=subprocess.STDOUT
@@ -204,7 +219,11 @@ class VTEBookBuilder:
             if entry.is_dir() is True:
                 log.info(f"Processing directory: {entry}")
 
-                self._collect_markdown_files_from_source(entry, (current_depth + 1), prefix, markdown_files)
+                self._collect_markdown_files_from_source(
+                    entry,
+                    (current_depth + 1),
+                    prefix, markdown_files
+                )
             else:
                 log.info(f"Processing: {entry}")
 
@@ -229,6 +248,8 @@ if __name__ == "__main__":
     log = VTLogger(f"{out_dir.as_posix()}/build_ebook.log")
     eBookBuilder = VTEBookBuilder(log)
 
+    log.info("--- Exporting ebooks:")
+
     generated_pngs = eBookBuilder.convert_svg_to_png("./images")
 
     LANGUAGES = [ "en", "fr" ]
@@ -237,12 +258,17 @@ if __name__ == "__main__":
     for lang in LANGUAGES:
         eBookBuilder.generate_joined_markdown(f"./{lang}", OUTPUT_MARKDOWN_FILEPATH)
 
-        eBookBuilder.build_epub_book(lang, OUTPUT_MARKDOWN_FILEPATH)
-        eBookBuilder.build_pdf_book(lang, OUTPUT_MARKDOWN_FILEPATH)
+        try:
+            eBookBuilder.build_epub_book(lang, OUTPUT_MARKDOWN_FILEPATH)
+            eBookBuilder.build_pdf_book(lang, OUTPUT_MARKDOWN_FILEPATH)
+        except RuntimeError as runtimeError:
+            log.error("Termininating...")
 
         # Clean up
         if OUTPUT_MARKDOWN_FILEPATH.exists():
             OUTPUT_MARKDOWN_FILEPATH.unlink()
+
+    log.info("Cleaning up...")
 
     # Clean up temporary files
     for png_path in generated_pngs:
@@ -254,3 +280,5 @@ if __name__ == "__main__":
     # Comment to view log
     if out_dir.exists():
         shutil.rmtree(out_dir)
+
+    log.info("---- DONE!")
