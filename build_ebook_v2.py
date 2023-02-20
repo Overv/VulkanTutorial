@@ -124,15 +124,17 @@ class VTEBookBuilder:
         for entry in pathlib.Path(images_folder).iterdir():
             if entry.suffix == ".svg":
                 new_path = entry.with_suffix(".png")
+
                 try:
-                    # subprocess.check_output(
-                    #     [
-                    #         'inkscape',
-                    #         '--export-filename=' + new_path.as_posix(),
-                    #         new_path.parent.as_posix() + "/" + new_path.stem
-                    #     ],
-                    #     stderr=subprocess.STDOUT
-                    # )
+                    subprocess.check_output(
+                        [
+                            'inkscape',
+                            '--export-filename=' + new_path.as_posix(),
+                            entry.as_posix()
+                        ],
+                        stderr=subprocess.STDOUT
+                    )
+
                     pngs.append(new_path)
                 except FileNotFoundError as error:
                     self.log.error(error)
@@ -233,9 +235,7 @@ if __name__ == "__main__":
     OUTPUT_MARKDOWN_FILEPATH = pathlib.Path(f"{out_dir.as_posix()}/temp_ebook.md")
 
     for lang in LANGUAGES:
-        lang = f"./{lang}"
-
-        eBookBuilder.generate_joined_markdown(lang, OUTPUT_MARKDOWN_FILEPATH)
+        eBookBuilder.generate_joined_markdown(f"./{lang}", OUTPUT_MARKDOWN_FILEPATH)
 
         eBookBuilder.build_epub_book(lang, OUTPUT_MARKDOWN_FILEPATH)
         eBookBuilder.build_pdf_book(lang, OUTPUT_MARKDOWN_FILEPATH)
