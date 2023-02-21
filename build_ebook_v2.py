@@ -1,4 +1,6 @@
-# """Generates epub and pdf from sources."""
+#!/usr/bin/env python3
+
+"""Generates epub and pdf from sources."""
 
 import pathlib
 import re
@@ -174,13 +176,9 @@ class VTEBookBuilder:
 
         temp_markdown: str = str()
 
-        # def repl_hash(match):
-        #     original_prefix = match.group(1)
-        #     additional_prefix: str = "#" * entry.depth
-
-        #     return f"{original_prefix}{additional_prefix} "
 
         def repl_hash(match):
+            """Calculates the proper `Markdown` heading depth (#)."""
             original_prefix = match.group(1)
             additional_prefix: str = "#" * entry.depth
 
@@ -188,12 +186,9 @@ class VTEBookBuilder:
 
         for entry in md_files:
             # Add title.
-            # header_prefix: str = "#" * entry.depth
-            # content: str = f"#{header_prefix} {entry.title}\n\n"
-            # content: str = '# ' + entry.title + '\n\n'
             content: str = f"# {entry.title}\n\n{entry.content}"
 
-            # Fix depth
+            # Fix depth.
             if entry.depth > 0:
                 content = re.sub(r"(#+) ", repl_hash, content)
 
@@ -204,7 +199,7 @@ class VTEBookBuilder:
             # Fix remaining relative links (e.g. code files).
             content = re.sub(r'\]\(\/', '](https://vulkan-tutorial.com/', content)
 
-            # Fix chapter references
+            # Fix chapter references.
             def repl(match):
                 target = match.group(1)
                 target = target.lower()
@@ -289,20 +284,20 @@ if __name__ == "__main__":
         except RuntimeError as runtimeError:
             log.error("Termininating...")
 
-        # Clean up
+        # Clean up.
         if OUTPUT_MARKDOWN_FILEPATH.exists():
             OUTPUT_MARKDOWN_FILEPATH.unlink()
 
     log.info("Cleaning up...")
 
-    # Clean up temporary files
+    # Clean up temporary files.
     for png_path in generated_pngs:
         try:
             png_path.unlink()
         except FileNotFoundError as fileError:
             log.error(fileError)
 
-    # Comment out to view log file
+    # Comment out to view log file.
     if out_dir.exists():
         shutil.rmtree(out_dir)
 
