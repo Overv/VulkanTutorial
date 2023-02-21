@@ -174,9 +174,28 @@ class VTEBookBuilder:
 
         temp_markdown: str = str()
 
+        # def repl_hash(match):
+        #     original_prefix = match.group(1)
+        #     additional_prefix: str = "#" * entry.depth
+
+        #     return f"{original_prefix}{additional_prefix} "
+
+        def repl_hash(match):
+            original_prefix = match.group(1)
+            additional_prefix: str = "#" * entry.depth
+
+            return f"{original_prefix}{additional_prefix} "
+
         for entry in md_files:
             # Add title.
-            content: str = '# ' + entry.title + '\n\n' + entry.content
+            # header_prefix: str = "#" * entry.depth
+            # content: str = f"#{header_prefix} {entry.title}\n\n"
+            # content: str = '# ' + entry.title + '\n\n'
+            content: str = f"# {entry.title}\n\n{entry.content}"
+
+            # Fix depth
+            if entry.depth > 0:
+                content = re.sub(r"(#+) ", repl_hash, content)
 
             # Fix image links.
             content = re.sub(r'\/images\/', 'images/', content)
@@ -220,6 +239,10 @@ class VTEBookBuilder:
 
             if entry.is_dir() is True:
                 log.detail(f"Processing directory: {entry}")
+
+                title = ' '.join(title_tokens[1:])
+
+                markdown_files.append(VTEMarkdownFile("", current_depth, prefix, title))
 
                 self._collect_markdown_files_from_source(
                     entry,
