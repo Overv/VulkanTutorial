@@ -12,7 +12,7 @@ import subprocess
 class VTLogger:
     """A logger"""
 
-    def __init__(self, filename:str, log_to_file:bool=True) -> None:
+    def __init__(self, filename: str, log_to_file: bool=True) -> None:
         if log_to_file is True:
             self.log_file = open(filename, "w", encoding="utf-8")
 
@@ -39,7 +39,7 @@ class VTLogger:
         message = f"Warning: {message}"
         self._log(message)
 
-    def _log(self, message: str, no_print:bool=False) -> None:
+    def _log(self, message: str, no_print: bool=False) -> None:
         if no_print is False:
             print(message)
 
