@@ -74,7 +74,7 @@ type (`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER`, etc.) as specified by the
 corresponding `descriptorCount` members for the creation of the descriptor pool.
 However, it remains best practise to do so, and in the future,
 `VK_LAYER_KHRONOS_validation` will warn about this type of problem if you enable
-[Best Practice Validation](https://vulkan.lunarg.com/doc/view/1.1.126.0/windows/best_practices.html).
+[Best Practice Validation](https://vulkan.lunarg.com/doc/view/1.2.189.0/linux/best_practices.html).
 
 The final step is to bind the actual image and sampler resources to the
 descriptors in the descriptor set. Go to the `createDescriptorSets` function.
