@@ -2,6 +2,7 @@
 
 """Generates epub and pdf from sources."""
 
+import datetime
 import pathlib
 import re
 import shutil
@@ -102,7 +103,7 @@ class VTEBookBuilder:
                     "-H", "./ebook/listings-setup.tex",
                     "-o", f"./ebook/Vulkan Tutorial {language}.pdf",
                     "--pdf-engine=xelatex",
-                    "--metadata=title:Vulkan Tutorial"
+                    # "--metadata=title:Vulkan Tutorial"
                 ]
             )
         except subprocess.CalledProcessError as error:
@@ -124,7 +125,7 @@ class VTEBookBuilder:
                     "--toc",
                     "-o", f"./ebook/Vulkan Tutorial {language}.epub",
                     "--epub-cover-image=ebook/cover.png",
-                    "--metadata=title:Vulkan Tutorial"
+                    # "--metadata=title:Vulkan Tutorial"
                 ]
             )
         except subprocess.CalledProcessError as error:
@@ -174,8 +175,14 @@ class VTEBookBuilder:
         md_files = self._collect_markdown_files_from_source(language)
         md_files = sorted(md_files, key=lambda file: file.prefix)
 
-        temp_markdown: str = str()
+        # Add title.
+        current_date: str = datetime.datetime.now().strftime('%B %Y')
 
+        temp_markdown: str = (
+            "% Vulkan Tutorial\n"
+            "% Alexander Overvoorde\n"
+            f"% {current_date} \n\n"
+        )
 
         def repl_hash(match):
             """Calculates the proper `Markdown` heading depth (#)."""
@@ -185,7 +192,7 @@ class VTEBookBuilder:
             return f"{original_prefix}{additional_prefix} "
 
         for entry in md_files:
-            # Add title.
+            # Add chapter title.
             content: str = f"# {entry.title}\n\n{entry.content}"
 
             # Fix depth.
@@ -193,24 +200,25 @@ class VTEBookBuilder:
                 content = re.sub(r"(#+) ", repl_hash, content)
 
             # Fix image links.
-            content = re.sub(r'\/images\/', 'images/', content)
-            content = re.sub(r'\.svg', '.png', content)
+            content = re.sub(r"\/images\/", "images/", content)
+            content = re.sub(r"\.svg", ".png", content)
 
             # Fix remaining relative links (e.g. code files).
-            content = re.sub(r'\]\(\/', '](https://vulkan-tutorial.com/', content)
+            content = re.sub(r"\]\(\/", "](https://vulkan-tutorial.com/", content)
 
             # Fix chapter references.
             def repl(match):
                 target = match.group(1)
                 target = target.lower()
-                target = re.sub('_', '-', target)
-                target = target.split('/')[-1]
+                target = re.sub("_", "-", target)
+                target = target.split("/")[-1]
 
-                return '](#' + target + ')'
+                return f"](#{target})"
 
-            content = re.sub(r'\]\(!([^)]+)\)', repl, content)
+            content = re.sub(r"\]\(!([^)]+)\)", repl, content)
 
-            temp_markdown += content + '\n\n'
+            # temp_markdown += f"{content}\n\n"
+            temp_markdown += content + "\n\n"
 
         log.info("Writing markdown file...")
 
@@ -229,13 +237,13 @@ class VTEBookBuilder:
             markdown_files = list[VTEMarkdownFile]()
 
         for entry in pathlib.Path(directory_path).iterdir():
-            title_tokens = entry.stem.replace('_', ' ').split(" ")
+            title_tokens = entry.stem.replace("_", " ").split(" ")
             prefix = f"{parent_prefix}{title_tokens[0]}."
 
             if entry.is_dir() is True:
                 log.detail(f"Processing directory: {entry}")
 
-                title = ' '.join(title_tokens[1:])
+                title = " ".join(title_tokens[1:])
 
                 markdown_files.append(VTEMarkdownFile("", current_depth, prefix, title))
 
@@ -247,9 +255,9 @@ class VTEBookBuilder:
             else:
                 log.detail(f"Processing: {entry}")
 
-                title = ' '.join(title_tokens[1:])
+                title = " ".join(title_tokens[1:])
 
-                with open(entry, 'r', encoding="utf-8") as file:
+                with open(entry, "r", encoding="utf-8") as file:
                     content = file.read()
                     markdown_files.append(VTEMarkdownFile(content, current_depth, prefix, title))
 
