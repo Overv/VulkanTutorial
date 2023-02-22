@@ -11,6 +11,7 @@ import subprocess
 
 class VTLogger:
     """A logger"""
+
     def __init__(self, filename:str, log_to_file:bool=True) -> None:
         if log_to_file is True:
             self.log_file = open(filename, "w", encoding="utf-8")
@@ -45,10 +46,13 @@ class VTLogger:
         if self.log_file is not None:
             self.log_file.write(f"{message}\n")
 
+
 class VTEMarkdownFile:
     """Markdown file."""
 
-    def __init__(self, content: str, depth: int, prefix: str, title: str) -> None:
+    def __init__(
+        self, content: str, depth: int, prefix: str, title: str
+    ) -> None:
         self.content: str = content
         self.depth: str = depth
         self.prefix: str = prefix
@@ -66,13 +70,16 @@ class VTEMarkdownFile:
             f" title: '{self.title}', content: '{self.content}'>"
         )
 
+
 class VTEBookBuilder:
     """A 'Markdown' to 'epub' and 'pdf' converter."""
 
     def __init__(self, logger: VTLogger) -> None:
         self.log = logger
 
-    def build_pdf_book(self, language: str, markdown_filepath: pathlib.Path) -> None:
+    def build_pdf_book(
+        self, language: str, markdown_filepath: pathlib.Path
+    ) -> None:
         """Builds a pdf file"""
 
         self.log.info("Building 'pdf'...")
@@ -111,7 +118,9 @@ class VTEBookBuilder:
 
             raise RuntimeError from error
 
-    def build_epub_book(self, language: str, markdown_filepath: pathlib.Path) -> None:
+    def build_epub_book(
+        self, language: str, markdown_filepath: pathlib.Path
+    ) -> None:
         """Buids a epub file"""
 
         self.log.info("Building 'epub'...")
@@ -156,13 +165,17 @@ class VTEBookBuilder:
                     pngs.append(new_path)
                 except FileNotFoundError as error:
                     self.log.error(error)
-                    self.log.warning("Install 'Inkscape' (https://www.inkscape.org)!")
+                    self.log.warning(
+                        "Install 'Inkscape' (https://www.inkscape.org)!"
+                    )
 
                     raise RuntimeError from error
 
         return pngs
 
-    def generate_joined_markdown(self, language: str, output_filename: pathlib.Path) -> None:
+    def generate_joined_markdown(
+        self, language: str, output_filename: pathlib.Path
+    ) -> None:
         """Processes the markdown sources and produces a joined file."""
 
         self.log.info(
@@ -202,7 +215,11 @@ class VTEBookBuilder:
             content = re.sub(r"\.svg", ".png", content)
 
             # Fix remaining relative links (e.g. code files).
-            content = re.sub(r"\]\(\/", "](https://vulkan-tutorial.com/", content)
+            content = re.sub(
+                r"\]\(\/",
+                "](https://vulkan-tutorial.com/",
+                content
+            )
 
             # Fix chapter references.
             def repl(match):
@@ -242,7 +259,9 @@ class VTEBookBuilder:
 
                 title = " ".join(title_tokens[1:])
 
-                markdown_files.append(VTEMarkdownFile("", current_depth, prefix, title))
+                markdown_files.append(
+                    VTEMarkdownFile("", current_depth, prefix, title)
+                )
 
                 self._collect_markdown_files_from_source(
                     entry,
@@ -256,7 +275,9 @@ class VTEBookBuilder:
 
                 with open(entry, "r", encoding="utf-8") as file:
                     content = file.read()
-                    markdown_files.append(VTEMarkdownFile(content, current_depth, prefix, title))
+                    markdown_files.append(
+                        VTEMarkdownFile(content, current_depth, prefix, title)
+                    )
 
         return markdown_files
 
@@ -278,10 +299,15 @@ if __name__ == "__main__":
     generated_pngs = eBookBuilder.convert_svg_to_png("./images")
 
     LANGUAGES = [ "en", "fr" ]
-    OUTPUT_MARKDOWN_FILEPATH = pathlib.Path(f"{out_dir.as_posix()}/temp_ebook.md")
+    OUTPUT_MARKDOWN_FILEPATH = pathlib.Path(
+        f"{out_dir.as_posix()}/temp_ebook.md"
+    )
 
     for lang in LANGUAGES:
-        eBookBuilder.generate_joined_markdown(f"./{lang}", OUTPUT_MARKDOWN_FILEPATH)
+        eBookBuilder.generate_joined_markdown(
+            f"./{lang}",
+            OUTPUT_MARKDOWN_FILEPATH
+        )
 
         try:
             eBookBuilder.build_epub_book(lang, OUTPUT_MARKDOWN_FILEPATH)

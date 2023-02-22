@@ -1,7 +1,8 @@
 *.html
 ads.txt
 
+**/_out/*
+**/.vscode/*
 .DS_Store
 build_ebook.log
 temp_ebook.md
-**/_out/*
