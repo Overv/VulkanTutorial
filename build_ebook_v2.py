@@ -103,7 +103,6 @@ class VTEBookBuilder:
                     "-H", "./ebook/listings-setup.tex",
                     "-o", f"./ebook/Vulkan Tutorial {language}.pdf",
                     "--pdf-engine=xelatex",
-                    # "--metadata=title:Vulkan Tutorial"
                 ]
             )
         except subprocess.CalledProcessError as error:
@@ -125,7 +124,6 @@ class VTEBookBuilder:
                     "--toc",
                     "-o", f"./ebook/Vulkan Tutorial {language}.epub",
                     "--epub-cover-image=ebook/cover.png",
-                    # "--metadata=title:Vulkan Tutorial"
                 ]
             )
         except subprocess.CalledProcessError as error:
@@ -217,7 +215,6 @@ class VTEBookBuilder:
 
             content = re.sub(r"\]\(!([^)]+)\)", repl, content)
 
-            # temp_markdown += f"{content}\n\n"
             temp_markdown += content + "\n\n"
 
         log.info("Writing markdown file...")
