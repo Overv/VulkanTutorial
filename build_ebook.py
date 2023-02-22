@@ -85,7 +85,7 @@ class VTEBookBuilder:
                 ]
             )
         except (FileNotFoundError, subprocess.CalledProcessError) as error:
-            log.error(error)
+            self.log.error(error)
             self.log.warning("Please, install 'xelatex'!")
 
             raise RuntimeError from error
@@ -106,7 +106,7 @@ class VTEBookBuilder:
                 ]
             )
         except subprocess.CalledProcessError as error:
-            log.error(error)
+            self.log.error(error)
             self.log.warning("'pandoc' process failed!")
 
             raise RuntimeError from error
@@ -127,7 +127,7 @@ class VTEBookBuilder:
                 ]
             )
         except subprocess.CalledProcessError as error:
-            log.error(error)
+            self.log.error(error)
             self.log.warning("'pandoc' process failed!")
 
             raise RuntimeError from error
@@ -238,7 +238,7 @@ class VTEBookBuilder:
             prefix = f"{parent_prefix}{title_tokens[0]}."
 
             if entry.is_dir() is True:
-                log.detail(f"Processing directory: {entry}")
+                self.log.detail(f"Processing directory: {entry}")
 
                 title = " ".join(title_tokens[1:])
 
@@ -250,7 +250,7 @@ class VTEBookBuilder:
                     prefix, markdown_files
                 )
             else:
-                log.detail(f"Processing: {entry}")
+                self.log.detail(f"Processing: {entry}")
 
                 title = " ".join(title_tokens[1:])
 
