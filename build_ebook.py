@@ -24,7 +24,7 @@ def create_ebook(path):
                 # "02 Development environment" -> "Development environment"
                 title = ' '.join(title.split(' ')[1:])
 
-                with open(path, 'r') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     markdownFiles.append({
                         'title': title,
                         'filename': os.path.join(root, fn),
@@ -74,19 +74,24 @@ def create_ebook(path):
 
     allMarkdown = metadata + allMarkdown
 
-    with open('ebook.md', 'w') as f:
+    with open('ebook.md', 'w', encoding='utf-8') as f:
         f.write(allMarkdown)
 
     # Building PDF
     print('building pdf...')
 
-    subprocess.check_output(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
-                             '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.pdf', '--pdf-engine=xelatex'])
+    print(' '.join(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
+                             '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', '\"ebook/Vulkan Tutorial ' + name_path + '.pdf\"', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"']))
+    #subprocess.run(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
+    #                         '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.pdf', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"'])
+    os.system(' '.join(['pandoc', 'ebook.md', '-V', 'documentclass=report', '-t', 'latex', '-s',
+                             '--toc', '--listings', '-H', 'ebook/listings-setup.tex', '-o', '\"ebook/Vulkan Tutorial ' + name_path + '.pdf\"', '--pdf-engine=xelatex', '-V CJKmainfont="Microsoft YaHei"']))                             
+
 
     print('building epub...')
-
-    subprocess.check_output(
-        ['pandoc', 'ebook.md', '--toc', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.epub', '--epub-cover-image=ebook/cover.png'])
+    print(' '.join(['pandoc', 'ebook.md', '--toc', '-o', '\"ebook/Vulkan Tutorial ' + name_path + '.epub\"', '--epub-cover-image=ebook/cover.png', '-V CJKmainfont="Microsoft YaHei"']))
+    subprocess.run(
+        ['pandoc', 'ebook.md', '--toc', '-o', 'ebook/Vulkan Tutorial ' + name_path + '.epub', '--epub-cover-image=ebook/cover.png', '-V CJKmainfont=Microsoft YaHei'])
 
     # Clean up
     os.remove('ebook.md')
@@ -105,6 +110,7 @@ for fn in os.listdir('images'):
                                  parts[0] + '.png', 'images/' + fn], stderr=subprocess.STDOUT)
         generatedPngs.append('images/' + parts[0] + '.png')
 
+create_ebook('ch')
 create_ebook('en')
 create_ebook('fr')
 
