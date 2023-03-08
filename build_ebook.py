@@ -1,335 +1,241 @@
-#!/usr/bin/env python3
+"""Generate EPUB and PDF ebooks from sources."""
 
-"""Generates epub and pdf from sources."""
-
-import datetime
-import pathlib
+from datetime import datetime
+import json
+import logging
+from pathlib import Path
 import re
-import shutil
+from tempfile import TemporaryDirectory
 import subprocess
+from dataclasses import dataclass
+from subprocess import CalledProcessError
+from re import Match
+import shutil
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
-class VTLogger:
-    """A logger"""
+def convert_images(images_dir: Path, converted_image_dir: Path) -> None:
+    """Convert all SVG images to PNGs."""
 
-    def __init__(self, filename: str, log_to_file: bool=True) -> None:
-        if log_to_file is True:
-            self.log_file = open(filename, "w", encoding="utf-8")
+    if not converted_image_dir.exists():
+        converted_image_dir.mkdir()
 
-    def __del__(self) -> None:
-        if self.log_file is not None:
-            self.log_file.close()
+    for source_file in images_dir.glob("*"):
+        if source_file.suffix == ".svg":
+            dest_file = converted_image_dir / source_file.with_suffix(".png").name
 
-    def detail(self, message: str) -> None:
-        """Logs a detail message without printing it."""
-        self._log(message, True)
-
-    def error(self, message: str) -> None:
-        """Logs an error."""
-        message = f"Error: {message}"
-        self._log(message)
-
-    def info(self, message: str) -> None:
-        """Logs an info message."""
-        print(message)
-        self._log(f"Info: {message}", True)
-
-    def warning(self, message: str) -> None:
-        """Logs an warning."""
-        message = f"Warning: {message}"
-        self._log(message)
-
-    def _log(self, message: str, no_print: bool=False) -> None:
-        if no_print is False:
-            print(message)
-
-        if self.log_file is not None:
-            self.log_file.write(f"{message}\n")
-
-
-class VTEMarkdownFile:
-    """Markdown file."""
-
-    def __init__(
-        self, content: str, depth: int, prefix: str, title: str
-    ) -> None:
-        self.content: str = content
-        self.depth: str = depth
-        self.prefix: str = prefix
-        self.title: str = title
-
-    def __repr__(self) -> str:
-        return (
-            f"<VTEMarkdownFile depth: {self.depth}, prefix: '{self.prefix}',"
-            f" title: '{self.title}', content: '{self.content}'>"
-        )
-
-    def __str__(self) -> str:
-        return (
-            f"<VTEMarkdownFile depth: {self.depth}, prefix: '{self.prefix}',"
-            f" title: '{self.title}', content: '{self.content}'>"
-        )
-
-
-class VTEBookBuilder:
-    """A 'Markdown' to 'epub' and 'pdf' converter."""
-
-    def __init__(self, logger: VTLogger) -> None:
-        self.log = logger
-
-    def build_pdf_book(
-        self, language: str, markdown_filepath: pathlib.Path
-    ) -> None:
-        """Builds a pdf file"""
-
-        self.log.info("Building 'pdf'...")
-
-        try:
-            subprocess.check_output(
-                [
-                    "xelatex",
-                    "--version",
-                ]
-            )
-        except (FileNotFoundError, subprocess.CalledProcessError) as error:
-            self.log.error(error)
-            self.log.warning("Please, install 'xelatex'!")
-
-            raise RuntimeError from error
-
-        try:
-            subprocess.check_output(
-                [
-                    "pandoc",
-                    markdown_filepath.as_posix(),
-                    "-V", "documentclass=report",
-                    "-t", "latex",
-                    "-s",
-                    "--toc",
-                    "--listings",
-                    "-H", "./ebook/listings-setup.tex",
-                    "-o", f"./ebook/Vulkan Tutorial {language}.pdf",
-                    "--pdf-engine=xelatex",
-                ]
-            )
-        except subprocess.CalledProcessError as error:
-            self.log.error(error)
-            self.log.warning("'pandoc' process failed!")
-
-            raise RuntimeError from error
-
-    def build_epub_book(
-        self, language: str, markdown_filepath: pathlib.Path
-    ) -> None:
-        """Buids a epub file"""
-
-        self.log.info("Building 'epub'...")
-
-        try:
-            subprocess.check_output(
-                [
-                    "pandoc",
-                    markdown_filepath.as_posix(),
-                    "--toc",
-                    "-o", f"./ebook/Vulkan Tutorial {language}.epub",
-                    "--epub-cover-image=ebook/cover.png",
-                ]
-            )
-        except subprocess.CalledProcessError as error:
-            self.log.error(error)
-            self.log.warning("'pandoc' process failed!")
-
-            raise RuntimeError from error
-
-    def convert_svg_to_png(self, images_folder: str) -> list[pathlib.Path]:
-        """Converts *.svg images to *.png using Inkscape"""
-
-        self.log.info("Converting 'svg' images...")
-
-        pngs = list[pathlib.Path]()
-
-        for entry in pathlib.Path(images_folder).iterdir():
-            if entry.suffix == ".svg":
-                new_path = entry.with_suffix(".png")
-
-                try:
-                    subprocess.check_output(
-                        [
-                            "inkscape",
-                            f"--export-filename={new_path.as_posix()}",
-                            entry.as_posix()
-                        ],
-                        stderr=subprocess.STDOUT
-                    )
-
-                    pngs.append(new_path)
-                except FileNotFoundError as error:
-                    self.log.error(error)
-                    self.log.warning(
-                        "Install 'Inkscape' (https://www.inkscape.org)!"
-                    )
-
-                    raise RuntimeError from error
-
-        return pngs
-
-    def generate_joined_markdown(
-        self, language: str, output_filename: pathlib.Path
-    ) -> None:
-        """Processes the markdown sources and produces a joined file."""
-
-        self.log.info(
-            f"Generating a temporary 'Markdown' file: '{output_filename}'" \
-            f" for language '{language}'..."
-        )
-
-        md_files = self._collect_markdown_files_from_source(language)
-        md_files = sorted(md_files, key=lambda file: file.prefix)
-
-        # Add title.
-        current_date: str = datetime.datetime.now().strftime('%B %Y')
-
-        temp_markdown: str = (
-            "% Vulkan Tutorial\n"
-            "% Alexander Overvoorde\n"
-            f"% {current_date} \n\n"
-        )
-
-        def repl_hash(match):
-            """Calculates the proper `Markdown` heading depth (#)."""
-            original_prefix = match.group(1)
-            additional_prefix: str = "#" * entry.depth
-
-            return f"{original_prefix}{additional_prefix} "
-
-        for entry in md_files:
-            # Add chapter title.
-            content: str = f"# {entry.title}\n\n{entry.content}"
-
-            # Fix depth.
-            if entry.depth > 0:
-                content = re.sub(r"(#+) ", repl_hash, content)
-
-            # Fix image links.
-            content = re.sub(r"\/images\/", "images/", content)
-            content = re.sub(r"\.svg", ".png", content)
-
-            # Fix remaining relative links (e.g. code files).
-            content = re.sub(
-                r"\]\(\/",
-                "](https://vulkan-tutorial.com/",
-                content
-            )
-
-            # Fix chapter references.
-            def repl(match):
-                target = match.group(1)
-                target = target.lower()
-                target = re.sub("_", "-", target)
-                target = target.split("/")[-1]
-
-                return f"](#{target})"
-
-            content = re.sub(r"\]\(!([^)]+)\)", repl, content)
-
-            temp_markdown += content + "\n\n"
-
-        log.info("Writing markdown file...")
-
-        with open(output_filename, "w", encoding="utf-8") as file:
-            file.write(temp_markdown)
-
-    def _collect_markdown_files_from_source(
-        self,
-        directory_path: pathlib.Path,
-        current_depth: int=int(0),
-        parent_prefix: str=str(),
-        markdown_files: list[VTEMarkdownFile]=None
-    ) -> list[VTEMarkdownFile]:
-        """Traverses the directory tree, processes `Markdown` files."""
-        if markdown_files is None:
-            markdown_files = list[VTEMarkdownFile]()
-
-        for entry in pathlib.Path(directory_path).iterdir():
-            title_tokens = entry.stem.replace("_", " ").split(" ")
-            prefix = f"{parent_prefix}{title_tokens[0]}."
-
-            if entry.is_dir() is True:
-                self.log.detail(f"Processing directory: {entry}")
-
-                title = " ".join(title_tokens[1:])
-
-                markdown_files.append(
-                    VTEMarkdownFile("", current_depth, prefix, title)
+            try:
+                subprocess.check_output(
+                    [
+                        "inkscape",
+                        f"--export-filename={dest_file.as_posix()}",
+                        source_file.as_posix(),
+                    ],
+                    stderr=subprocess.STDOUT,
                 )
-
-                self._collect_markdown_files_from_source(
-                    entry,
-                    (current_depth + 1),
-                    prefix, markdown_files
+            except FileNotFoundError:
+                raise RuntimeError(
+                    f"failed to convert {source_file.name} to {dest_file.name}: "
+                    "inkscape not installed"
                 )
-            else:
-                self.log.detail(f"Processing: {entry}")
+            except CalledProcessError as e:
+                raise RuntimeError(
+                    f"failed to convert {source_file.name} to {dest_file.name}: "
+                    f"inkscape failed: {e.output.decode()}"
+                )
+        else:
+            shutil.copy(source_file, converted_image_dir / source_file.name)
 
-                title = " ".join(title_tokens[1:])
-
-                with open(entry, "r", encoding="utf-8") as file:
-                    content = file.read()
-                    markdown_files.append(
-                        VTEMarkdownFile(content, current_depth, prefix, title)
-                    )
-
-        return markdown_files
+    return converted_image_dir
 
 
-###############################################################################
+@dataclass
+class MarkdownChapter:
+    title: str
+    depth: int
+    contents: str
+
+
+def find_markdown_chapters(markdown_dir: Path) -> list[Path]:
+    """Find all Markdown files and interpret them as chapters."""
+
+    markdown_entries = list(markdown_dir.rglob("*"))
+    markdown_entries.sort()
+
+    markdown_chapters = []
+
+    for markdown_path in markdown_entries:
+        # Skip privacy policy (regardless of language)
+        if markdown_path.name.startswith("95_"):
+            continue
+
+        title = markdown_path.stem.partition("_")[-1].replace("_", " ")
+        depth = len(markdown_path.relative_to(markdown_dir).parts) - 1
+
+        markdown_chapters.append(
+            MarkdownChapter(
+                title=title,
+                depth=depth,
+                contents=markdown_path.read_text() if markdown_path.is_file() else "",
+            )
+        )
+
+    return markdown_chapters
+
+
+def generate_markdown_preface() -> str:
+    current_date = datetime.now().strftime("%B %Y")
+
+    return "\n".join(
+        [
+            "% Vulkan Tutorial",
+            "% Alexander Overvoorde",
+            f"% {current_date}",
+        ]
+    )
+
+
+def generate_markdown_chapter(
+    chapter: MarkdownChapter, converted_image_dir: Path
+) -> str:
+    contents = f"# {chapter.title}\n\n{chapter.contents}"
+
+    # Adjust titles based on depth of chapter itself
+    if chapter.depth > 0:
+
+        def adjust_title_depth(match: Match) -> str:
+            return ("#" * chapter.depth) + match.group(0)
+
+        contents = re.sub(r"#+ ", adjust_title_depth, contents)
+
+    # Fix image links
+    contents = contents.replace("/images/", f"{converted_image_dir.as_posix()}/")
+    contents = contents.replace(".svg", ".png")
+
+    # Fix remaining relative links
+    contents = contents.replace("(/code", "(https://vulkan-tutorial.com/code")
+    contents = contents.replace("(/resources", "(https://vulkan-tutorial.com/resources")
+
+    # Fix chapter references
+    def fix_chapter_reference(match: Match) -> str:
+        target = match.group(1).lower().replace("_", "-").split("/")[-1]
+        return f"](#{target})"
+
+    contents = re.sub(r"\]\(!([^)]+)\)", fix_chapter_reference, contents)
+
+    return contents
+
+
+def compile_full_markdown(
+    markdown_dir: Path, markdown_file: Path, converted_image_dir: Path
+) -> Path:
+    """Combine Markdown source files into one large file."""
+
+    markdown_fragments = [generate_markdown_preface()]
+
+    for chapter in find_markdown_chapters(markdown_dir):
+        markdown_fragments.append(
+            generate_markdown_chapter(chapter, converted_image_dir)
+        )
+
+    markdown_file.write_text("\n\n".join(markdown_fragments))
+
+    return markdown_file
+
+
+def build_pdf(markdown_file: Path, pdf_file: Path) -> Path:
+    """Build combined Markdown file into a PDF."""
+
+    try:
+        subprocess.check_output(["xelatex", "--version"])
+    except FileNotFoundError:
+        raise RuntimeError(f"failed to build {pdf_file}: xelatex not installed")
+
+    try:
+        subprocess.check_output(
+            [
+                "pandoc",
+                markdown_file.as_posix(),
+                "-V",
+                "documentclass=report",
+                "-t",
+                "latex",
+                "-s",
+                "--toc",
+                "--listings",
+                "-H",
+                "ebook/listings-setup.tex",
+                "-o",
+                pdf_file.as_posix(),
+                "--pdf-engine=xelatex",
+            ]
+        )
+    except CalledProcessError as e:
+        raise RuntimeError(
+            f"failed to build {pdf_file}: pandoc failed: {e.output.decode()}"
+        )
+
+    return pdf_file
+
+
+def build_epub(markdown_file: Path, epub_file: Path) -> Path:
+    try:
+        subprocess.check_output(
+            [
+                "pandoc",
+                markdown_file.as_posix(),
+                "--toc",
+                "-o",
+                epub_file.as_posix(),
+                "--epub-cover-image=ebook/cover.png",
+            ]
+        )
+    except CalledProcessError as e:
+        raise RuntimeError(
+            f"failed to build {epub_file}: pandoc failed: {e.output.decode()}"
+        )
+
+    return epub_file
+
+
+def main() -> None:
+    """Build ebooks."""
+    with TemporaryDirectory() as raw_out_dir:
+        out_dir = Path(raw_out_dir)
+
+        logging.info("converting svg images to png...")
+        converted_image_dir = convert_images(
+            Path("images"), out_dir / "converted_images"
+        )
+
+        languages = json.loads(Path("config.json").read_text())["languages"].keys()
+        logging.info(f"building ebooks for languages {'/'.join(languages)}")
+
+        for lang in languages:
+            logging.info(f"{lang}: generating markdown...")
+            markdown_file = compile_full_markdown(
+                Path(lang), out_dir / f"{lang}.md", converted_image_dir
+            )
+
+            logging.info(f"{lang}: building pdf...")
+            pdf_file = build_pdf(markdown_file, out_dir / f"{lang}.pdf")
+
+            logging.info(f"{lang}: building epub...")
+            epub_file = build_epub(markdown_file, out_dir / f"{lang}.epub")
+
+            shutil.copy(pdf_file, f"ebook/Vulkan Tutorial {lang}.pdf")
+            shutil.copy(epub_file, f"ebook/Vulkan Tutorial {lang}.epub")
+
+    logging.info("done")
 
 
 if __name__ == "__main__":
-
-    out_dir = pathlib.Path("./_out")
-    if not out_dir.exists():
-        out_dir.mkdir()
-
-    log = VTLogger(f"{out_dir.as_posix()}/build_ebook.log")
-    eBookBuilder = VTEBookBuilder(log)
-
-    log.info("--- Exporting ebooks:")
-
-    generated_pngs = eBookBuilder.convert_svg_to_png("./images")
-
-    LANGUAGES = [ "en", "fr" ]
-    OUTPUT_MARKDOWN_FILEPATH = pathlib.Path(
-        f"{out_dir.as_posix()}/temp_ebook.md"
-    )
-
-    for lang in LANGUAGES:
-        eBookBuilder.generate_joined_markdown(
-            f"./{lang}",
-            OUTPUT_MARKDOWN_FILEPATH
-        )
-
-        try:
-            eBookBuilder.build_epub_book(lang, OUTPUT_MARKDOWN_FILEPATH)
-            eBookBuilder.build_pdf_book(lang, OUTPUT_MARKDOWN_FILEPATH)
-        except RuntimeError as runtimeError:
-            log.error("Termininating...")
-
-        # Clean up.
-        if OUTPUT_MARKDOWN_FILEPATH.exists():
-            OUTPUT_MARKDOWN_FILEPATH.unlink()
-
-    log.info("Cleaning up...")
-
-    # Clean up temporary files.
-    for png_path in generated_pngs:
-        try:
-            png_path.unlink()
-        except FileNotFoundError as fileError:
-            log.error(fileError)
-
-    # Comment out to view log file.
-    if out_dir.exists():
-        shutil.rmtree(out_dir)
-
-    log.info("---- DONE!")
+    try:
+        main()
+    except RuntimeError as e:
+        logging.error(str(e))
