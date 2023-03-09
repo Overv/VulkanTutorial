@@ -59,8 +59,8 @@ qui permet de s'éloigner de certains détails ennuyeux et d'éviter certains ty
 
 Si vous préférez lire ce tutoriel en E-book, vous pouvez en télécharger une version EPUB ou PDF ici:
 
-* [EPUB](https://raw.githubusercontent.com/Overv/VulkanTutorial/main/ebook/Vulkan%20Tutorial%20fr.epub)
-* [PDF](https://raw.githubusercontent.com/Overv/VulkanTutorial/main/ebook/Vulkan%20Tutorial%20fr.pdf)
+* [EPUB](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20fr.epub)
+* [PDF](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20fr.pdf)
 
 ## Structure du tutoriel
 

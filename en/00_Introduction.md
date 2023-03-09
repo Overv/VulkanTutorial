@@ -57,8 +57,8 @@ To make it easier to follow along for developers using other programming languag
 If you prefer to read this tutorial as an e-book, then you can download an EPUB
 or PDF version here:
 
-* [EPUB](https://raw.githubusercontent.com/Overv/VulkanTutorial/main/ebook/Vulkan%20Tutorial%20en.epub)
-* [PDF](https://raw.githubusercontent.com/Overv/VulkanTutorial/main/ebook/Vulkan%20Tutorial%20en.pdf)
+* [EPUB](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20en.epub)
+* [PDF](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20en.pdf)
 
 ## Tutorial structure
 
