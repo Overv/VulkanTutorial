@@ -228,8 +228,8 @@ def main() -> None:
             logging.info(f"{lang}: building epub...")
             epub_file = build_epub(markdown_file, out_dir / f"{lang}.epub")
 
-            shutil.copy(pdf_file, f"ebook/Vulkan Tutorial {lang}.pdf")
-            shutil.copy(epub_file, f"ebook/Vulkan Tutorial {lang}.epub")
+            shutil.copy(pdf_file, f"ebook/vulkan_tutorial_{lang}.pdf")
+            shutil.copy(epub_file, f"ebook/vulkan_tutorial_{lang}.epub")
 
     logging.info("done")
 
