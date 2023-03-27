@@ -6,3 +6,5 @@ ads.txt
 .DS_Store
 build_ebook.log
 temp_ebook.md
+ebook/*.pdf
+ebook/*.epub

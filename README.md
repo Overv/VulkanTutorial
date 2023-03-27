@@ -16,8 +16,8 @@ E-book
 
 This guide is now available in e-book formats as well:
 
-* EPUB ([English](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20en.epub), [French](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20fr.epub))
-* PDF ([English](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20en.pdf), [French](https://github.com/Overv/VulkanTutorial/raw/main/ebook/Vulkan%20Tutorial%20fr.pdf))
+* EPUB ([English](https://vulkan-tutorial.com/resources/vulkan_tutorial_en.epub), [French](https://vulkan-tutorial.com/resources/vulkan_tutorial_fr.epub))
+* PDF ([English](https://vulkan-tutorial.com/resources/vulkan_tutorial_en.pdf), [French](https://vulkan-tutorial.com/resources/vulkan_tutorial_fr.pdf))
 
 The e-book can be built from the existing content by running:
 
