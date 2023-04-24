@@ -308,6 +308,8 @@ must use a function with the `vk*KHR` naming convention:
 
 ```c++
 void drawFrame() {
+    ...
+
     uint32_t imageIndex;
     vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 }
