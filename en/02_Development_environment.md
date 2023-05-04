@@ -367,7 +367,7 @@ use tabs for indentation instead of spaces.
 
 ```make
 VulkanTest: main.cpp
-    g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
+	g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
 ```
 
 Verify that this rule works by saving the makefile and running `make` in the
@@ -381,10 +381,10 @@ run the executable and the latter will remove a built executable:
 .PHONY: test clean
 
 test: VulkanTest
-    ./VulkanTest
+	./VulkanTest
 
 clean:
-    rm -f VulkanTest
+	rm -f VulkanTest
 ```
 
 Running `make test` should show the program running successfully, and displaying the number of Vulkan extensions. The application should exit with the success return code (`0`) when you close the empty window. You should now have a complete makefile that resembles the following:
@@ -394,7 +394,7 @@ CFLAGS = -std=c++17 -O2
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 VulkanTest: main.cpp
-    g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
+	g++ $(CFLAGS) -o VulkanTest main.cpp $(LDFLAGS)
 
 .PHONY: test clean
 
@@ -402,7 +402,7 @@ test: VulkanTest
 	./VulkanTest
 
 clean:
-    rm -f VulkanTest
+	rm -f VulkanTest
 ```
 
 You can now use this directory as a template for your Vulkan projects. Make a copy, rename it to something like `HelloTriangle` and remove all of the code in `main.cpp`.
