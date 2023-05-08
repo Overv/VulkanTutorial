@@ -1024,7 +1024,7 @@ private:
 
         VkImageView imageView;
         if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture image view!");
+            throw std::runtime_error("failed to create image view!");
         }
 
         return imageView;
