@@ -5,7 +5,7 @@ title: 背景介绍
 ## 关于本教程
 
 本教程将帮助读者学习使用 [Vulkan](https://www.khronos.org/vulkan/) 的基本知识。Vulkan 是一种新近的用于图形和计算的应用程序接口 (API)，
-由[科纳斯组织](https://www.khronos.org/)发表，其为现代显卡提供了很好的抽象。相比于其它已有的 API 如
+由 [Khronos 组织](https://www.khronos.org/)（以OpenGL闻名）推出，其为现代显卡提供了很好的抽象。相比于其它已有的 API 如
 [OpenGL](https://zh.wikipedia.org/wiki/OpenGL) 和 [Direct3D](https://zh.wikipedia.org/wiki/Direct3D)，Vulkan 能让你更明确地
 表述程序要做什么，从而带来性能提升，减少因为驱动程序导致的意外行为。Vulkan 背后的理念和
 [Direct3D 12](https://zh.wikipedia.org/wiki/Direct3D#Direct3D_12) 以及 [Metal](https://zh.wikipedia.org/wiki/Metal_(API))
@@ -32,8 +32,8 @@ title: 背景介绍
 本教程不会假定读者了解 OpenGL 或 Direct3D 的相关概念，但仍要求具备 3D 计算机图形学的基础知识。例如，本教程不会解释透视投影背后的数学原理。
 [这本在线书籍](https://paroj.github.io/gltut/)很好地介绍了计算机图形学的概念。其他一些优秀的计算机图形学资源包括：
 
-* [用一个周末实现光线追踪](https://github.com/RayTracing/raytracing.github.io)
-* [基于物理的渲染](http://www.pbr-book.org/)
+* [用一个周末实现光线追踪（Ray tracing in one weekend）](https://github.com/RayTracing/raytracing.github.io)
+* [基于物理的渲染（Physically Based Rendering book）](http://www.pbr-book.org/)
 * Vulkan 被应用于开源图形引擎 [Quake](https://github.com/Novum/vkQuake) 和 
   [DOOM 3](https://github.com/DustinHLand/vkDOOM3) 中
 
@@ -75,7 +75,7 @@ title: 背景介绍
 驱动程序版本，源代码，预期的行为和实际行为。
 
 本教程欢迎来自社区的踊跃参与。Vulkan 仍然是非常新近的接口，最佳实践尚未完全得到归纳。如果你对本教程和网站本身有任何类型的反馈，请不要犹豫，向
-[GitHub 仓库](https://github.com/Overv/VulkanTutorial)提交 issue 或 pull request。你可以*关注*该存储库，这样当教程更新时就能收
+[GitHub 仓库](https://github.com/Overv/VulkanTutorial)提交 issue 或 pull request。你可以 *watch* 该存储库，这样当教程更新时就能收
 到通知。
 
 经历了用 Vulkan 在屏幕上画出第一个三角形的“仪式”后，我们会开始扩展简单的画三角形的程序，包括进行线性变换，加载纹理和三维模型。
