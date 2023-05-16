@@ -236,8 +236,8 @@ We're now going to compile these into SPIR-V bytecode using the
 Create a `compile.bat` file with the following contents:
 
 ```bash
-C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.vert -o vert.spv
-C:/VulkanSDK/x.x.x.x/Bin32/glslc.exe shader.frag -o frag.spv
+C:/VulkanSDK/x.x.x.x/Bin/glslc.exe shader.vert -o vert.spv
+C:/VulkanSDK/x.x.x.x/Bin/glslc.exe shader.frag -o frag.spv
 pause
 ```
 
