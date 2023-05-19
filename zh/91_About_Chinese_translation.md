@@ -23,12 +23,21 @@ daux.io 的基本使用规则和其支持的 Markdwon 语法。
 
 注意，文本以空行分段，没有首行缩进。
 
+文章会经过预处理器处理，Vulkan 类型和函数名称会自动加上行内代码和指向相应页面的超链接，如 VkResult。中文翻译不应加上超链接，是否给原文没有行
+内代码格式的类型和函数名等加上行内代码格式则随意，最后显示效果正确即可。
+
 ## 术语翻译
 
 参考 [OpenGL 3.3 教程的翻译术语对照](https://github.com/cybercser/OpenGL_3_3_Tutorial_Translation/blob/master/%E7%BF%BB%E8%AF%91%E6%9C%AF%E8%AF%AD%E5%AF%B9%E7%85%A7.md)：
 
 - 以[《游戏引擎架构》中英词汇索引表](https://www.cnblogs.com/miloyip/p/GameEngineArchitectureIndex.html)为参考标准；
-- 某些术语可以保留英文原文，如使用“uniform buffer”或“uniform 缓冲”而非“统一缓冲区”，“统一的缓冲区”。
+- 某些术语可以保留英文原文，如使用“uniform buffer”或“uniform 缓冲”而非“统一缓冲区”，“统一的缓冲区”；
+- 在第一次出现相应术语时，用括号注明英文原文，如果是保留英文原文的术语，则注明中文翻译。
 
-<!-- TODO: 列出需要保留英文原文的情形，如 uniform buffer -->
+需要保留英文原文的术语：
+
+- 所有具体的 Vulkan API 的类型、枚举、函数、结构体成员名等。
+- render pass：渲染流程，渲染步骤
+
+
 <!-- TODO: 致谢 -->
