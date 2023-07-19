@@ -196,6 +196,14 @@ Set the `pResolveAttachments` subpass struct member to point to the newly create
     ...
 ```
 
+Since we're reusing the multisampled color image, it's necessary to update the `srcAccessMask` of the `VkSubpassDependency`. This update ensures that any write operations to the color attachment are completed before subsequent ones begin, thus preventing write-after-write hazards that can lead to unstable rendering results:
+
+```c++
+    ...
+    dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    ...
+```
+
 Now update render pass info struct with the new color attachment:
 
 ```c++
