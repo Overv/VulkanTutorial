@@ -219,6 +219,11 @@ include the Vulkan runtime and that your graphics card is supported. See the
 [introduction chapter](!en/Introduction) for links to drivers from the major
 vendors.
 
+### X Window System and XFree86-VidModeExtension
+It is possible that these libraries are not on the system, if not, you can install them using the following commands:
+* `sudo apt install libxxf86vm-dev` or `dnf install libXxf86vm-devel`: Provides an interface to the XFree86-VidModeExtension.
+* `sudo apt install libxi-dev` or `dnf install libXi-devel`: Provides an X Window System client interface to the XINPUT extension.
+
 ### GLFW
 
 As mentioned before, Vulkan by itself is a platform agnostic API and does not
