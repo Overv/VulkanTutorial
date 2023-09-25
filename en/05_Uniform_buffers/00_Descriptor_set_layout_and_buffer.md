@@ -13,11 +13,11 @@ images. We're going to set up a buffer that contains the transformation matrices
 and have the vertex shader access them through a descriptor. Usage of
 descriptors consists of three parts:
 
-* Specify a descriptor layout during pipeline creation
+* Specify a descriptor set layout during pipeline creation
 * Allocate a descriptor set from a descriptor pool
 * Bind the descriptor set during rendering
 
-The *descriptor layout* specifies the types of resources that are going to be
+The *descriptor set layout* specifies the types of resources that are going to be
 accessed by the pipeline, just like a render pass specifies the types of
 attachments that will be accessed. A *descriptor set* specifies the actual
 buffer or image resources that will be bound to the descriptors, just like a
@@ -86,7 +86,7 @@ void main() {
 
 Note that the order of the `uniform`, `in` and `out` declarations doesn't
 matter. The `binding` directive is similar to the `location` directive for
-attributes. We're going to reference this binding in the descriptor layout. The
+attributes. We're going to reference this binding in the descriptor set layout. The
 line with `gl_Position` is changed to use the transformations to compute the
 final position in clip coordinates. Unlike the 2D triangles, the last component
 of the clip coordinates may not be `1`, which will result in a division when
@@ -208,7 +208,7 @@ layouts here, because a single one already includes all of the bindings. We'll
 get back to that in the next chapter, where we'll look into descriptor pools and
 descriptor sets.
 
-The descriptor layout should stick around while we may create new graphics
+The descriptor set layout should stick around while we may create new graphics
 pipelines i.e. until the program ends:
 
 ```c++
@@ -411,6 +411,6 @@ In the next chapter we'll look at descriptor sets, which will actually bind the
 `VkBuffer`s to the uniform buffer descriptors so that the shader can access this
 transformation data.
 
-[C++ code](/code/22_descriptor_layout.cpp) /
+[C++ code](/code/22_descriptor_set_layout.cpp) /
 [Vertex shader](/code/22_shader_ubo.vert) /
 [Fragment shader](/code/22_shader_ubo.frag)
