@@ -1,6 +1,6 @@
 ## Introduction
 
-The descriptor layout from the previous chapter describes the type of
+The descriptor set layout from the previous chapter describes the type of
 descriptors that can be bound. In this chapter we're going to create
 a descriptor set for each `VkBuffer` resource to bind it to the
 uniform buffer descriptor.
@@ -95,7 +95,7 @@ void createDescriptorSets() {
 
 A descriptor set allocation is described with a `VkDescriptorSetAllocateInfo`
 struct. You need to specify the descriptor pool to allocate from, the number of
-descriptor sets to allocate, and the descriptor layout to base them on:
+descriptor sets to allocate, and the descriptor set layout to base them on:
 
 ```c++
 std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
@@ -374,7 +374,7 @@ Don't forget to recompile your shader after removing the `foo` field.
 ## Multiple descriptor sets
 
 As some of the structures and function calls hinted at, it is actually possible
-to bind multiple descriptor sets simultaneously. You need to specify a descriptor layout for
+to bind multiple descriptor sets simultaneously. You need to specify a descriptor set layout for
 each descriptor set when creating the pipeline layout. Shaders can then
 reference specific descriptor sets like this:
 
