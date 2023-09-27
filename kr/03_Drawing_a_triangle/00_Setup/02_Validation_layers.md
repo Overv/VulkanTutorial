@@ -1,27 +1,16 @@
-## What are validation layers?
+## 검증 레이어란?
 
-The Vulkan API is designed around the idea of minimal driver overhead and one of
-the manifestations of that goal is that there is very limited error checking in
-the API by default. Even mistakes as simple as setting enumerations to incorrect
-values or passing null pointers to required parameters are generally not
-explicitly handled and will simply result in crashes or undefined behavior.
-Because Vulkan requires you to be very explicit about everything you're doing,
-it's easy to make many small mistakes like using a new GPU feature and
-forgetting to request it at logical device creation time.
+Vulkan API는 최소한의 드라이버 오버헤드를 기반으로 설계되었고 그를 위해서 기본적으로 API에서는 최소한의 오류 체크 기능만을 포함하고 있습니다. 열거자를 잘못된 값으로 설정한다거나 필요한 매개변수에 널 포인터를 넘긴다거나 하는 간단한 오류도 일반적으로는 명시적으로 처리되지 않아서 크래시나 정의되지 않은 동작을 일으키게 됩니다. Vulkan은 여러분이 하는 작업이 매우 명시적이기를 요구하기 떄문에, 새로운 GPU의 기능을 사용한다거나, 논리적 장치 생성 때 필요한 것들을 깜빡한다거나 하는 작은 실수를 저지르기 쉽습니다.
 
-However, that doesn't mean that these checks can't be added to the API. Vulkan
-introduces an elegant system for this known as *validation layers*. Validation
-layers are optional components that hook into Vulkan function calls to apply
-additional operations. Common operations in validation layers are:
+하지만, 그렇다고 그러한 체크 기능이 API에 포함될 수 없는것은 아닙니다. Vulkan은 *검증 레이어*라고 알려진 우아한 해결책을 만들었습니다. 검증 레이어는 선택적인 구성요소로 Vulkan 함수 호출에 후킹(hook)할 수 있는 추가적인 연산입니다. 일반적으로 검증 레이어에서 수행하는 연산은:
 
-* Checking the values of parameters against the specification to detect misuse
-* Tracking creation and destruction of objects to find resource leaks
-* Checking thread safety by tracking the threads that calls originate from
-* Logging every call and its parameters to the standard output
-* Tracing Vulkan calls for profiling and replaying
+- 명세를 기반으로 매개변수의 값을 체크하여 잘못된 사용을 탐지
+- 리소스의 누수를 탐지하기 위해 객체의 생성과 소멸을 추적
+- 호출 지점으로부터 쓰레드를 추적하여 쓰레드 세이프티(safety)를 확인
+- 표준 출력에 모든 호출과 매개변수를 로깅(logging)
+- 프로파일링(profiling)과 리플레이(replaying)를 위한 Vulkan 호출 추적
 
-Here's an example of what the implementation of a function in a diagnostics
-validation layer could look like:
+진단(diagnostics) 검증 레이어의 함수 구현 예시는 아래와 같습니다:
 
 ```c++
 VkResult vkCreateInstance(
@@ -38,42 +27,20 @@ VkResult vkCreateInstance(
 }
 ```
 
-These validation layers can be freely stacked to include all the debugging
-functionality that you're interested in. You can simply enable validation layers
-for debug builds and completely disable them for release builds, which gives you
-the best of both worlds!
+이러한 검증 레이어들은 여러분이 의도하는 모든 디버깅 기능들을 얼마든지 누적(stack)할 수 있도록 되어 있습니다. 디버깅 빌드에서 검증 레이어를 활성화 하고 릴리즈 빌드에서는 비활성화 하면 양 쪽 상황에서 모두 문제가 없을 것입니다.
 
-Vulkan does not come with any validation layers built-in, but the LunarG Vulkan
-SDK provides a nice set of layers that check for common errors. They're also
-completely [open source](https://github.com/KhronosGroup/Vulkan-ValidationLayers),
-so you can check which kind of mistakes they check for and contribute. Using the
-validation layers is the best way to avoid your application breaking on
-different drivers by accidentally relying on undefined behavior.
+Vulkan은 내장 검증 레이어를 제공하지는 않지만 LunarG Vulkan SDK에서는 흔히 발생하는 오류 검출을 위한 레이어들을 제공하고 있습니다. 완전히 [오픈 소스](https://github.com/KhronosGroup/Vulkan-ValidationLayers)이니, 어떤 종류의 실수를 탐지해 주는지 알 수 있고, 여러분이 기여도 할 수 있습니다. 검증 레이어를 사용하는 것이 여러분의 응용 프로그램이 다른 드라이버에서 정의되지 않은 동작으로 인해 올바로 동작하지 않는 것을 방지하는 가장 좋은 방법입니다.
 
-Validation layers can only be used if they have been installed onto the system.
-For example, the LunarG validation layers are only available on PCs with the
-Vulkan SDK installed.
+검증 레이어는 시스템에 설치되어 있어야 사용 가능합니다. 예를 들어 LunarG 검증 레이어는 Vulkan SDK가 설치된 PC에서만 사용 가능합니다.
 
-There were formerly two different types of validation layers in Vulkan: instance
-and device specific. The idea was that instance layers would only check
-calls related to global Vulkan objects like instances, and device specific layers
-would only check calls related to a specific GPU. Device specific layers have now been
-deprecated, which means that instance validation layers apply to all Vulkan
-calls. The specification document still recommends that you enable validation
-layers at device level as well for compatibility, which is required by some
-implementations. We'll simply specify the same layers as the instance at logical
+Vulkan에는 두 가지 종류의 검증 레이어가 존재하는데 인스턴스와 장치(device) 레이어입니다. 인스턴스 레이어는 인스턴스와 같은 전역 Vulkan 객체들만을 체크하고 장치 레이어는 특정 GPU에 관련된 호출만을 체크합니다. 현재 장치 레이어는 더 이상 사용되지 않으며(deprecated), 인스턴스 검증 레이어가 모든 Vulkan 호출에 적용됩니다. 명세 문서에는 여전히 호환성을 위해 장치 수준에서 검증 레이어를 활성화 할 것을 권장하고 있습니다. We'll simply specify the same layers as the instance at logical
 device level, which we'll see [later on](!en/Drawing_a_triangle/Setup/Logical_device_and_queues).
 
-## Using validation layers
+## 검증 레이어 사용하기
 
-In this section we'll see how to enable the standard diagnostics layers provided
-by the Vulkan SDK. Just like extensions, validation layers need to be enabled by
-specifying their name. All of the useful standard validation is bundled into a layer included in the SDK that is known as `VK_LAYER_KHRONOS_validation`.
+이 장에서 우리는 Vulkan SDK에서 제공하는 표준 진단 레이어를 활성화 하는 법을 알아볼 것입니다. 확장과 마찬가지로, 검증 레이어는 그 이름을 명시하여 활성화해야 합니다. 모든 유용한 표준 검증들은 SDK에 포함되어 있는 `VK_LAYER_KHRONOS_validation`이라는 레이어에 포함되어 있습니다.
 
-Let's first add two configuration variables to the program to specify the layers
-to enable and whether to enable them or not. I've chosen to base that value on
-whether the program is being compiled in debug mode or not. The `NDEBUG` macro
-is part of the C++ standard and means "not debug".
+먼저 프로그램에 두 개의 구성 변수를 추가하여 사용할 레이어를 명시하고 그들을 활성화 할것인지 말지를 알려 줍시오. 저는 디버깅 모드인지 아닌지에 따라 값을 설정하도록 했습니다. `NDEBUG` 매크로는 C++ 표준에 포함된 매크로로 "디버그가 아님"을 의미합니다.
 
 ```c++
 const uint32_t WIDTH = 800;
@@ -90,11 +57,7 @@ const std::vector<const char*> validationLayers = {
 #endif
 ```
 
-We'll add a new function `checkValidationLayerSupport` that checks if all of
-the requested layers are available. First list all of the available layers
-using the `vkEnumerateInstanceLayerProperties` function. Its usage is identical
-to that of `vkEnumerateInstanceExtensionProperties` which was discussed in the
-instance creation chapter.
+`checkValidationLayerSupport` 함수를 추가하여 요청한 레이어들이 모두 사용 가능한지를 체크합니다. 먼저 가용한 모든 레이어 목록을 `vkEnumerateInstanceLayerProperties`를 사용해 만듭니다. 사용법은 인스턴스 생성 챕터에서 봤던 `vkEnumerateInstanceExtensionProperties`와 동일합니다.
 
 ```c++
 bool checkValidationLayerSupport() {
@@ -108,8 +71,7 @@ bool checkValidationLayerSupport() {
 }
 ```
 
-Next, check if all of the layers in `validationLayers` exist in the
-`availableLayers` list. You may need to include `<cstring>` for `strcmp`.
+다음으로, `validationLayers` 내의 모든 레이어가 `availableLayers` 내에 존재하는지를 체크합니다. `strcmp` 사용을 위해 `<cstring>`의 include가 필요합니다.
 
 ```c++
 for (const char* layerName : validationLayers) {
@@ -130,7 +92,7 @@ for (const char* layerName : validationLayers) {
 return true;
 ```
 
-We can now use this function in `createInstance`:
+이제 이 함수를 `createInstance`에서 사용할 수 있습니다.
 
 ```c++
 void createInstance() {
@@ -142,11 +104,9 @@ void createInstance() {
 }
 ```
 
-Now run the program in debug mode and ensure that the error does not occur. If
-it does, then have a look at the FAQ.
+이제 프로그램을 디버그 모드에서 실행해 오류가 발생하지 않는지 확인하세요. 오류가 발생하면, FAQ를 살펴보세요.
 
-Finally, modify the `VkInstanceCreateInfo` struct instantiation to include the
-validation layer names if they are enabled:
+마지막으로, `VkInstanceCreateInfo` 구조체 초기화를 구정해서 사용이 가능한 경우 검증 레이어의 이름을 포함하도록 하세요.
 
 ```c++
 if (enableValidationLayers) {
@@ -157,18 +117,15 @@ if (enableValidationLayers) {
 }
 ```
 
-If the check was successful then `vkCreateInstance` should not ever return a
-`VK_ERROR_LAYER_NOT_PRESENT` error, but you should run the program to make sure.
+체크 과정이 성공적이라면 `vkCreateInstance`가 `VK_ERROR_LAYER_NOT_PRESENT` 오류를 반환하지 않을 것이지만, 확인을 위해 실행해 보시기 바랍니다.
 
-## Message callback
+## 메시지 콜백
 
-The validation layers will print debug messages to the standard output by default, but we can also handle them ourselves by providing an explicit callback in our program. This will also allow you to decide which kind of messages you would like to see, because not all are necessarily (fatal) errors. If you don't want to do that right now then you may skip to the last section in this chapter.
+검증 레이어는 기본적으로 디버그 메시지를 표준 출력창에 표시하지만, 프로그램에서 명시적으로 콜밸을 제공하여 우리가 원하는 방식대로 처리할 수도 있습니다. 이렇게 하면 어떤 종류의 메시지를 보기 원하는지 선택할 수 있는데 모든 메시지들이 (치명적인) 오류에 관한 것은 아니기 때문입니다. 지금은 그냥 그대로 두고 싶다면 이 챕터의 마지막으로 넘어가셔도 됩니다.
 
-To set up a callback in the program to handle messages and the associated details, we have to set up a debug messenger with a callback using the `VK_EXT_debug_utils` extension.
+메시지 처리를 위한 콜백을 설정하고 관련한 설정들을 조정하고 싶다면, `VK_EXT_debug_utils` 확장을 사용해 디버그 메신저(messenger) 콜백을 설정해야 합니다.
 
-We'll first create a `getRequiredExtensions` function that will return the
-required list of extensions based on whether validation layers are enabled or
-not:
+먼저 검증 레이어가 활성화 되었는지 여부에 따라 필요한 확장 목록을 반환하는 `getRequiredExtensions` 함수를 만들겠습니다.
 
 ```c++
 std::vector<const char*> getRequiredExtensions() {
@@ -186,12 +143,9 @@ std::vector<const char*> getRequiredExtensions() {
 }
 ```
 
-The extensions specified by GLFW are always required, but the debug messenger
-extension is conditionally added. Note that I've used the
-`VK_EXT_DEBUG_UTILS_EXTENSION_NAME` macro here which is equal to the literal
-string "VK_EXT_debug_utils". Using this macro lets you avoid typos.
+GLFW가 명시한 확장은 항상 필요하지만, 디버그 메시지를 위한 확장은 조건에 따라 추가하였습니다. 여기서 `VK_EXT_DEBUG_UTILS_EXTENSION_NAME` 매크로를 사용하였는데 이는 문자열 리터럴 "VK_EXT_debug_utils"와 동일하는 것에 유의하세요. 이러한 매크로를 사용하면 오타로 인한 오류를 방지할 수 있습니다.
 
-We can now use this function in `createInstance`:
+이제 이 함수를 `createInstance`에서 사용합니다:
 
 ```c++
 auto extensions = getRequiredExtensions();
@@ -199,15 +153,9 @@ createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 createInfo.ppEnabledExtensionNames = extensions.data();
 ```
 
-Run the program to make sure you don't receive a
-`VK_ERROR_EXTENSION_NOT_PRESENT` error. We don't really need to check for the
-existence of this extension, because it should be implied by the availability of
-the validation layers.
+`VK_ERROR_EXTENSION_NOT_PRESENT` 오류가 발생하지 않는지 프로그램을 실행해 확인하세요. 확장들이 존재하는지는 확인할 필요 없습니다. 왜냐하면 검증 레이어가 가용하다면 당연히 해당 확장들도 사용 가능하기 떄문입니다.
 
-Now let's see what a debug callback function looks like. Add a new static member
-function called `debugCallback` with the `PFN_vkDebugUtilsMessengerCallbackEXT`
-prototype. The `VKAPI_ATTR` and `VKAPI_CALL` ensure that the function has the
-right signature for Vulkan to call it.
+이제 디버그 콜백의 생김새를 한 번 봅시다. `PFN_vkDebugUtilsMessengerCallbackEXT` 프로토타입을 갖는 `debugCallback`이라는 새 스태틱 멤버 함수를 추가합시다. `VKAPI_ATTR`과 `VKAPI_CALL`를 통해 Vulkan에서 호출하기 위해 적절한 시그니처를 갖고 있는지 확인합니다.
 
 ```c++
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -222,14 +170,14 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 }
 ```
 
-The first parameter specifies the severity of the message, which is one of the following flags:
+첫 번쨰 파라메터는 메시지의 심각도를 나타내고, 아래 플래그 중 하나입니다.
 
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: Diagnostic message
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: Informational message like the creation of a resource
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: Message about behavior that is not necessarily an error, but very likely a bug in your application
-* `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: Message about behavior that is invalid and may cause crashes
+- `VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT`: 진단 메시지
+- `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`: 리소스의 생성과 같은 정보 메시지
+- `VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT`: 오류는 아니지만 응용 프로그램의 버그일 수 있는 메시지
+- `VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT`: 프로그램이 중단될 수 있는 허용되지 않는 동작에 대한 메시지
 
-The values of this enumeration are set up in such a way that you can use a comparison operation to check if a message is equal or worse compared to some level of severity, for example:
+이러한 열거자들의 값은 비교 연산자를 통해 메시지가 특정 심각도와 같거나 더 심각한지를 설정할 수 있습니다. 예를 들어 아래와 같습니다:
 
 ```c++
 if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
@@ -237,37 +185,29 @@ if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
 }
 ```
 
-The `messageType` parameter can have the following values:
+`messageType` 매개변수는 아래와 같은 값을 가질 수 있습니다:
 
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT`: Some event has happened that is unrelated to the specification or performance
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT`: Something has happened that violates the specification or indicates a possible mistake
-* `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT`: Potential non-optimal use of Vulkan
+- `VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT`: 명세 또는 성능과 관계없는 이벤트가 발생함
+- `VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT`: 명세를 위반했거나 실수일 수 있는 경우
+- `VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT`: Vulkan에서 효율적이지 않을 수 있음
 
-The `pCallbackData` parameter refers to a `VkDebugUtilsMessengerCallbackDataEXT` struct containing the details of the message itself, with the most important members being:
+`pCallbackData` 매개변수는 메세지의 상세 사항을 포함하여 아래와 같은 아주 중요한 매개변수를 갖는 `VkDebugUtilsMessengerCallbackDataEXT` 구조체를 참조합니다:
 
-* `pMessage`: The debug message as a null-terminated string
-* `pObjects`: Array of Vulkan object handles related to the message
-* `objectCount`: Number of objects in array
+- `pMessage`: 널문자로 끝나는 문자열(string) 디버그 메시지
+- `pObjects`: 메시지와 관련 있는 Vulkan 객체 핸들의 배열
+- `objectCount`: 배열 내 객체의 숫자
 
-Finally, the `pUserData` parameter contains a pointer that was specified during the setup of the callback and allows you to pass your own data to it.
+마지막으로, `pUserData` 매개변수는 콜백 설정 시 명시한 포인터를 포함하며 사용자가 원하는 데이터를 전달할 수 있도록 합니다.
 
-The callback returns a boolean that indicates if the Vulkan call that triggered
-the validation layer message should be aborted. If the callback returns true,
-then the call is aborted with the `VK_ERROR_VALIDATION_FAILED_EXT` error. This
-is normally only used to test the validation layers themselves, so you should
-always return `VK_FALSE`.
+콜백은 불리언(boolean)을 반환하는데 해당 검증 레이어를 촉발한(triggered) Vulkan 호출이 중단(aborted)되어야 하는지 여부를 의미합니다. true가 반환되었다면 `VK_ERROR_VALIDATION_FAILED_EXT` 오류와 함께 호출이 중단됩니다. 보통 true 반환은 검증레이어 자체를 테스트 할 때에만 사용되므로 항상 `VK_FALSE`를 반환하는 것이 맞습니다.
 
-All that remains now is telling Vulkan about the callback function. Perhaps
-somewhat surprisingly, even the debug callback in Vulkan is managed with a
-handle that needs to be explicitly created and destroyed. Such a callback is part of a *debug messenger* and you can have as many of them as you want. Add a class member for
-this handle right under `instance`:
+이제 남은 것은 Vulkan에 콜백 함수를 알려주는 것 뿐입니다. 놀랍게도 Vulkan에서는 디버그 콜백조차 명시적으로 생성되고 소멸되는 핸들을 가지고 관리해야 합니다. 이러한 콜백은 *debug messenger*의 일부분으로 원하는 개수만큼 가질 수 있습니다. `instance` 바로 아래에 이 핸들을 위한 멤버를 추가 합시다:
 
 ```c++
 VkDebugUtilsMessengerEXT debugMessenger;
 ```
 
-Now add a function `setupDebugMessenger` to be called from `initVulkan` right
-after `createInstance`:
+이제 `initVulkan`에서 호출할 `setupDebugMessenger` 함수를 `createInstance` 바로 다음에 추가합니다:
 
 ```c++
 void initVulkan() {
@@ -281,7 +221,7 @@ void setupDebugMessenger() {
 }
 ```
 
-We'll need to fill in a structure with details about the messenger and its callback:
+메신저에 대한 세부 사항과 콜백에 대한 내용을 구조체에 채웁니다:
 
 ```c++
 VkDebugUtilsMessengerCreateInfoEXT createInfo{};
@@ -292,8 +232,9 @@ createInfo.pfnUserCallback = debugCallback;
 createInfo.pUserData = nullptr; // Optional
 ```
 
-The `messageSeverity` field allows you to specify all the types of severities you would like your callback to be called for. I've specified all types except for `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT` here to receive notifications about possible problems while leaving out verbose general debug info.
+`messageSeverity` 필드는 여러분의 콜백이 호출될 심각도 타입을 모두 명시할 수 있도록 되어 있습니다. 저는 `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`를 제외하고 모두 명시해서, 잠재적 문제는 모두 받고, 일반적인 디버깅 정보는 포함하지 않도록 했습니다.
 
+`messageType`은 유사하게
 Similarly the `messageType` field lets you filter which types of messages your callback is notified about. I've simply enabled all types here. You can always disable some if they're not useful to you.
 
 Finally, the `pfnUserCallback` field specifies the pointer to the callback function. You can optionally pass a pointer to the `pUserData` field which will be passed along to the callback function via the `pUserData` parameter. You could use this to pass a pointer to the `HelloTriangleApplication` class, for example.
@@ -332,7 +273,7 @@ The second to last parameter is again the optional allocator callback that we
 set to `nullptr`, other than that the parameters are fairly straightforward.
 Since the debug messenger is specific to our Vulkan instance and its layers, it
 needs to be explicitly specified as first argument. You will also see this
-pattern with other *child* objects later on.
+pattern with other _child_ objects later on.
 
 The `VkDebugUtilsMessengerEXT` object also needs to be cleaned up with a call to
 `vkDestroyDebugUtilsMessengerEXT`. Similarly to `vkCreateDebugUtilsMessengerEXT`
@@ -434,7 +375,7 @@ Now let's intentionally make a mistake to see the validation layers in action. T
 
 ![](/images/validation_layer_test.png)
 
->If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.2.131.1/windows/getting_started.html#user-content-verify-the-installation).
+> If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.2.131.1/windows/getting_started.html#user-content-verify-the-installation).
 
 If you want to see which call triggered a message, you can add a breakpoint to the message callback and look at the stack trace.
 
