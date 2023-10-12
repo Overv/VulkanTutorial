@@ -1,12 +1,8 @@
-## Selecting a physical device
+## 물리적 장치 선택
 
-After initializing the Vulkan library through a VkInstance we need to look for
-and select a graphics card in the system that supports the features we need. In
-fact we can select any number of graphics cards and use them simultaneously, but
-in this tutorial we'll stick to the first graphics card that suits our needs.
+VkInstance를 통해 Vulkan 라이브러리를 초기화 한 이후에는 우리가 필요로 하는 기능을 지원하는 시스템의 그래픽 카드를 찾고 선택해야 합니다. 사실 여러 대의 그래픽 카드를 선택하고 동시에 사용할 수도 있습니다. 하지만 이 튜토리얼에서는 우리의 요구에 맞는 첫 번째 그래픽 카드만을 사용하도록 할 것입니다.
 
-We'll add a function `pickPhysicalDevice` and add a call to it in the
-`initVulkan` function.
+`pickPhysicalDevice` 함수를 추가하고 `initVulkan` 함수에서 이 함수를 호출하도록 합시다.
 
 ```c++
 void initVulkan() {
@@ -20,24 +16,20 @@ void pickPhysicalDevice() {
 }
 ```
 
-The graphics card that we'll end up selecting will be stored in a
-VkPhysicalDevice handle that is added as a new class member. This object will be
-implicitly destroyed when the VkInstance is destroyed, so we won't need to do
-anything new in the `cleanup` function.
+우리가 선택할 그래픽 카드는 새롭게 클래스 멤버로 추가된 VkPhysicalDevice 핸들에 저장됩니다. 이 객체는 VkInstance가 소멸될 때 암시적(implicitly)으로 소멸되므로, `cleanup`에 무언가를 추가할 필요는 없습니다.
 
 ```c++
 VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 ```
 
-Listing the graphics cards is very similar to listing extensions and starts with
-querying just the number.
+그래픽 카드의 목록을 불러오는 것은 확장의 목록을 불러오는 것과 비슷하며 그 개수를 질의(query)하는 것으로 시작됩니다.
 
 ```c++
 uint32_t deviceCount = 0;
 vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 ```
 
-If there are 0 devices with Vulkan support then there is no point going further.
+Vulkan을 지원하는 장치가 없으면 더 진행할 이유가 없겠죠.
 
 ```c++
 if (deviceCount == 0) {
@@ -45,17 +37,14 @@ if (deviceCount == 0) {
 }
 ```
 
-Otherwise we can now allocate an array to hold all of the VkPhysicalDevice
-handles.
+그렇지 않으면 모든 VkPhysicalDevice 핸들을 저장할 배열을 할당합니다.
 
 ```c++
 std::vector<VkPhysicalDevice> devices(deviceCount);
 vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 ```
 
-Now we need to evaluate each of them and check if they are suitable for the
-operations we want to perform, because not all graphics cards are created equal.
-For that we'll introduce a new function:
+이제 각 장치를 순회하면서 우리가 하고자 하는 작업에 적합한지 확인합니다. 모든 그래픽 카드가 같지는 않기 때문입니다. 이를 위해 아래와 같은 새 함수를 만듭니다:
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -63,8 +52,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-And we'll check if any of the physical devices meet the requirements that we'll
-add to that function.
+그리고 어떤 물리적 장치든 요구사항에 맞는는 것이 있는지를 확인합니다.
 
 ```c++
 for (const auto& device : devices) {
@@ -79,36 +67,27 @@ if (physicalDevice == VK_NULL_HANDLE) {
 }
 ```
 
-The next section will introduce the first requirements that we'll check for in
-the `isDeviceSuitable` function. As we'll start using more Vulkan features in
-the later chapters we will also extend this function to include more checks.
+다음 섹션에서는 우리가 `isDeviceSuitable`에서 확인할 첫 번째 요구사항을 소개할 것입니다. 이후 챕터에서 보다 많은 Vulkan 기능을 사용할 것이기 때문에 보다 많은 요구사항을 확인하도록 확장해 나갈 것입니다.
 
-## Base device suitability checks
+## 기본 장치 적합성(suitability) 확인
 
-To evaluate the suitability of a device we can start by querying for some
-details. Basic device properties like the name, type and supported Vulkan
-version can be queried using vkGetPhysicalDeviceProperties.
+장치의 적합성을 확인하기 위해 몇 가지 세부사항을 질의할 것입니다. 장치의 기본적인 속성인 이름, 타입, 지원하는 Vulkan 버전 등을 vkGetPhysicalDeviceProperties를 사용해 질의할 수 있습니다.
 
 ```c++
 VkPhysicalDeviceProperties deviceProperties;
 vkGetPhysicalDeviceProperties(device, &deviceProperties);
 ```
 
-The support for optional features like texture compression, 64 bit floats and
-multi viewport rendering (useful for VR) can be queried using
-vkGetPhysicalDeviceFeatures:
+텍스처 압축, 64비트 float, 다중 뷰포트 렌더링(VR에서 유용합니다) 등과 같은 추가적인 기능을 지원하는지 여부는 vkGetPhysicalDeviceFeatures를 사용해 질의할 수 있습니다.
 
 ```c++
 VkPhysicalDeviceFeatures deviceFeatures;
 vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 ```
 
-There are more details that can be queried from devices that we'll discuss later
-concerning device memory and queue families (see the next section).
+장치 메모리라던가, 큐 패밀리(queue family)와 같은 더 세부적인 사항에 대한 질의도 가능하며, 이에 대해서는 이후에 논의할 것입니다(다음 섹션 참고).
 
-As an example, let's say we consider our application only usable for dedicated
-graphics cards that support geometry shaders. Then the `isDeviceSuitable`
-function would look like this:
+예를 들어, 우리 응용 프로그램이 지오메트리(geometry) 셰이더를 지원하는 장치에서만 사용할 수 있도록 하고 싶습니다. 그러면 `isDeviceSuitable` 함수는 아래와 같이 구현할 수 있습니다.
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -122,11 +101,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-Instead of just checking if a device is suitable or not and going with the first
-one, you could also give each device a score and pick the highest one. That way
-you could favor a dedicated graphics card by giving it a higher score, but fall
-back to an integrated GPU if that's the only available one. You could implement
-something like that as follows:
+장치가 적합한지 아닌지만 체크해서 첫 번째 장치를 선택하는 대신, 각 장치에 점수를 부여하고 가장 높은 점수의 장치를 선택하게 할 수도 있습니다. 이렇게 하면 적합한 장치에 더 많은 점수를 부여할 수 있지만 그러한 경우 적합한 장치가 내장 그래픽(integrated GPU) 카드일 경우 그 장치가 선택될 수도 있습니다. 이러한 방식은 다음과 같이 구현할 수 있습니다.
 
 ```c++
 #include <map>
@@ -174,12 +149,9 @@ int rateDeviceSuitability(VkPhysicalDevice device) {
 }
 ```
 
-You don't need to implement all that for this tutorial, but it's to give you an
-idea of how you could design your device selection process. Of course you can
-also just display the names of the choices and allow the user to select.
+이 튜토리얼에서 이런 모든 기능을 구현할 필요는 없지만 여러분의 장치 선택 과정을 어떻게 설계할 수 있을지에 대한 아이디어는 얻게 되셨을겁니다. 물론 후보 장치들의 이름을 보여주고 유저가 선택하도록 할 수도 있습니다.
 
-Because we're just starting out, Vulkan support is the only thing we need and
-therefore we'll settle for just any GPU:
+지금은 시작하는 단계이므로 Vulkan 지원 여부만 있으면 되고 그러니 그냥 아무 GPU나 선택하도록 하겠습니다.
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -187,23 +159,15 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-In the next section we'll discuss the first real required feature to check for.
+다음 섹션에서는 첫 번째 실제 필요로 하는 기능을 체크해 보겠습니다.
 
-## Queue families
+## 큐 패밀리(Queue families)
 
-It has been briefly touched upon before that almost every operation in Vulkan,
-anything from drawing to uploading textures, requires commands to be submitted
-to a queue. There are different types of queues that originate from different
-*queue families* and each family of queues allows only a subset of commands. For
-example, there could be a queue family that only allows processing of compute
-commands or one that only allows memory transfer related commands.
+그리기부터 텍스처 업로드까지 거의 대부분의 Vulkan 명령 실행 전에, 명령(command)들이 큐에 제출되어야만 합니다. 다양한 종류의 *큐 패밀리*로부터 도출된 다양한 종류의 큐가 있으며, 각 큐 패밀리는 처리할 수 있는 명령이 제한되어 있습니다. 예를 들어 계산(compute) 명령만을 처리할 수 있는 큐 패밀리가 있고, 메모리 전송 관련 명령만을 처리할 수 있는 큐 패밀리도 있습니다.
 
-We need to check which queue families are supported by the device and which one
-of these supports the commands that we want to use. For that purpose we'll add a
-new function `findQueueFamilies` that looks for all the queue families we need.
+장치가 어떤 큐 패밀리를 지원하는지와 이들 중 어떤 것이 우리가 사용하고자 하는 명령을 지원하는지를 체크해야만 합니다. 이를 위해 `findQueueFamilies` 함수를 추가하고 우리가 필요로하는 큐 패밀리들을 찾도록 해 봅시다.
 
-Right now we are only going to look for a queue that supports graphics commands,
-so the function could look like this:
+지금은 그래픽스 명령을 지원하는 큐만 확인할 것이므로 함수는 아래와 같습니다:
 
 ```c++
 uint32_t findQueueFamilies(VkPhysicalDevice device) {
@@ -211,8 +175,7 @@ uint32_t findQueueFamilies(VkPhysicalDevice device) {
 }
 ```
 
-However, in one of the next chapters we're already going to look for yet another
-queue, so it's better to prepare for that and bundle the indices into a struct:
+하지만, 이후 챕터부터 또다른 큐가 필요하기 때문에 이를 대비해 인덱스를 구조체로 만드는 것이 낫습니다:
 
 ```c++
 struct QueueFamilyIndices {
@@ -226,16 +189,9 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 }
 ```
 
-But what if a queue family is not available? We could throw an exception in
-`findQueueFamilies`, but this function is not really the right place to make
-decisions about device suitability. For example, we may *prefer* devices with a
-dedicated transfer queue family, but not require it. Therefore we need some way
-of indicating whether a particular queue family was found.
+큐 패밀리를 지원하지 않으면 어떻게 될까요? `findQueueFamilies`에서 예외를 throw할 수도 있지만, 이 함수는 장치 적합성을 확인하기 위한 목적으로는 적합하지 않습니다. 예를 들어 전송(transfer) 큐 패밀리가 있는 장치를 *선호*하긴 하지만 필수 요구사항은 아닐수도 있습니다. 따라서 특정한 큐 패밀리가 있는지 알려주는 방법이 필요합니다.
 
-It's not really possible to use a magic value to indicate the nonexistence of a
-queue family, since any value of `uint32_t` could in theory be a valid queue
-family index including `0`. Luckily C++17 introduced a data structure to
-distinguish between the case of a value existing or not:
+큐 패밀리가 존재하지 않는것에 대한 마법같은 인덱스를 사용하는 방법은 없습니다. `0`을 포함해서 모든 `uint32_t` 값이 사실상 유요한 큐 패밀리의 인덱스일 수 있기 때문입니다. 다행히 C++17에서는 값이 존재하는지 아닌지를 구분할 수 있는 자료 구조를 지원합니다.
 
 ```c++
 #include <optional>
@@ -251,9 +207,7 @@ graphicsFamily = 0;
 std::cout << std::boolalpha << graphicsFamily.has_value() << std::endl; // true
 ```
 
-`std::optional` is a wrapper that contains no value until you assign something
-to it. At any point you can query if it contains a value or not by calling its
-`has_value()` member function. That means that we can change the logic to:
+`std::optional`은 무언가 값을 할당하기 전에는 값이 없는 상태를 나타낼 수 있는 래퍼(wrapper)입니다. 어느 시점에 여러분은 그 안에 값이 있는지 없는지를 `has_value()` 멤버 함수를 통해 확인할 수 있습니다. 따라서 로직을 아래와 같이 바꿀 수 있습니다:
 
 ```c++
 #include <optional>
@@ -271,7 +225,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 }
 ```
 
-We can now begin to actually implement `findQueueFamilies`:
+이제 실제로 `findQueueFamilies`를 구현할 수 있습니다:
 
 ```c++
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
@@ -283,8 +237,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 }
 ```
 
-The process of retrieving the list of queue families is exactly what you expect
-and uses `vkGetPhysicalDeviceQueueFamilyProperties`:
+큐 패밀리의 목록을 가져오는 과정은 예상하실 수 있듯이 `vkGetPhysicalDeviceQueueFamilyProperties`를 사용하는 것입니다.
 
 ```c++
 uint32_t queueFamilyCount = 0;
@@ -294,10 +247,7 @@ std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 ```
 
-The VkQueueFamilyProperties struct contains some details about the queue family,
-including the type of operations that are supported and the number of queues
-that can be created based on that family. We need to find at least one queue
-family that supports `VK_QUEUE_GRAPHICS_BIT`.
+VkQueueFamilyProperties 구조체는 지원하는 연산의 종류와 해당 패밀리로부터 생성될 수 있는 큐의 개수 등의 큐 패밀리 세부 사항을 포함하고 있습니다. 우리는 `VK_QUEUE_GRAPHICS_BIT`을 지원하는 최소한 하나의 큐 패밀리를 찾아야만 합니다.
 
 ```c++
 int i = 0;
@@ -310,9 +260,7 @@ for (const auto& queueFamily : queueFamilies) {
 }
 ```
 
-Now that we have this fancy queue family lookup function, we can use it as a
-check in the `isDeviceSuitable` function to ensure that the device can process
-the commands we want to use:
+이제 멋진 큐 패밀리 룩업(lookup) 함수가 있으니 `isDeviceSuitable` 함수에서 이를 사용해 장치가 우리가 사용하고자 하는 명령을 처리할 수 있는지 확인합니다:
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -322,8 +270,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-To make this a little bit more convenient, we'll also add a generic check to the
-struct itself:
+좀 더 편리하게 사용하기 위해, 구조체 안에도 체크 기능을 추가합니다:
 
 ```c++
 struct QueueFamilyIndices {
@@ -343,7 +290,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-We can now also use this for an early exit from `findQueueFamilies`:
+`findQueueFamilies` 에서 빠른 종료를 위해서도 사용합니다:
 
 ```c++
 for (const auto& queueFamily : queueFamilies) {
@@ -357,8 +304,6 @@ for (const auto& queueFamily : queueFamilies) {
 }
 ```
 
-Great, that's all we need for now to find the right physical device! The next
-step is to [create a logical device](!en/Drawing_a_triangle/Setup/Logical_device_and_queues)
-to interface with it.
+좋습니다. 우선은 적절한 물리적 장치를 찾는 것은 이것으로 끝입니다! 다음 단계는 [논리적 장치](!en/Drawing_a_triangle/Setup/Logical_device_and_queues)와의 인터페이스를 만드는 것입니다.
 
 [C++ code](/code/03_physical_device_selection.cpp)
