@@ -234,19 +234,13 @@ createInfo.pUserData = nullptr; // Optional
 
 `messageSeverity` 필드는 여러분의 콜백이 호출될 심각도 타입을 모두 명시할 수 있도록 되어 있습니다. 저는 `VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT`를 제외하고 모두 명시해서, 잠재적 문제는 모두 받고, 일반적인 디버깅 정보는 포함하지 않도록 했습니다.
 
-`messageType`은 유사하게
-Similarly the `messageType` field lets you filter which types of messages your callback is notified about. I've simply enabled all types here. You can always disable some if they're not useful to you.
+`messageType` 필드는 콜백이 알림을 받을 메시지 타입을 필터링 할 수 있도록 합니다. 여기서는 모든 타입을 활성화 하였습니다. 필요하지 않으면 몇 개를 비활성화 해도 됩니다.
 
-Finally, the `pfnUserCallback` field specifies the pointer to the callback function. You can optionally pass a pointer to the `pUserData` field which will be passed along to the callback function via the `pUserData` parameter. You could use this to pass a pointer to the `HelloTriangleApplication` class, for example.
+마지막으로 `pfnUserCallback`필드는 콜백 함수에 대한 포인터를 명시합니다. 선택적으로 `pUserData` 필드에 포인터를 전달하여 콜백 함수와 함께 전달될 파라메터를 명시할 수 있습니다. 예를 들어 `HelloTriangleApplication` 클래스의 포인터를 전달하는 데 사용할 수 있습니다.
 
-Note that there are many more ways to configure validation layer messages and debug callbacks, but this is a good setup to get started with for this tutorial. See the [extension specification](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap50.html#VK_EXT_debug_utils) for more info about the possibilities.
+검증 레이어 메시지와 디버그 콜백을 구성하는 다양한 방법이 있지만, 이 튜토리얼을 위한 시작으로는 이 정도가 좋습니다. [확장 명세](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap50.html#VK_EXT_debug_utils)에서 보다 다양한 정보를 볼 수 있습니다.
 
-This struct should be passed to the `vkCreateDebugUtilsMessengerEXT` function to
-create the `VkDebugUtilsMessengerEXT` object. Unfortunately, because this
-function is an extension function, it is not automatically loaded. We have to
-look up its address ourselves using `vkGetInstanceProcAddr`. We're going to
-create our own proxy function that handles this in the background. I've added it
-right above the `HelloTriangleApplication` class definition.
+`VkDebugUtilsMessengerEXT` 객체를 생성하기 위해 `vkCreateDebugUtilsMessengerEXT` 함수에 이 구조체를 전달해야 합니다. 안타깝게도 이 함수는 확장 함수이기 때문에 자동적으로 로드되지 않습니다. `vkGetInstanceProcAddr`를 사용해 주소값을 얻어야 합니다. 이를 처리하기 위한 방안으로 프록시 함수를 만들 것입니다. 저는 `HelloTriangleApplication` 클래스 정의 바로 다음에 추가 하였습니다.
 
 ```c++
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
@@ -259,9 +253,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 }
 ```
 
-The `vkGetInstanceProcAddr` function will return `nullptr` if the function
-couldn't be loaded. We can now call this function to create the extension
-object if it's available:
+함수가 로드될 수 없으면 `vkGetInstanceProcAddr`함수는 `nullptr`을 반환합니다. 이제 이 함수를 호출하여 가능한 경우에 확장 객체를 생성할 수 있습니다.
 
 ```c++
 if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
@@ -269,17 +261,11 @@ if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger
 }
 ```
 
-The second to last parameter is again the optional allocator callback that we
-set to `nullptr`, other than that the parameters are fairly straightforward.
-Since the debug messenger is specific to our Vulkan instance and its layers, it
-needs to be explicitly specified as first argument. You will also see this
-pattern with other _child_ objects later on.
+두 번째부터 마지막까지의 매개변수는 선택적인 할당 콜백으로 `nullptr`로 설정할 것이고, 이를 제외하면 나머지는 직관적입니다. 디버그 메신저는 우리의 Vulkan 인스턴스와 레이어에 한정되어 있으므로 첫 인자에서 명시해야만 합니다. 이러한 패턴과 다른 _child_ 객체들은 나중에 다시 보게 될 것입니다.
 
-The `VkDebugUtilsMessengerEXT` object also needs to be cleaned up with a call to
-`vkDestroyDebugUtilsMessengerEXT`. Similarly to `vkCreateDebugUtilsMessengerEXT`
-the function needs to be explicitly loaded.
+`VkDebugUtilsMessengerEXT` 객체는 `vkDestroyDebugUtilsMessengerEXT`호출로 정리되어야 합니다. `vkCreateDebugUtilsMessengerEXT`와 마찬가지로 이 함수는 명시적으로 로드되어야 합니다.
 
-Create another proxy function right below `CreateDebugUtilsMessengerEXT`:
+`CreateDebugUtilsMessengerEXT` 바로 밑에 또 다른 프록시 함수를 만듭시다.
 
 ```c++
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
@@ -290,8 +276,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 }
 ```
 
-Make sure that this function is either a static class function or a function
-outside the class. We can then call it in the `cleanup` function:
+이 함수는 정적(static) 멤버 함수 또는 클래스 밖의 함수로 만드는 것을 잊지 마십시오. 이 함수를 `cleanup` 함수에서 호출합니다.
 
 ```c++
 void cleanup() {
@@ -307,11 +292,11 @@ void cleanup() {
 }
 ```
 
-## Debugging instance creation and destruction
+## 인스턴스의 생성과 소멸 디버깅
 
-Although we've now added debugging with validation layers to the program we're not covering everything quite yet. The `vkCreateDebugUtilsMessengerEXT` call requires a valid instance to have been created and `vkDestroyDebugUtilsMessengerEXT` must be called before the instance is destroyed. This currently leaves us unable to debug any issues in the `vkCreateInstance` and `vkDestroyInstance` calls.
+검증 레이어와 디버깅을 프로그램에 추가하였지만 아직 모든 것이 완료된 것은 아닙니다. `vkCreateDebugUtilsMessengerEXT` 호출을 위해서는 그 전에 유효한 인스턴스가 생성되어야 하고, `vkDestroyDebugUtilsMessengerEXT`은 인스턴스가 소멸되기 전에 호출되어야 합니다. 따라서 `vkCreateInstance`와 `vkDestroyInstance` 호출에 있어서 발생하는 문제는 디버깅이 불가능합니다.
 
-However, if you closely read the [extension documentation](https://github.com/KhronosGroup/Vulkan-Docs/blob/main/appendices/VK_EXT_debug_utils.adoc#examples), you'll see that there is a way to create a separate debug utils messenger specifically for those two function calls. It requires you to simply pass a pointer to a `VkDebugUtilsMessengerCreateInfoEXT` struct in the `pNext` extension field of `VkInstanceCreateInfo`. First extract population of the messenger create info into a separate function:
+[확장 문서](https://github.com/KhronosGroup/Vulkan-Docs/blob/main/appendices/VK_EXT_debug_utils.adoc#examples)를 자세히 읽어보면 위 두 함수 호출에 대해 별도의 디버깅 메신서를 생성하는 방법이 있다는 것을 알 수 있으실 겁니다. 이를 위해서는 `VkDebugUtilsMessengerCreateInfoEXT` 구조체에 대한 포인터를 `VkInstanceCreateInfo`의 `pNext` 확장 필드에 넘겨주기만 하면 됩니다. 먼저 메신저 생성 정보만 추출해 벌도의 함수로 만듭니다.
 
 ```c++
 void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
@@ -336,7 +321,7 @@ void setupDebugMessenger() {
 }
 ```
 
-We can now re-use this in the `createInstance` function:
+이제 이를 `createInstance` 함수에서 재사용 할 수 있습니다:
 
 ```c++
 void createInstance() {
@@ -367,33 +352,24 @@ void createInstance() {
 }
 ```
 
-The `debugCreateInfo` variable is placed outside the if statement to ensure that it is not destroyed before the `vkCreateInstance` call. By creating an additional debug messenger this way it will automatically be used during `vkCreateInstance` and `vkDestroyInstance` and cleaned up after that.
+`debugCreateInfo` 변수를 if문 밖에 작성하여 `vkCreateInstance` 호출 전에 소멸되지 않도록 하였습니다. 추가적인 디버깅 메신저를 이런 식으로 만들면 `vkCreateInstance` 호출 동안에, 그리고 `vkDestroyInstance` 호출과 이후 정리 과정에 자동적으로 사용됩니다.
 
-## Testing
+## 테스팅
 
-Now let's intentionally make a mistake to see the validation layers in action. Temporarily remove the call to `DestroyDebugUtilsMessengerEXT` in the `cleanup` function and run your program. Once it exits you should see something like this:
+이제 일부러 실수를 만들어서 검증 레이어가 동작하는지 봅시다. `DestroyDebugUtilsMessengerEXT`를 `cleanup`에서 잠시 제거하고 프로그램을 실행해 봅시다. 종료되면 이런 화면을 보시게 될겁니다.
 
 ![](/images/validation_layer_test.png)
 
-> If you don't see any messages then [check your installation](https://vulkan.lunarg.com/doc/view/1.2.131.1/windows/getting_started.html#user-content-verify-the-installation).
+> 아무런 메시지가 보이지 않으면 [설치를 확인해 보세요](https://vulkan.lunarg.com/doc/view/1.2.131.1/windows/getting_started.html#user-content-verify-the-installation).
 
-If you want to see which call triggered a message, you can add a breakpoint to the message callback and look at the stack trace.
+어떤 호출이 메시지를 트리거하였는지 보려면 메시지 콜백에 중단점을 걸고 호출 스택을 확인하면 됩니다.
 
-## Configuration
+## 구성(Configuration)
 
-There are a lot more settings for the behavior of validation layers than just
-the flags specified in the `VkDebugUtilsMessengerCreateInfoEXT` struct. Browse
-to the Vulkan SDK and go to the `Config` directory. There you will find a
-`vk_layer_settings.txt` file that explains how to configure the layers.
+`VkDebugUtilsMessengerCreateInfoEXT` 구조체에 명시한 플래그 이외에도 더 많은 검증 레이어의 동작에 관한 세팅을 할 수 있습니다. Vulkan SDK로 가서 `Config` 디렉터리를 보세요. `vk_layer_settings.txt` 파일을 찾을 수 있을텐데 레이어를 설정하기 위한 설명이 적혀 있습니다.
 
-To configure the layer settings for your own application, copy the file to the
-`Debug` and `Release` directories of your project and follow the instructions to
-set the desired behavior. However, for the remainder of this tutorial I'll
-assume that you're using the default settings.
+여러분의 응용 프로그램을 위한 레이어 설정을 하기 위해서는 그 파일을 프로젝트의 `Debug` 와 `Release` 디렉터리에 복사하고 원하는 동작을 하도록 안내를 따라 하면 됩니다. 하지만, 이 튜토리얼에서는 기본 세팅을 사용하는 것으로 가정할 것입니다.
 
-Throughout this tutorial I'll be making a couple of intentional mistakes to show
-you how helpful the validation layers are with catching them and to teach you
-how important it is to know exactly what you're doing with Vulkan. Now it's time
-to look at [Vulkan devices in the system](!en/Drawing_a_triangle/Setup/Physical_devices_and_queue_families).
+앞으로 튜토리얼에서 검증 레이어의 유용함을 보여드리기 위해서, 그리고 Vulkan이 정확히 어떤 일을 하는지를 아는 것이 얼마나 중요한지 알려드리기 위해 일부러 실수를 하는 경우들이 있을 겁니다. 이제 [시스템의 Vulkan 장치](!en/Drawing_a_triangle/Setup/Physical_devices_and_queue_families)에 대해 알아봅시다.
 
 [C++ code](/code/02_validation_layers.cpp)
