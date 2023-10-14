@@ -304,6 +304,6 @@ for (const auto& queueFamily : queueFamilies) {
 }
 ```
 
-좋습니다. 우선은 적절한 물리적 장치를 찾는 것은 이것으로 끝입니다! 다음 단계는 [논리적 장치](!en/Drawing_a_triangle/Setup/Logical_device_and_queues)와의 인터페이스를 만드는 것입니다.
+좋습니다. 우선은 적절한 물리적 장치를 찾는 것은 이것으로 끝입니다! 다음 단계는 [논리적 장치](!kr/Drawing_a_triangle/Setup/Logical_device_and_queues)와의 인터페이스를 만드는 것입니다.
 
 [C++ code](/code/03_physical_device_selection.cpp)

@@ -33,8 +33,7 @@ Vulkan은 내장 검증 레이어를 제공하지는 않지만 LunarG Vulkan SDK
 
 검증 레이어는 시스템에 설치되어 있어야 사용 가능합니다. 예를 들어 LunarG 검증 레이어는 Vulkan SDK가 설치된 PC에서만 사용 가능합니다.
 
-Vulkan에는 두 가지 종류의 검증 레이어가 존재하는데 인스턴스와 장치(device) 레이어입니다. 인스턴스 레이어는 인스턴스와 같은 전역 Vulkan 객체들만을 체크하고 장치 레이어는 특정 GPU에 관련된 호출만을 체크합니다. 현재 장치 레이어는 더 이상 사용되지 않으며(deprecated), 인스턴스 검증 레이어가 모든 Vulkan 호출에 적용됩니다. 명세 문서에는 여전히 호환성을 위해 장치 수준에서 검증 레이어를 활성화 할 것을 권장하고 있습니다. We'll simply specify the same layers as the instance at logical
-device level, which we'll see [later on](!en/Drawing_a_triangle/Setup/Logical_device_and_queues).
+Vulkan에는 두 가지 종류의 검증 레이어가 존재하는데 인스턴스와 장치(device) 레이어입니다. 인스턴스 레이어는 인스턴스와 같은 전역 Vulkan 객체들만을 체크하고 장치 레이어는 특정 GPU에 관련된 호출만을 체크합니다. 현재 장치 레이어는 더 이상 사용되지 않으며(deprecated), 인스턴스 검증 레이어가 모든 Vulkan 호출에 적용됩니다. 명세 문서에는 여전히 호환성을 위해 장치 수준에서 검증 레이어를 활성화 할 것을 권장하고 있습니다. [나중에](!kr/Drawing_a_triangle/Setup/Logical_device_and_queues) 보게 될 것인데, 우리는 같은 레이어를 인스턴스와 논리 장치 수준에서 사용할 것입니다.
 
 ## 검증 레이어 사용하기
 
@@ -370,6 +369,6 @@ void createInstance() {
 
 여러분의 응용 프로그램을 위한 레이어 설정을 하기 위해서는 그 파일을 프로젝트의 `Debug` 와 `Release` 디렉터리에 복사하고 원하는 동작을 하도록 안내를 따라 하면 됩니다. 하지만, 이 튜토리얼에서는 기본 세팅을 사용하는 것으로 가정할 것입니다.
 
-앞으로 튜토리얼에서 검증 레이어의 유용함을 보여드리기 위해서, 그리고 Vulkan이 정확히 어떤 일을 하는지를 아는 것이 얼마나 중요한지 알려드리기 위해 일부러 실수를 하는 경우들이 있을 겁니다. 이제 [시스템의 Vulkan 장치](!en/Drawing_a_triangle/Setup/Physical_devices_and_queue_families)에 대해 알아봅시다.
+앞으로 튜토리얼에서 검증 레이어의 유용함을 보여드리기 위해서, 그리고 Vulkan이 정확히 어떤 일을 하는지를 아는 것이 얼마나 중요한지 알려드리기 위해 일부러 실수를 하는 경우들이 있을 겁니다. 이제 [시스템의 Vulkan 장치](!kr/Drawing_a_triangle/Setup/Physical_devices_and_queue_families)에 대해 알아봅시다.
 
 [C++ code](/code/02_validation_layers.cpp)
