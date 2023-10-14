@@ -1,19 +1,14 @@
-## Introduction
+## 개요
 
-After selecting a physical device to use we need to set up a *logical device* to
-interface with it. The logical device creation process is similar to the
-instance creation process and describes the features we want to use. We also
-need to specify which queues to create now that we've queried which queue
-families are available. You can even create multiple logical devices from the
-same physical device if you have varying requirements.
+사용할 물리적 장치를 선택한 뒤에는 이와 상호작용할 *논리적 장치*를 설정해야 합니다. 논리적 장치의 생성 과정은 인스턴스 생성 과정과 비슷하고 우리가 사용할 기능들을 기술해야 합니다. 또한 이제는 어떤 큐 패밀리가 가용한지를 알아냈기 때문에 어떤 큐를 생성할지도 명시해야 합니다. 만일 요구사항이 다양하다면, 하나의 물리적 장치로부터 여러 개의 논리적 장치를 만들 수도 있습니다.
 
-Start by adding a new class member to store the logical device handle in.
+논리적 장치에 대한 핸들을 저장한 멤버를 클래스에 생성하는 것부터 시작합니다.
 
 ```c++
 VkDevice device;
 ```
 
-Next, add a `createLogicalDevice` function that is called from `initVulkan`.
+다음으로 `initVulkan`에서 호출할 `createLogicalDevice` 함수를 추가합니다.
 
 ```c++
 void initVulkan() {
@@ -28,12 +23,9 @@ void createLogicalDevice() {
 }
 ```
 
-## Specifying the queues to be created
+## 생성할 큐 명시하기
 
-The creation of a logical device involves specifying a bunch of details in
-structs again, of which the first one will be `VkDeviceQueueCreateInfo`. This
-structure describes the number of queues we want for a single queue family.
-Right now we're only interested in a queue with graphics capabilities.
+논리적 장치를 생성하는 것은 이전처럼 여러 세부사항을 구조체에 명시하는 과정을 포함하며, 그 첫번째가 `VkDeviceQueueCreateInfo`입니다. 이 구조체는 하나의 큐 패밀리에 대한 큐의 개수를 명시합니다. 현재 우리는 그래픽스 기능 관련 큐에만 관심이 있습니다.
 
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -44,21 +36,17 @@ queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
 queueCreateInfo.queueCount = 1;
 ```
 
-The currently available drivers will only allow you to create a small number of
-queues for each queue family and you don't really need more than one. That's
-because you can create all of the command buffers on multiple threads and then
-submit them all at once on the main thread with a single low-overhead call.
+현재의 드라이버들은 큐 패밀리 하나당 적은 수의 큐만을 생성할 수 있도록 제한되어 있고, 여러분도 하나 이상 필요하지는 않을겁니다. 왜냐하면 여러 쓰레드(thread)에 필요한 커맨드 버퍼들을 모두 생성해 두고 메인 쓰레드에서 적은 오버헤드의 호출로 이들을 한꺼번에 제출(submit)할 수 있기 떄문입니다.
 
-Vulkan lets you assign priorities to queues to influence the scheduling of
-command buffer execution using floating point numbers between `0.0` and `1.0`.
-This is required even if there is only a single queue:
+Vulkan에서는 커맨드 버퍼의 실행 스케줄에 영향을 주는 큐의 우선순위를 `0.0`과 `1.0` 사이의 부동소수점 수로 명시할 수 있게 되어 있습니다. 큐가 하나밖에 없더라도 이를 명시해 주어야만 합니다:
 
 ```c++
 float queuePriority = 1.0f;
 queueCreateInfo.pQueuePriorities = &queuePriority;
 ```
 
-## Specifying used device features
+## 사용할 장치 기능 명시하기
+
 
 The next information to specify is the set of device features that we'll be
 using. These are the features that we queried support for with
