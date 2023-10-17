@@ -16,9 +16,9 @@ SDK는 [LunarG 웹사이트](https://vulkan.lunarg.com/) 페이지 하단의 버
 
 ![](/images/cube_demo.png)
 
-오류 메시지가 나타난다면 드라이버가 최신 버전인지 확인하고, 그래픽 카드가 Vulkan을 지원하고 Vulkan 런타임이 드라이브에 포함되어 있는지 확인하세요. 주요 벤더들의 드라이버 링크는 [introduction](!en/Introduction) 챕터를 확인하세요.
+오류 메시지가 나타난다면 드라이버가 최신 버전인지 확인하고, 그래픽 카드가 Vulkan을 지원하고 Vulkan 런타임이 드라이브에 포함되어 있는지 확인하세요. 주요 벤더들의 드라이버 링크는 [introduction](!kr/Introduction) 챕터를 확인하세요.
 
-이 폴더에는 개발에 유용한 다른 프로그램들도 있습니다. `glslangValidator.exe`와 `glslc.exe`는 사람이 읽을 수 있는 [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) 코드를 바이트 코드로 변환하기 위해 사용됩니다. [shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules) 챕터에서 이 내용을 자세히 살펴볼 것입니다. `Bin` 디렉터리에는 또한 Vulkan 로더와 검증 레이어의 바이너리들을 포함하고 있으며, `Lib` 디렉터리에는 라이브러리들이 들어 있습니다.
+이 폴더에는 개발에 유용한 다른 프로그램들도 있습니다. `glslangValidator.exe`와 `glslc.exe`는 사람이 읽을 수 있는 [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language) 코드를 바이트 코드로 변환하기 위해 사용됩니다. [shader modules](!kr/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules) 챕터에서 이 내용을 자세히 살펴볼 것입니다. `Bin` 디렉터리에는 또한 Vulkan 로더와 검증 레이어의 바이너리들을 포함하고 있으며, `Lib` 디렉터리에는 라이브러리들이 들어 있습니다.
 
 마지막으로 `Include` 디렉터리에는 Vulkan 헤더들이 있습니다. 다른 파일들도 자유롭게 살펴보시길 바라지만 이 튜토리얼에서는 필요하지 않습니다.
 
@@ -140,7 +140,7 @@ Vulkan과 GLFW의 오브젝트 파일 이름을 추가하세요:
 
 ![](/images/vs_test_window.png)
 
-extention의 숫자는 0이 아니어야 합니다. 축하합니다. [Vulkan을 즐기기 위한](!en/Drawing_a_triangle/Setup/Base_code)! 모든 준비가 완료되었습니다.
+extention의 숫자는 0이 아니어야 합니다. 축하합니다. [Vulkan을 즐기기 위한](!kr/Drawing_a_triangle/Setup/Base_code)! 모든 준비가 완료되었습니다.
 
 ## 리눅스
 
@@ -160,7 +160,7 @@ Arch 리눅스에서는 위 도구들을 설치하기 위해서는 `sudo pacman 
 
 ![](/images/cube_demo_nowindow.png)
 
-오류 메시지가 나타난다면 드라이버가 최신 버전인지 확인하고, 그래픽 카드가 Vulkan을 지원하고 Vulkan 런타임이 드라이브에 포함되어 있는지 확인하세요. 주요 벤더들의 드라이버 링크는 [introduction](!en/Introduction) 챕터를 확인하세요.
+오류 메시지가 나타난다면 드라이버가 최신 버전인지 확인하고, 그래픽 카드가 Vulkan을 지원하고 Vulkan 런타임이 드라이브에 포함되어 있는지 확인하세요. 주요 벤더들의 드라이버 링크는 [introduction](!kr/Introduction) 챕터를 확인하세요.
 
 ### X Window System and XFree86-VidModeExtension
 
@@ -221,7 +221,7 @@ sudo pacman -S glm
 
 `glslc: error: no input files`
 
-[shader modules](!en/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules) 챕터에서 `glslc`를 자세히 살펴볼 것입니다.
+[shader modules](!kr/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules) 챕터에서 `glslc`를 자세히 살펴볼 것입니다.
 
 ### makefile 프로젝트 구성
 
@@ -344,7 +344,7 @@ clean:
 
 이제 이 디렉터리를 여러분의 Vulkan 프로젝트를 위한 템플릿으로 사용하시면 됩니다. 복사하고 이름을 `HelloTriangle`과 같은 것으로 바꾸고, `main.cpp`의 모든 내용을 지우면 됩니다.
 
-이제 [진정한 탐험](!en/Drawing_a_triangle/Setup/Base_code)을 위한 준비가 끝났습니다.
+이제 [진정한 탐험](!kr/Drawing_a_triangle/Setup/Base_code)을 위한 준비가 끝났습니다.
 
 ## MacOS
 
@@ -438,7 +438,7 @@ int main() {
 
 Keep in mind you are not required to understand all this code is doing yet, we are just setting up some API calls to make sure everything is working.
 
-Xcode should already be showing some errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the _Project Navigator_ panel select your project. Open the _Build Settings_ tab and then:
+Xcode should already be showing some errors such as libraries it cannot find. We will now start configuring the project to get rid of those errors. On the *Project Navigator* panel select your project. Open the *Build Settings* tab and then:
 
 - Find the **Header Search Paths** field and add a link to `/usr/local/include` (this is where Homebrew installs headers, so the glm and glfw3 header files should be there) and a link to `vulkansdk/macOS/include` for the Vulkan headers.
 - Find the **Library Search Paths** field and add a link to `/usr/local/lib` (again, this is where Homebrew installs libraries, so the glm and glfw3 lib files should be there) and a link to `vulkansdk/macOS/lib`.
@@ -447,7 +447,7 @@ It should look like so (obviously, paths will be different depending on where yo
 
 ![](/images/xcode_paths.png)
 
-Now, in the _Build Phases_ tab, on **Link Binary With Libraries** we will add both the `glfw3` and the `vulkan` frameworks. To make things easier we will be adding the dynamic libraries in the project (you can check the documentation of these libraries if you want to use the static frameworks).
+Now, in the *Build Phases* tab, on **Link Binary With Libraries** we will add both the `glfw3` and the `vulkan` frameworks. To make things easier we will be adding the dynamic libraries in the project (you can check the documentation of these libraries if you want to use the static frameworks).
 
 - For glfw open the folder `/usr/local/lib` and there you will find a file name like `libglfw.3.x.dylib` ("x" is the library's version number, it might be different depending on when you downloaded the package from Homebrew). Simply drag that file to the Linked Frameworks and Libraries tab on Xcode.
 - For vulkan, go to `vulkansdk/macOS/lib`. Do the same for the both files `libvulkan.1.dylib` and `libvulkan.1.x.xx.dylib` (where "x" will be the version number of the the SDK you downloaded).
