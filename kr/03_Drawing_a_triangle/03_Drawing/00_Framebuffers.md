@@ -1,24 +1,14 @@
-We've talked a lot about framebuffers in the past few chapters and we've set up
-the render pass to expect a single framebuffer with the same format as the swap
-chain images, but we haven't actually created any yet.
+지난 몇 개의 챕터에서 프레임버퍼와 관련한 많은 것들을 이야기 했고 스왑 체인 이미지와 같은 포맷인, 단일 프레임버퍼를 사용할 렌더 패스를 설정했습니다. 하지만 아직 생성은 하지 않았습니다.
 
-The attachments specified during render pass creation are bound by wrapping them
-into a `VkFramebuffer` object. A framebuffer object references all of the
-`VkImageView` objects that represent the attachments. In our case that will be
-only a single one: the color attachment. However, the image that we have to use
-for the attachment depends on which image the swap chain returns when we retrieve one
-for presentation. That means that we have to create a framebuffer for all of the
-images in the swap chain and use the one that corresponds to the retrieved image
-at drawing time.
+렌더 패스 생성 과정에서 명시한 어태치먼트는 `VkFramebuffer` 객체로 래핑하여 바인딩됩니다. 프레임버퍼 객체는 어태치먼트를 표현하는 모든 `VkImageView` 객체를 참조합니다. 우리의 경우 어태치먼트는 색상 어태치먼트 하나입니다. 하지만 어태치먼트로 사용할 이미지는 우리가 화면에 표시하기 위한 이미지로 스왑 체인이 어떠한 이미지를 반환했냐에 달려 있습니다. 즉, 우리는 스왑 체인에 있는 모든 이미지에 대해 프레임버퍼를 만들어야 하고, 그리기 시점에는 그 중 하나를 선택해서 사용해야 합니다.
 
-To that end, create another `std::vector` class member to hold the framebuffers:
+이를 위해 프레임버퍼를 저장한 `std::vector` 클래스 멤버를 하나 더 만듭니다:
 
 ```c++
 std::vector<VkFramebuffer> swapChainFramebuffers;
 ```
 
-We'll create the objects for this array in a new function `createFramebuffers`
-that is called from `initVulkan` right after creating the graphics pipeline:
+이 배열을 위한 객체는 `initVulkan`에서 호출할 새로운 `createFramebuffers`함수에서 만들 것입니다. 그래픽스 파이프라인 생성 이후에 호출합니다:
 
 ```c++
 void initVulkan() {
@@ -41,7 +31,7 @@ void createFramebuffers() {
 }
 ```
 
-Start by resizing the container to hold all of the framebuffers:
+모든 프레임버퍼를 저장할 수 있도록 컨테이너 크기부터 조정합니다:
 
 ```c++
 void createFramebuffers() {
@@ -49,7 +39,7 @@ void createFramebuffers() {
 }
 ```
 
-We'll then iterate through the image views and create framebuffers from them:
+그리고 이미지 뷰를 순회하면서 이를 기반으로 프레임버퍼를 만듭니다:
 
 ```c++
 for (size_t i = 0; i < swapChainImageViews.size(); i++) {
@@ -72,21 +62,13 @@ for (size_t i = 0; i < swapChainImageViews.size(); i++) {
 }
 ```
 
-As you can see, creation of framebuffers is quite straightforward. We first need
-to specify with which `renderPass` the framebuffer needs to be compatible. You
-can only use a framebuffer with the render passes that it is compatible with,
-which roughly means that they use the same number and type of attachments.
+보이시는 것처럼 프레임버퍼의 생성은 매우 직관적입니다. 먼저 어떤 `renderPass`에 프레임버퍼가 호환되어야 하는지 명시합니다. 호환되는 경우에만 렌더 패스에 프레임버퍼를 사용할 수 있는데, 같은 수와 타입의 어태치먼트를 사용해야 호환됩니다.
 
-The `attachmentCount` and `pAttachments` parameters specify the `VkImageView`
-objects that should be bound to the respective attachment descriptions in
-the render pass `pAttachment` array.
+`attachmentCount`와 `pAttachments` 매개변수는 렌더 패스의 `pAttachment` 배열에서, 해당하는 어태치먼트 기술자와 바인딩될 `VkImageView` 객체를 명시합니다.
 
-The `width` and `height` parameters are self-explanatory and `layers` refers to
-the number of layers in image arrays. Our swap chain images are single images,
-so the number of layers is `1`.
+`width` 와 `height` 매개변수는 설명하지 않아도 될 것 같고, `layers`는 이미지 배열의 레이어 수를 의미합니다. 우리 스왑 체인 이미지는 하나이므로, 레이어 수도 `1`입니다.
 
-We should delete the framebuffers before the image views and render pass that
-they are based on, but only after we've finished rendering:
+프레임버퍼는 렌더링이 모두 완료된 후에, 이를 사용하는 이미지 뷰와 렌더 패스보다 먼저 해제되어야 합니다:
 
 ```c++
 void cleanup() {
@@ -98,9 +80,7 @@ void cleanup() {
 }
 ```
 
-We've now reached the milestone where we have all of the objects that are
-required for rendering. In the next chapter we're going to write the first
-actual drawing commands.
+이제 렌더링을 위해 필요한 모든 객체를 만들었습니다. 이제 다음 챕터에서는 실제 그리기 명령을 작성해 보도록 하겠습니다.
 
 [C++ code](/code/13_framebuffers.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
