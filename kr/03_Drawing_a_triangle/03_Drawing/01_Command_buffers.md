@@ -1,23 +1,14 @@
-Commands in Vulkan, like drawing operations and memory transfers, are not
-executed directly using function calls. You have to record all of the operations
-you want to perform in command buffer objects. The advantage of this is that when
-we are ready to tell the Vulkan what we want to do, all of the commands are
-submitted together and Vulkan can more efficiently process the commands since all
-of them are available together. In addition, this allows command recording to
-happen in multiple threads if so desired.
+그리기 명령이나 메모리 전송과 같은 Vulkan의 명령(command)은 함수 호출을 통해 직접 수행되는 것이 아닙니다. 수행하고자 하는 연산들을 모두 명령 버퍼 객체에 먼저 기록해야 합니다. 이로 인해 Vulkan에게 우리가 하고자 하는 것들을 알려줄 준비가 완료되었다면, 모든 명령이 한꺼번에 Vulkan으로 제출(submit)되어 동시에 실행 가능한 상태가 된다는 것입니다. 또한 원한다면 여러 쓰레드에서 명령을 기록할 수 있다는 장점도 있습니다.
 
-## Command pools
+## 명령 풀(Command pools)
 
-We have to create a command pool before we can create command buffers. Command
-pools manage the memory that is used to store the buffers and command buffers
-are allocated from them. Add a new class member to store a `VkCommandPool`:
+명령 버퍼를 만드려면 먼저 명령 풀부터 만들어야 합니다. 명령 풀은 명령 버퍼로 할당될 버퍼의 메모리를 관리합니다. `VkCommandPool`을 저장할 새 클래스 멤버를 추가합니다:
 
 ```c++
 VkCommandPool commandPool;
 ```
 
-Then create a new function `createCommandPool` and call it from `initVulkan`
-after the framebuffers were created.
+그리고 `initVulkan`의 프레임버퍼 생성 이후에 호출할 `createCommandPool` 함수를 새로 만듭니다.
 
 ```c++
 void initVulkan() {
@@ -41,7 +32,7 @@ void createCommandPool() {
 }
 ```
 
-Command pool creation only takes two parameters:
+명렬 풀 생성에는 두 개의 매개변수만 필요합니다:
 
 ```c++
 QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
@@ -52,23 +43,14 @@ poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 ```
 
-There are two possible flags for command pools:
+명령 풀에는 두가지 가능한 플래그가 존재합니다:
 
-* `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT`: Hint that command buffers are
-rerecorded with new commands very often (may change memory allocation behavior)
-* `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT`: Allow command buffers to be
-rerecorded individually, without this flag they all have to be reset together
+* `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT`: 명령 버퍼가 새로운 명령을 자주 기록할 것을 알려주는 힌트 (이에 따라 메모리 할당 방식이 바뀔 수 있음)
+* `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT`: 명령 버퍼가 독립적으로 재기록(rerecord)될 수 있음. 이 플래그가 없으면 모두 함께 리셋(reset)되어야 함
 
-We will be recording a command buffer every frame, so we want to be able to
-reset and rerecord over it. Thus, we need to set the
-`VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` flag bit for our command pool.
+우리는 명령 버퍼를 매 프레임 기록할 것이기 때문에 리셋하고 재기록 하게 하려고 합니다. 따라서 커맨드 풀은 `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` 플래그 비트로 설정합니다.
 
-Command buffers are executed by submitting them on one of the device queues,
-like the graphics and presentation queues we retrieved. Each command pool can
-only allocate command buffers that are submitted on a single type of queue.
-We're going to record commands for drawing, which is why we've chosen the
-graphics queue family.
-
+명령 버퍼는 이를 장치 큐 중 하나에 제출함으로써 실행됩니다. 장치 큐는 예를들어 우리가 획득한 그래픽스 또는 표시 큐와 같은 것입니다. 각 명령 풀은 한 종류의 큐에 제출할 명령 버퍼만 할당 가능합니다. 우리는 그리기를 위한 명령을 기록할 것이라서 그래픽스 큐 패밀리를 선택한 것입니다.
 
 ```c++
 if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
@@ -76,10 +58,7 @@ if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
 }
 ```
 
-Finish creating the command pool using the `vkCreateCommandPool` function. It
-doesn't have any special parameters. Commands will be used throughout the
-program to draw things on the screen, so the pool should only be destroyed at
-the end:
+마지막으로 `vkCreateCommandPool` 함수를 호출해 명령 풀을 만듭니다. 특별한 매개변수는 없습니다. 명령은 화면에 무언가를 그리기 위해 프로그램 내내 사용할 것이니, 마지막에 가서야 해제하게 됩니다:
 
 ```c++
 void cleanup() {
@@ -89,20 +68,17 @@ void cleanup() {
 }
 ```
 
-## Command buffer allocation
+## 명령 버퍼 할당
 
-We can now start allocating command buffers.
+이제 명령 버퍼 할당을 시작해 봅시다.
 
-Create a `VkCommandBuffer` object as a class member. Command buffers
-will be automatically freed when their command pool is destroyed, so we don't
-need explicit cleanup.
+`VkCommandBuffer` 객체를 클래스 멤버로 추가합니다. 명령 버퍼는 명령 풀이 소멸되면 자동으로 해제되므로 따로 정리 과정은 필요 없습니다.
 
 ```c++
 VkCommandBuffer commandBuffer;
 ```
 
-We'll now start working on a `createCommandBuffer` function to allocate a single
-command buffer from the command pool.
+이제 명령 풀에서 하나의 명령 버퍼를 만들기 위해 `createCommandBuffer` 함수를 만들어 봅시다.
 
 ```c++
 void initVulkan() {
@@ -127,9 +103,7 @@ void createCommandBuffer() {
 }
 ```
 
-Command buffers are allocated with the `vkAllocateCommandBuffers` function,
-which takes a `VkCommandBufferAllocateInfo` struct as parameter that specifies
-the command pool and number of buffers to allocate:
+명령 버퍼는 `vkAllocateCommandBuffers` 함수를 사용해 할당되는데, 명령 풀을 명시하는 `VkCommandBufferAllocateInfo` 매개변수와 할당할 버퍼 개수를 매개변수로 받습니다:
 
 ```c++
 VkCommandBufferAllocateInfo allocInfo{};
@@ -143,27 +117,18 @@ if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) 
 }
 ```
 
-The `level` parameter specifies if the allocated command buffers are primary or
-secondary command buffers.
+`level` 매개변수는 할당된 명령 버퍼가 주(primary) 명령 버퍼인지, 보조(secondary) 명령 버퍼인지를 명시합니다.
 
-* `VK_COMMAND_BUFFER_LEVEL_PRIMARY`: Can be submitted to a queue for execution,
-but cannot be called from other command buffers.
-* `VK_COMMAND_BUFFER_LEVEL_SECONDARY`: Cannot be submitted directly, but can be
-called from primary command buffers.
+* `VK_COMMAND_BUFFER_LEVEL_PRIMARY`: 실행을 위해 큐에 제출될 수 있지만, 다른 명령 버퍼에서 호출은 불가능.
+* `VK_COMMAND_BUFFER_LEVEL_SECONDARY`: 직접 제출은 불가능하지만 주 명령 버퍼로부터 호출될 수 있음.
 
-We won't make use of the secondary command buffer functionality here, but you
-can imagine that it's helpful to reuse common operations from primary command
-buffers.
+보조 명령 버퍼의 기능은 여기에서 사용하진 않을 것이지만, 주 명령 버퍼에서 자주 사용되는 연산을 재사용하기 위해 유용하게 사용될 수 있다는 것은 눈치 채실 수 있을 겁니다.
 
-Since we are only allocating one command buffer, the `commandBufferCount` parameter
-is just one.
+우리는 하나의 명령 버퍼만을 할당하므로 `commandBufferCount`는 1입니다.
 
-## Command buffer recording
+## 명령 버퍼 기록
 
-We'll now start working on the `recordCommandBuffer` function that writes the
-commands we want to execute into a command buffer. The `VkCommandBuffer` used
-will be passed in as a parameter, as well as the index of the current swapchain
-image we want to write to.
+이제 실행하고자 하는 명령을 명령 버퍼에 채우는 `recordCommandBuffer` 함수를 만들어 봅시다. `VkCommandBuffer`와 값을 쓰고자 하는 현재 스왑체인 이미지의 인덱스를 매개변수로 넘겨줍니다.
 
 ```c++
 void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
@@ -171,9 +136,7 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 }
 ```
 
-We always begin recording a command buffer by calling `vkBeginCommandBuffer`
-with a small `VkCommandBufferBeginInfo` structure as argument that specifies
-some details about the usage of this specific command buffer.
+명령 버퍼의 기록은 항상 `vkBeginCommandBuffer`에 간단한 `VkCommandBufferBeginInfo` 구조체를 넘겨주는 것으로 시작합니다. 이 구조체는 해당 명령 버퍼의 사용 방식에 대한 세부 사항을 명시합니다.
 
 ```c++
 VkCommandBufferBeginInfo beginInfo{};
@@ -186,30 +149,21 @@ if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
 }
 ```
 
-The `flags` parameter specifies how we're going to use the command buffer. The
-following values are available:
+`flags` 매개변수는 명령 버퍼를 어떻게 사용할 것인지를 명시합니다. 아래와 같은 값들이 될 수 있습니다:
 
-* `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`: The command buffer will be
-rerecorded right after executing it once.
-* `VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`: This is a secondary
-command buffer that will be entirely within a single render pass.
-* `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`: The command buffer can be
-resubmitted while it is also already pending execution.
+* `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`: 명령 버퍼는 한 번 실행 후 즉시 재기록됨.
+* `VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`: 이 버퍼는 보조 명령 버퍼로써 하나의 렌더링 패스에 완전하게 속해 있음.
+* `VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT`: 명령이 지연될 경우에 명령 버퍼가 재제출(resubmit) 될 수 있음
 
-None of these flags are applicable for us right now.
+연재는 어떤 플래그도 해당하지 않습니다.
 
-The `pInheritanceInfo` parameter is only relevant for secondary command buffers.
-It specifies which state to inherit from the calling primary command buffers.
+`pInheritanceInfo` 매개변수는 보조 명령 버퍼에만 해당됩니다. 주 명령 버퍼에서 호출될 떄 어떤 상태를 상속(inherit)하는지 명시합니다.
 
-If the command buffer was already recorded once, then a call to
-`vkBeginCommandBuffer` will implicitly reset it. It's not possible to append
-commands to a buffer at a later time.
+명령 버퍼가 이미 기록된 상태에서 `vkBeginCommandBuffer`를 호출하면 암시적으로 버퍼가 리셋됩니다. 명령을 버퍼에 추가(append)하는 것은 불가능합니다.
 
-## Starting a render pass
+## 렌더 패스 시작하기
 
-Drawing starts by beginning the render pass with `vkCmdBeginRenderPass`. The
-render pass is configured using some parameters in a `VkRenderPassBeginInfo`
-struct.
+그리기는 `vkCmdBeginRenderPass`를 사용해 렌더 패스를 시작함으로써 시작됩니다. 렌더 패스는 `VkRenderPassBeginInfo` 구조체의 매개변수를 기반으로 설정됩니다.
 
 ```c++
 VkRenderPassBeginInfo renderPassInfo{};
@@ -218,21 +172,14 @@ renderPassInfo.renderPass = renderPass;
 renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
 ```
 
-The first parameters are the render pass itself and the attachments to bind. We
-created a framebuffer for each swap chain image where it is specified as a color
-attachment. Thus we need to bind the framebuffer for the swapchain image we want
-to draw to. Using the imageIndex parameter which was passed in, we can pick the
-right framebuffer for the current swapchain image.
+첫 매개변수는 렌더패스 그 자체와 바인딩할 어태치먼트입니다. 각 스왑 체인 이미지에 대해 프레임버퍼를 만들었고, 색상 어태치먼트로 명시된 상태입니다. 따라서 그 프레임버퍼를 우리가 그리고자 하는 스왑체인 이미지로 바인딩해야 합니다. 넘어온 imageIndex를 사용해 현재 스왑체인 이미지의 적정한 프레임버퍼를 선택할 수 있습니다.
 
 ```c++
 renderPassInfo.renderArea.offset = {0, 0};
 renderPassInfo.renderArea.extent = swapChainExtent;
 ```
 
-The next two parameters define the size of the render area. The render area
-defines where shader loads and stores will take place. The pixels outside this
-region will have undefined values. It should match the size of the attachments
-for best performance.
+다음 두 매개변수는 렌더 영역(area)의 크기를 명시합니다. 렌더 영역은 셰이더가 값을 읽고 쓰는 영역을 정의합니다. 이 영역 밖의 픽셀은 정의되지 않은 값을 가지게 됩니다. 어태치먼트와 같은 크기여야 성능이 높아집니다.
 
 ```c++
 VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -240,47 +187,32 @@ renderPassInfo.clearValueCount = 1;
 renderPassInfo.pClearValues = &clearColor;
 ```
 
-The last two parameters define the clear values to use for
-`VK_ATTACHMENT_LOAD_OP_CLEAR`, which we used as load operation for the color
-attachment. I've defined the clear color to simply be black with 100% opacity.
+마지막 두 매개변수는 `VK_ATTACHMENT_LOAD_OP_CLEAR`에 사용될 지우기(clear) 값이고, 색상 어태치먼트의 로드 연산에 사용한 바 있습니다. 여기서는 간단히 검은색의 100% 불투명도로 지우도록 하겠습니다.
 
 ```c++
 vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 ```
 
-The render pass can now begin. All of the functions that record commands can be
-recognized by their `vkCmd` prefix. They all return `void`, so there will be no
-error handling until we've finished recording.
+이제 렌더 패스가 시작됩니다. 명령을 기록하는 함수는 `vkCmd` 접두어로 구분할 수 있습니다. 이들은 모두 `void` 반환이므로 기록을 끝낼 때 까지는 오류 처리가 불가능합니다.
 
-The first parameter for every command is always the command buffer to record the
-command to. The second parameter specifies the details of the render pass we've
-just provided. The final parameter controls how the drawing commands within the
-render pass will be provided. It can have one of two values:
+모든 명령의 첫 매개변수는 명령을 기록할 명령 버퍼입니다. 두 번째 매개변수는 방금 만든, 렌더 패스 세부사항을 명시합니다. 마지막 매개변수는 렌더 패스 안의 그리기 명령이 어떻게 제공될지를 제어합니다. 두 개의 값 중 하나입니다:
 
-* `VK_SUBPASS_CONTENTS_INLINE`: The render pass commands will be embedded in
-the primary command buffer itself and no secondary command buffers will be
-executed.
-* `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS`: The render pass commands will
-be executed from secondary command buffers.
+* `VK_SUBPASS_CONTENTS_INLINE`: 렌더 패스 명령이 주 명령 버퍼에 포함되어 있고 보조 명령 버퍼는 실행되지 않음.
+* `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS`: 렌더 패스 명령이 보조 명령 버퍼에서 실행됨
 
-We will not be using secondary command buffers, so we'll go with the first
-option.
+보조 명령 버퍼는 사용하지 않을 것이므로, 첫 번째 값을 선택합니다.
 
-## Basic drawing commands
+## 기본 그리기 명령
 
-We can now bind the graphics pipeline:
+이제 그래픽스 파이프라인을 바인딩합니다:
 
 ```c++
 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 ```
 
-The second parameter specifies if the pipeline object is a graphics or compute
-pipeline. We've now told Vulkan which operations to execute in the graphics
-pipeline and which attachment to use in the fragment shader.
+두 분째 매개변수는 파이프라인 객체가 그래픽스 파이프라인인지 계산(compute) 파이프라인인지를 명시합니다. 이제 Vulkan에게 그래픽스 파이프라인에서 어떤 명령을 실행하고 프래그먼트 셰이더에서 어떤 어태치먼트를 사용할 것인지를 알려 주었습니다.
 
-As noted in the [fixed functions chapter](../02_Graphics_pipeline_basics/02_Fixed_functions.md#dynamic-state), 
-we did specify viewport and scissor state for this pipeline to be dynamic.
-So we need to set them in the command buffer before issuing our draw command:
+[고정 함수 챕터](../02_Graphics_pipeline_basics/02_Fixed_functions.md#dynamic-state)에서 이야기 한 것처럼, 우리는 파이프라인에게 뷰포트와 시저 상태가 동적일 것이라고 명시해 둔 상태입니다. 따라서 이들을 명령 버퍼에서 그리기 명령을 수행하기 이전에 설정해 주어야 합니다:
 
 ```c++
 VkViewport viewport{};
@@ -298,34 +230,28 @@ scissor.extent = swapChainExtent;
 vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 ```
 
-Now we are ready to issue the draw command for the triangle:
+이제 삼각형을 그리기 위한 그리기 명령을 추가합니다:
 
 ```c++
 vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 ```
 
-The actual `vkCmdDraw` function is a bit anticlimactic, but it's so simple
-because of all the information we specified in advance. It has the following
-parameters, aside from the command buffer:
+실제 `vkCmdDraw` 명령은 아주 어렵지 않은데 미리 모든 정보를 설정해 두었기 때문입니다. 이 명령은 명령 버퍼 이외에 다음과 같은 매개변수를 갖습니다:
 
-* `vertexCount`: Even though we don't have a vertex buffer, we technically still
-have 3 vertices to draw.
-* `instanceCount`: Used for instanced rendering, use `1` if you're not doing
-that.
-* `firstVertex`: Used as an offset into the vertex buffer, defines the lowest
-value of `gl_VertexIndex`.
-* `firstInstance`: Used as an offset for instanced rendering, defines the lowest
-value of `gl_InstanceIndex`.
+* `vertexCount`: 정점 버퍼는 없어도, 그리기 위해서는 3개의 정점이 필요합니다.
+* `instanceCount`: 인스턴스(instanced) 렌더링을 위해 사용되는데, 그 기능을 사용하지 않는경우 `1`로 설정합니다.
+* `firstVertex`: 정점 버퍼의 오프셋을 설정하는 데 사용되며, `gl_VertexIndex`의 가장 작은 값을 정의합니다.
+* `firstInstance`: 인스턴스 렌더링의 오프셋을 설정하는 데 사용되며, `gl_InstanceIndex`의 가장 작은 값을 정의합니다.
 
-## Finishing up
+## 마무리
 
-The render pass can now be ended:
+이제 렌더 패스를 끝냅니다:
 
 ```c++
 vkCmdEndRenderPass(commandBuffer);
 ```
 
-And we've finished recording the command buffer:
+그리고 명령 버퍼의 기록도 끝냅니다:
 
 ```c++
 if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -333,11 +259,7 @@ if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 }
 ```
 
-
-
-In the next chapter we'll write the code for the main loop, which will acquire
-an image from the swap chain, record and execute a command buffer, then return the
-finished image to the swap chain.
+다음 장에서는 메인 루프를 위한 코드를 작성할 것이고, 그 과정에서 스왑 체인 이미지를 얻고, 명령 버퍼를 기록하고 실행하며, 결과 이미지를 스왑 체인에 반환할 것입니다.
 
 [C++ code](/code/14_command_buffers.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
