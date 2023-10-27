@@ -35,7 +35,6 @@ function (add_shaders_target TARGET)
   if (${COMPUTE_SHADER_INDEX} GREATER -1)  
     set (SHADERS ${SHADERS} ${SHADERS_DIR}/comp.spv)
   endif()
-  MESSAGE(STATUS ${SHADERS})
   add_custom_command (
     OUTPUT ${SHADERS}
     COMMAND glslang::validator
