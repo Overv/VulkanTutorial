@@ -20,7 +20,7 @@ VkInstance instance;
 
 Pour créer l'instance, nous allons d'abord remplir une première structure avec des informations sur notre application.
 Ces données sont optionnelles, mais elles peuvent fournir des informations utiles au driver pour optimiser ou
-dignostiquer les erreurs lors de l'exécution, par exemple en reconnaissant le nom d'un moteur graphique. Cette structure
+diagnostiquer les erreurs lors de l'exécution, par exemple en reconnaissant le nom d'un moteur graphique. Cette structure
 s'appelle `VkApplicationInfo` :
 
 ```c++
