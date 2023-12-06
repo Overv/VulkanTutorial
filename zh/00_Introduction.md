@@ -38,7 +38,8 @@ title: 背景介绍
   [DOOM 3](https://github.com/DustinHLand/vkDOOM3) 中
 
 如果你想，你可以使用 C 语言而不是 C++，但这样你就需要使用不同的线性代数库，而且要自己组织代码结构。本教程将使用类和 RAII 等 C++ 特性来组织
-逻辑，管理资源生命周期。这里还有为 Rust 开发者提供的本教程的[替代版本](https://github.com/bwasty/vulkan-tutorial-rs)。
+逻辑，管理资源生命周期。还有两个为 Rust 开发者提供的本教程的替代版本：[基于 Vulkano 的教程](https://github.com/bwasty/vulkan-tutorial-rs)，
+[基于 Vulkanalia 的教程](https://vk.7dg.tech/)。
 
 为了让使用其他编程语言的开发者更容易理解，并获得一些使用基本 API 的经验，我们将使用原始的 C API 编写 Vulkan。但是，如果你使用C++，那你可能更
 喜欢使用更新的 [Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) 绑定，它封装了一些费力的工作，还能防止几类错误。
