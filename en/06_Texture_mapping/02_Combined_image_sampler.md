@@ -6,7 +6,7 @@ image sampler*. This descriptor makes it possible for shaders to access an image
 resource through a sampler object like the one we created in the previous
 chapter.
 
-We'll start by modifying the descriptor layout, descriptor pool and descriptor
+We'll start by modifying the descriptor set layout, descriptor pool and descriptor
 set to include such a combined image sampler descriptor. After that, we're going
 to add texture coordinates to `Vertex` and modify the fragment shader to read
 colors from the texture instead of just interpolating the vertex colors.

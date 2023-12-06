@@ -317,13 +317,13 @@ void createTextureSampler() {
     ...
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.minLod = 0.0f; // Optional
-    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
     samplerInfo.mipLodBias = 0.0f; // Optional
     ...
 }
 ```
 
-To allow the full range of mip levels to be used, we set `minLod` to 0.0f, and `maxLod` to the number of mip levels. We have no reason to change the `lod` value , so we set `mipLodBias` to 0.0f.
+To allow the full range of mip levels to be used, we set `minLod` to 0.0f, and `maxLod` to `VK_LOD_CLAMP_NONE`. This constant is equal to `1000.0f`, which means that all available mipmap levels in the texture will be sampled. We have no reason to change the `lod` value, so we set `mipLodBias` to 0.0f.
 
 Now run your program and you should see the following:
 
