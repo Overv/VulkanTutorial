@@ -26,7 +26,8 @@
             "Rust code": "https://github.com/bwasty/vulkan-tutorial-rs",
             "Java code": "https://github.com/Naitsirc98/Vulkan-Tutorial-Java",
             "Go code": "https://github.com/vkngwrapper/vulkan-tutorial",
-            "Visual Studio 2019 samples": "https://github.com/jjYBdx4IL/VulkanTutorial-VisualStudioProjectFiles"
+            "Visual Studio 2019 samples": "https://github.com/jjYBdx4IL/VulkanTutorial-VisualStudioProjectFiles",
+            "Chinese translation": "https://github.com/fangcun010/VulkanTutorialCN"
         }
     },
     "ignore": {
