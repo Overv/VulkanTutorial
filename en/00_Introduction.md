@@ -125,3 +125,20 @@ still stuck after that, then feel free to ask for help in the comment section of
 the closest related chapter.
 
 Ready to dive into the future of high performance graphics APIs? [Let's go!](!en/Overview)
+
+## License
+
+Copyright (C) 2015-2023, Alexander Overvoorde
+
+The contents are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+unless stated otherwise. By contributing, you agree to license
+your contributions to the public under that same license.
+
+The code listings in the `code` directory in the source repository are licensed 
+under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+By contributing to that directory, you agree to license your contributions to
+the public under that same public domain-like license.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
