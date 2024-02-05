@@ -83,7 +83,7 @@ if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 
 ## VK_ERROR_INCOMPATIBLE_DRIVER 오류에 맞닥뜨린다면:
 
-최신 MultenVK SDK를 MacOS에서 사용중이하면 `vkCreateInstance`로부터 `VK_ERROR_INCOMPATIBLE_DRIVER`가 반환될 수 있습니다. [Getting Start Notes](https://vulkan.lunarg.com/doc/sdk/1.3.216.0/mac/getting_started.html)를 살펴보십시오. 1.3.216 Vulkan SDK부터는 `VK_KHR_PORTABILITY_subset` 확장이 필수적입니다.
+최신 MoltenVK SDK를 MacOS에서 사용중이하면 `vkCreateInstance`로부터 `VK_ERROR_INCOMPATIBLE_DRIVER`가 반환될 수 있습니다. [Getting Start Notes](https://vulkan.lunarg.com/doc/sdk/1.3.216.0/mac/getting_started.html)를 살펴보십시오. 1.3.216 Vulkan SDK부터는 `VK_KHR_PORTABILITY_subset` 확장이 필수적입니다.
 
 오류를 해결하기 위해서는 먼저 `VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR` 비트를 `VkInstanceCreateInfo` 구조체 플래그에 추가하고, `VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME`를 인스턴스의 확장 리스트에 추가하십시오.
 
