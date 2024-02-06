@@ -112,10 +112,9 @@ if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 
 ## 확장 지원 체크하기
 
-`vkCreateInstance`문서를 보면 `VK_ERROR_EXTENSION_NOT_PRESENT` 오류 코드가 반환될 수 있다는 것을 알 수 있습니다. We could simply
-specify the extensions we require and terminate if that error code comes back.
-That makes sense for essential extensions like the window system interface, but
-what if we want to check for optional functionality?
+`vkCreateInstance`문서를 보면 `VK_ERROR_EXTENSION_NOT_PRESENT` 오류 코드가 반환될 수 있다는 것을 알 수 있습니다. 
+필요로 하는 확장을 명시하고 오류가 반환되면 그냥 프로그램을 종료할 수도 있습니다.
+이는 윈도우 시스템 인터페이스와 같은 필수적인 확장에 대해서는 적절한 방법이지만, 추가적인 기능을 체크만 하려고 할 때에는 어떻게 해야 할까요?
 
 인스턴스를 생성하기 전에 지원하는 확장들의 리스트를 얻고 싶으면 `vkEnumerateInstanceExtensionProperties`를 사용하면 됩니다. 확장의 개수를 저장할 변수의 포인터와 확장의 상세 사항을 저장할 `VkExtensionProperties` 배열을 매개변수로 받습니다. 선택적으로 첫 번째 파라메터로 특정한 검증 레이어로 필터링하도록 할 수 있는데, 지금은 무시해도 됩니다.
 

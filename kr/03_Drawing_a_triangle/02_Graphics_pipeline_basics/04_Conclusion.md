@@ -33,7 +33,7 @@ pipelineInfo.pDynamicState = &dynamicState;
 pipelineInfo.layout = pipelineLayout;
 ```
 
-다음으로 파이프라인 레이아웃으로 구조체에 대한 포인터가 아닌 Vulkan 핸들입니다.
+다음으로 파이프라인 레이아웃이 오는데, 여기에는 구조체에 대한 포인터가 아닌 Vulkan 핸들을 사용합니다.
 
 ```c++
 pipelineInfo.renderPass = renderPass;
@@ -64,11 +64,11 @@ if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
 }
 ```
 
-`vkCreateGraphicsPipelines`함수는 Vulkan의 다른 객체들을 만들 떄보다 더 많은 매개별수를 받습니다. 한 번의 호출로 여러 개의 `VkGraphicsPipelineCreateInfo`를 받아 여러 개의 `VkPipeline`객체를 만들 수 있게 되어있습니다.
+`vkCreateGraphicsPipelines`함수는 Vulkan의 다른 객체들을 만들 떄보다 더 많은 매개변수를 받습니다. 한 번의 호출로 여러 개의 `VkGraphicsPipelineCreateInfo`를 받아 여러 개의 `VkPipeline`객체를 만들 수 있게 되어있습니다.
 
-`VK_NULL_HANDLE`를 념겨준 두 번째 매개변수는 선택적으로 `VkPipelineCache`객체에 대한 참조를 넘겨줄 수 있습니다. 파이프라인 캐시(cache)는 여러 `vkCreateGraphicsPipelines` 호출을 위해, 파이프라인 생성을 위한 데이터를 저장하고 재사용하는데 사용될 수 있습니다. 만일 캐시가 파일로 저장되어 있다면 다른 프로그램에서도 사용될 수 있습니다. 이렇게 하면 나중에 파이프라인 생성을 위해 소요되는 시간을 눈에 띄게 줄일 수 있습니다. 이에 대해서는 파이프라인 캐시 챕터에서 살펴보겠습니다.
+`VK_NULL_HANDLE`를 넘겨준 두 번째 매개변수는 선택적으로 `VkPipelineCache`객체에 대한 참조를 넘겨줄 수 있습니다. 파이프라인 캐시(cache)는 여러 `vkCreateGraphicsPipelines` 호출을 위해, 파이프라인 생성을 위한 데이터를 저장하고 재사용하는데 사용될 수 있습니다. 만일 캐시가 파일로 저장되어 있다면 다른 프로그램에서도 사용될 수 있습니다. 이렇게 하면 나중에 파이프라인 생성을 위해 소요되는 시간을 눈에 띄게 줄일 수 있습니다. 이에 대해서는 파이프라인 캐시 챕터에서 살펴보겠습니다.
 
-모든 그리기 연산을 위해서는 그래픽스 파이프라인이 필요하므로 프로그램이 종료될 때에만 해제되어야 합니다.
+모든 그리기 연산 과정에서는 그래픽스 파이프라인이 필요하므로 프로그램이 종료될 때에만 해제되어야 합니다.
 
 ```c++
 void cleanup() {

@@ -2,7 +2,7 @@
 
 ## 동적 상태(Dynamic state)
 
-*대부분*의 파이프라인 상태가 파이프라인 상태 객체로 만들어져야만 하지만 몇몇 상태들은 그리기 시점에 파이프라인을 재생성하지 않고도 변경*될 수 있습니다*. 예시로는 뷰포트의 크기라던지, 선의 두께라던지 블렌딩 상수 등이 있습니다. 동적 상태를 사용하고 싶고, 이런 상태들을 계속 제외된 상태로 두고 싶다면, `VkPipelineDynamicStateCreateInfo` 구조체를 아래와 같이 만들어야 합니다.
+*대부분*의 파이프라인 상태가 파이프라인 상태 객체로 만들어져야만 하지만 몇몇 상태들은 그리기 시점에 파이프라인을 *재생성하지 않고도 변경될 수 있습니다*. 예시로는 뷰포트의 크기라던지, 선의 두께라던지 블렌딩 상수 등이 있습니다. 동적 상태를 사용하고 싶고, 이런 상태들을 계속 제외된 상태로 두고 싶다면, `VkPipelineDynamicStateCreateInfo` 구조체를 아래와 같이 만들어야 합니다.
 
 ```c++
 std::vector<VkDynamicState> dynamicStates = {
@@ -23,8 +23,7 @@ dynamicState.pDynamicStates = dynamicStates.data();
 `VkPipelineVertexInputStateCreateInfo` 구조체는 정점 데이터의 포맷을 기술하고, 이는 정점 셰이더로 넘겨집니다. 크게 두 가지 방법으로 기술됩니다:
 
 * 바인딩: 데이터 사이의 간격과 데이터가 정점별 데이터인지 인스턴스별(per-instance) 데이터인지 여부 ([인스턴싱](https://en.wikipedia.org/wiki/Geometry_instancing) 참고)
-* 어트리뷰트 기술: type of the attributes passed to the vertex shader,
-which binding to load them from and at which offset
+* 어트리뷰트 기술: 정점 셰이더에 전달된 어트리뷰트의 타입, 어떤 바인딩에 이들을 로드할 것인지와 오프셋이 얼마인지
 
 우리는 정점 셰이더에 정점 데이터를 하드 코딩하고 있기 때문에 지금은 이 구조체에 로드할 정점 데이터가 없다고 명시할 것입니다. 정점 버퍼 챕터에서 다시 살펴볼 것입니다.
 
@@ -41,7 +40,7 @@ vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
 
 ## 입력 조립
 
-`VkPipelineInputAssemblyStateCreateInfo`구조체는 두 가지를 기술합니다: 정점으로부터 어떤 기하 형상이 그려질지와 프리미티브 재시작(restart)를 활성화할지 여부입니다. 앞의 내용은 `topology` 멤버에 명시되고 가능한 값들은 아래와 같습니다:
+`VkPipelineInputAssemblyStateCreateInfo`구조체는 두 가지를 기술합니다: 정점으로부터 어떤 기하 형상이 그려질지와 프리미티브 재시작(restart)을 활성화할지 여부입니다. 앞의 내용은 `topology` 멤버에 명시되고 가능한 값들은 아래와 같습니다:
 
 * `VK_PRIMITIVE_TOPOLOGY_POINT_LIST`: 정점으로부터 점을 그림
 * `VK_PRIMITIVE_TOPOLOGY_LINE_LIST`: 재사용 없이 두 정점마다 선을 그림
@@ -90,7 +89,7 @@ scissor.offset = {0, 0};
 scissor.extent = swapChainExtent;
 ```
 
-뷰포트와 시저 사각형은 파이프라인의 정적인 부분으로 명시할 수도 있고 [동적 상태](#dynamic-state)로 명시할 수도 있습니다. 정적으로 하는 경우 다른 상태들과 비슷하게 유지되지만 이들은 동적 상태로 명시하는 것이 유연성을 위해 더 편리합니다. 이렇게 하는 것이 더 일반적이고 이러한 동적 상태는 성능 저하 없이 구현이 가능합니다.
+뷰포트와 시저 사각형은 파이프라인의 정적인 부분으로 명시할 수도 있고 [동적 상태](#dynamic-state)로 명시할 수도 있습니다. 정적으로 하는 경우 다른 상태들과 비슷하게 유지되지만 이들은 동적 상태로 명시하는 것이 유연성을 위해 더 편리한 방법입니다. 이런 방식이 더 일반적이고 동적 상태는 성능 저하 없도록 구현되어 있습니다.
 
 동적 뷰포트와 시저 사각형을 위해서는 해당하는 동적 상태를 파이프라인에서 활성화해야 합니다:
 
@@ -131,7 +130,6 @@ viewportState.pScissors = &scissor;
 ```
 
 어떻게 설정하셨건, 어떤 그래픽 카드에서는 다중 뷰포트와 시저 사각형이 사용 가능하므로 구조체의 멤버는 이들의 배열을 참조하도록 되어 있습니다. 다중 뷰포트 또는 시저 사각형을 사용하려면 GPU 기능을 활성화 하는 것도 필요합니다 (논리적 장치 생성 부분을 참고하세요).
-Independent of how you set them, it's is possible to use multiple viewports and scissor rectangles on some graphics cards, so the structure members reference an array of them. Using multiple requires enabling a GPU feature (see logical device creation).
 
 ## 래스터화
 
@@ -162,7 +160,7 @@ rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 * `VK_POLYGON_MODE_LINE`: 폴리곤의 모서리가 선으로 그려짐
 * `VK_POLYGON_MODE_POINT`: 폴리곤의 정점이 점으로 그려짐
 
-색상을 채우는 모드 이외에는 GPU 기능을 활성화해야 사용 가능합니다.
+채우기 모드 이외에는 GPU 기능을 활성화해야 사용 가능합니다.
 
 ```c++
 rasterizer.lineWidth = 1.0f;
@@ -214,7 +212,7 @@ multisampling.alphaToOneEnable = VK_FALSE; // Optional
 * 쓰여진 값과 새 값을 섞어 새로운 색상을 만듬
 * 쓰여진 값과 새 값을 비트 연산(bitwise operation)하여 결합
 
-컬러 블렌딩을 구성하는 두 종류의 구조체가 있습니다. 먼저 `VkPipelineColorBlendAttachmentState`는 부착(attach)된 프레임버퍼별 설정을 담은 구조체이며 `VkPipelineColorBlendStateCreateInfo`는 *전역(global)* 컬러 블렌딩 설정을 담고 있습니다. 우리는 하나의 프레임버퍼만 사용합니다:
+컬러 블렌딩을 구성하는 두 종류의 구조체가 있습니다. 먼저 `VkPipelineColorBlendAttachmentState`는 어태치(attach)된 프레임버퍼별 설정을 담은 구조체이며 `VkPipelineColorBlendStateCreateInfo`는 *전역(global)* 컬러 블렌딩 설정을 담고 있습니다. 우리는 하나의 프레임버퍼만 사용합니다:
 
 ```c++
 VkPipelineColorBlendAttachmentState colorBlendAttachment{};
@@ -279,13 +277,13 @@ colorBlending.blendConstants[2] = 0.0f; // Optional
 colorBlending.blendConstants[3] = 0.0f; // Optional
 ```
 
-블렌딩의 두 번째 방법(비트 연산)을 하려면 `logicOpEnable`를 `VK_TRUE`로 설정해야 합니다. 그러면 비트 연산은 `logicOp` 필드에 명시됩니다. 주의하실 점은 이러한 경우 첫 번째 방법은 자동으로 비활성화 됩니다. 마치 여러분이 모든 프레임버퍼에 대해 `blendEnable`를 `VK_FALSE`로 설정한 것과 같이 말이죠! `colorWriteMask`또한 이 모드에서 프레임버퍼의 어떤 채널이 영향을 받을지를 결정하기 위해 사용됩니다. 지금 우리가 한 것처럼 두 모드를 모두 비활성화 하는 것도 가능합니다. 이러한 경우 프래그먼트 색상은 변경되지 않고 그대로 프레임버퍼에 쓰여집니다.
+블렌딩의 두 번째 방법(비트 연산)을 하려면 `logicOpEnable`를 `VK_TRUE`로 설정해야 합니다. 그러면 비트 연산은 `logicOp` 필드에 명시됩니다. 주의하실 점은 이러한 경우 첫 번째 방법은 자동으로 비활성화 됩니다. 마치 여러분이 모든 프레임버퍼에 대해 `blendEnable`를 `VK_FALSE`로 설정한 것과 같이 말이죠! `colorWriteMask` 또한 이 모드에서 프레임버퍼의 어떤 채널이 영향을 받을지를 결정하기 위해 사용됩니다. 지금 우리가 한 것처럼 두 모드를 모두 비활성화 하는 것도 가능합니다. 이러한 경우 프래그먼트 색상은 변경되지 않고 그대로 프레임버퍼에 쓰여집니다.
 
 ## 파이프라인 레이아웃(layout)
 
-셰이더에서 사용하는 `uniform`값은 동적 상태 변수처럼 전역적인 값으로 셰이더를 재생성하지 않고 그리기 시점에 값을 변경하여 다른 동작을 하도록 할 수 있습니다. 이는 주로 변환 행렬을 정점 셰이더에 전달하거나, 프래그먼트 셰이더에 텍스처 샘플러(sampler)를 생성하기 위해 사용됩니다.
+셰이더에서 사용하는 `uniform`은 동적 상태 변수처럼 전역적인 값으로 셰이더를 재생성하지 않고 그리기 시점에 값을 변경하여 다른 동작을 하도록 할 수 있습니다. 이는 주로 변환 행렬을 정점 셰이더에 전달하거나, 프래그먼트 셰이더에 텍스처 샘플러(sampler)를 생성하기 위해 사용됩니다.
 
-이러한 uniform 값은 `VkPipelineLayout` 객체를 생성하여 파이프라인 생성 단계에서 명시되어야 합니다. 나중 챕터까지는 사용하지 않을 것이지만 빈 파이프라인 레이아웃이라도 생성해 두어야만 합니다.
+이러한 uniform 값은 `VkPipelineLayout` 객체를 생성하여 파이프라인 생성 단계에서 명시되어야 합니다. 나중 챕터로 넘어가기 전까지는 사용하지 않을 것이지만 빈 파이프라인 레이아웃이라도 생성해 두어야만 합니다.
 
 이 객체를 저장할 클래스 멤버를 만들 것인데, 나중에 다른 함수에서 참조할 것이기 때문입니다.
 
@@ -321,7 +319,7 @@ void cleanup() {
 
 이로써 고정 함수 상태는 끝입니다! 이 모든 것들을 처음부터 만들어가는 과정은 힘들었지만, 그로 인해 그래픽스 파이프라인에서 일어나는 거의 모든 일들을 알게 되었습니다! 이러한 과정으로 인해 뜻밖의 오류가 발생할 가능성이 줄어들 것인데 특성 구성요소의 기본 상태를 제공한다면 그렇지 않았을 것입니다.
 
-그래픽스 파이프라인 생성을 위해서는 아직도 하나 더 객체를 만들어야 하고, 이는 [렌더 패스(render pass)](!en/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes)입니다.
+그래픽스 파이프라인 생성을 위해서는 아직도 하나 더 객체를 만들어야 하고, 이는 [렌더 패스(render pass)](!kr/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes)입니다.
 
 [C++ code](/code/10_fixed_functions.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /

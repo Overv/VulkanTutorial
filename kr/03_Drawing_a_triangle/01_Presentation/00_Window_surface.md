@@ -1,8 +1,8 @@
-Vulkan은 플랫폼 독립적인 API이기 때문에, 윈도우 시스템과 직접적으로 소통할 수는 없습니다. Vulkan과 윈도우 시스템간의 연결을 만들어 결과물을 화면에 보이도록 하기 위해서 우리는 WIS (Window System Integration)을 사용해야만 합니다. 이 챕터에서는 먼저 `VK_KHR_surface`를 살펴볼 것입니다. `VK_KHR_surface` 객체는 렌더링된 이미지를 표현할 표면(surface)의 추상화된 객체입니다. 우리 프로그램에서 표면은 GLFW를 사용해 열어놓은 윈도우의 뒷받침이 될 것입니다.
+Vulkan은 플랫폼 독립적인 API이기 때문에, 윈도우 시스템과 직접적으로 소통할 수는 없습니다. Vulkan과 윈도우 시스템간의 연결을 만들어 결과물을 화면에 보이도록 하기 위해서 우리는 WSI (Window System Integration)을 사용해야만 합니다. 이 챕터에서는 먼저 `VK_KHR_surface`를 살펴볼 것입니다. `VK_KHR_surface` 객체는 렌더링된 이미지를 표현할 표면(surface)의 추상화된 객체입니다. 우리 프로그램에서 표면은 GLFW를 사용해 열어놓은 윈도우가 뒷받침할 것입니다.
 
 `VK_KHR_surface` 확장은 인스턴스 수준의 확장이고, 우리는 이미 활성화 시켜 놓았습니다. 왜냐하면 `glfwGetRequiredInstanceExtensions`를 통해 반환된 리스트에 포함되어 있거든요. 이 리스트는 다음 몇 챕터에서 사용할 다른 WSI 확장도 포함하고 있습니다.
 
-윈도우 표면은 인스턴스 생성 이후에 곧바로 생성해야 하는데 이는 윈도우 표면이 물리적 장치의 선택에 영향을 주기 때문입니다. 이 내용을 여기까지 미룬 이유는 윈도우 표면이 렌더 타겟과 표현과 관련된 큰 주제이고, 이러한 내용으로 기본적인 세팅 설명을 복잡하게 만들고 싶지 않았기 때문입니다. 또한 윈도우 표면은 Vulkan에서 선택적인 구성요소로, 오프 스크린(off-screen) 렌더링을 할 경우에는 필요하지 않습니다. Vulkan은 보이지 않는 윈도우를 생성하는 등의 편법을 동원하지 않고서도 이런 기능을 사용 가능합니다 (OpenGL에서는 이러한 방식으로 구현해야만 합니다).
+윈도우 표면은 인스턴스 생성 이후에 곧바로 생성해야 하는데 이는 윈도우 표면이 물리적 장치의 선택에 영향을 주기 때문입니다. 이 내용을 여기까지 미룬 이유는 윈도우 표면이 렌더 타겟과 표현과 관련된 큰 주제이고, 이러한 내용으로 인해 기본적인 세팅 설명을 복잡하게 만들고 싶지 않았기 때문입니다. 또한 윈도우 표면은 Vulkan에서 선택적인 구성요소로, 오프 스크린(off-screen) 렌더링을 할 경우에는 필요하지 않습니다. Vulkan은 보이지 않는 윈도우를 생성하는 등의 편법을 동원하지 않고서도 이런 기능을 사용 가능합니다 (OpenGL에서는 편법으로 구현해야만 합니다).
 
 ## 윈도우 표면 생성
 
@@ -14,7 +14,7 @@ VkSurfaceKHR surface;
 
 `VkSurfaceKHR`객체와 그 활용은 플랫폼 독립적이지만, 생성에 있어서는 윈도우 시스템의 세부 사항에 의존적입니다. 예를 들어, 윈도우에서는 `HWND` 와 `HMODULE` 핸들이 필요합니다. 따라서 플랫폼 의존적인 확장들이 존재하고 윈도우의 경우 이 확장은 `VK_KHR_win32_surface`입니다. 이 확장은 `glfwGetRequiredInstanceExtensions`에 자동적으로 포함되어 있습니다.
 
-윈도우즈에서 표면을 생성하기 위해 이러한 플랫폼별 확장을 사용하는 예시를 보여드리겠습니다. 하지만 이 튜토리얼에서 이를 실제 사용하진 않을 것입니다. GLFW와 같은 라이브러리를 사용하면서 플랫폼별 코드를 사용하는 것은 적절하지 않습니다. GLFW에는 이미 `glfwCreateWindowSurface`를 통해 플랫폼별 차이에 따른 코드를 처리해 줍니다. 그래도, 사용하기 전에 뒤쪽에서 어떤 일이 벌어지는지는 알아두는 것이 좋겠죠.
+윈도우즈에서 표면을 생성하기 위해 이러한 플랫폼별 확장을 사용하는 예시를 보여드리겠습니다. 하지만 이 튜토리얼에서 이를 실제 사용하진 않을 것입니다. GLFW와 같은 라이브러리를 사용하면서도 플랫폼별 코드를 사용하는 것은 적절하지 않습니다. GLFW에서는 `glfwCreateWindowSurface`를 통해 플랫폼별 차이에 따른 코드를 처리해 줍니다. 그래도, 사용하기 전에 뒤쪽에서 어떤 일이 벌어지는지는 알아두는 것이 좋겠죠.
 
 네이티브 플랫폼 기능에 접근하기 위해서는 위쪽에 include를 바꿔줘야 합니다.
 
@@ -35,9 +35,9 @@ createInfo.hwnd = glfwGetWin32Window(window);
 createInfo.hinstance = GetModuleHandle(nullptr);
 ```
 
-`glfwGetWin32Window`함수는 GLFW 윈도웅 객체로부터 `HWND`를 얻기위해 사용됩니다. `GetModuleHandle` 호출은 현재 프로세스의 `HINSTANCE` 핸들을 반환해줍니다.
+`glfwGetWin32Window`함수는 GLFW 윈도우 객체로부터 `HWND`를 얻기위해 사용됩니다. `GetModuleHandle` 호출은 현재 프로세스의 `HINSTANCE` 핸들을 반환해줍니다.
 
-이루에는 `vkCreateWin32SurfaceKHR`를 통해 표면을 생성할 수 있는데, 인스턴스, 표면 생성 세부사항, 사용자 정의 할당자와 표면 핸들 저장을 위한 변수가 매개변수입니다. 정확히 하자면 이는 WSI 확장 함수이지만, 자주 사용되는 관계로 표준 Vulkan 로더에 포함되어 있고, 그렇기 때문에 명시적으로 로드할 필요가 없습니다.
+이후에는 `vkCreateWin32SurfaceKHR`를 통해 표면을 생성할 수 있는데 매개변수는 인스턴스, 표면 생성 세부사항, 사용자 정의 할당자와 표면 핸들 저장을 위한 변수입니다. 정확히 하자면 이는 WSI 확장 함수이지만, 자주 사용되는 관계로 표준 Vulkan 로더에 포함되어 있고, 그렇기 때문에 명시적으로 로드할 필요가 없습니다.
 
 ```c++
 if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
@@ -73,7 +73,7 @@ void createSurface() {
 }
 ```
 
-매개변수는 `VkInstance`, GLFW 윈도우에 대한 포인터, 사용자 정의 할당자와 `VkSurfaceKHR` 변수에 대한 포인터입니다. 내부적으로는 플랫폼 관련 호출을 할 뒤에 `VkResult` 값을 전달하여 반환해 줍니다. GLFW는 표면 소멸을 위한 특별한 함수를 제공하지는 않고, 기본(original) API를 통해 간단히 구현하면 됩니다:
+매개변수는 `VkInstance`, GLFW 윈도우에 대한 포인터, 사용자 정의 할당자와 `VkSurfaceKHR` 변수에 대한 포인터입니다. 내부적으로는 플랫폼 관련 호출을 한 뒤에 `VkResult` 값을 전달하여 반환해 줍니다. GLFW는 표면 소멸을 위한 특별한 함수를 제공하지는 않으므로, 기본(original) API를 통해 구현해야 합니다:
 
 ```c++
 void cleanup() {
@@ -103,7 +103,7 @@ struct QueueFamilyIndices {
 };
 ```
 
-다음으로, `findQueueFamilies`함수를 수정해서 윈도우 표면에 표현 기능이 있는 큐 패밀리를 찾아 봅시다. 이를 체크하기 위한 함수는 `vkGetPhysicalDeviceSurfaceSupportKHR` 함수히고, 물리적 장치, 큐 패밀리 인덱스와 표면을 매개변수로 받습니다. `VK_QUEUE_GRAPHICS_BIT`와 동일한 루프에 이 함수의 호출을 추가합니다:
+다음으로, `findQueueFamilies`함수를 수정해서 윈도우 표면에 표현 기능이 있는 큐 패밀리를 찾아 봅시다. 이를 체크하기 위한 함수는 `vkGetPhysicalDeviceSurfaceSupportKHR` 함수이고, 물리적 장치, 큐 패밀리 인덱스와 표면을 매개변수로 받습니다. `VK_QUEUE_GRAPHICS_BIT`와 동일한 루프에 이 함수의 호출을 추가합니다:
 
 ```c++
 VkBool32 presentSupport = false;

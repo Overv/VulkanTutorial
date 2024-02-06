@@ -1,4 +1,4 @@
-그리기 명령이나 메모리 전송과 같은 Vulkan의 명령(command)은 함수 호출을 통해 직접 수행되는 것이 아닙니다. 수행하고자 하는 연산들을 모두 명령 버퍼 객체에 먼저 기록해야 합니다. 이로 인해 Vulkan에게 우리가 하고자 하는 것들을 알려줄 준비가 완료되었다면, 모든 명령이 한꺼번에 Vulkan으로 제출(submit)되어 동시에 실행 가능한 상태가 된다는 것입니다. 또한 원한다면 여러 쓰레드에서 명령을 기록할 수 있다는 장점도 있습니다.
+그리기 명령이나 메모리 전송과 같은 Vulkan의 명령(command)은 함수 호출을 통해 직접 수행되는 것이 아닙니다. 수행하고자 하는 연산들을 모두 명령 버퍼 객체에 먼저 기록해야 합니다. 이로 인해 Vulkan에게 우리가 하고자 하는 것들을 알려줄 준비가 완료되었다면, 모든 명령이 한꺼번에 Vulkan으로 제출(submit)되어 동시에 실행 가능한 상태가 됩니다. 또한 원한다면 여러 쓰레드에서 명령을 기록할 수 있다는 장점도 있습니다.
 
 ## 명령 풀(Command pools)
 
@@ -159,7 +159,7 @@ if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
 
 `pInheritanceInfo` 매개변수는 보조 명령 버퍼에만 해당됩니다. 주 명령 버퍼에서 호출될 떄 어떤 상태를 상속(inherit)하는지 명시합니다.
 
-명령 버퍼가 이미 기록된 상태에서 `vkBeginCommandBuffer`를 호출하면 암시적으로 버퍼가 리셋됩니다. 명령을 버퍼에 추가(append)하는 것은 불가능합니다.
+명령 버퍼가 이미 기록된 상태에서 `vkBeginCommandBuffer`를 호출하면 암시적으로 버퍼가 리셋됩니다. 명령을 버퍼에 나중에 추가(append)하는 것은 불가능합니다.
 
 ## 렌더 패스 시작하기
 
@@ -172,7 +172,7 @@ renderPassInfo.renderPass = renderPass;
 renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
 ```
 
-첫 매개변수는 렌더패스 그 자체와 바인딩할 어태치먼트입니다. 각 스왑 체인 이미지에 대해 프레임버퍼를 만들었고, 색상 어태치먼트로 명시된 상태입니다. 따라서 그 프레임버퍼를 우리가 그리고자 하는 스왑체인 이미지로 바인딩해야 합니다. 넘어온 imageIndex를 사용해 현재 스왑체인 이미지의 적정한 프레임버퍼를 선택할 수 있습니다.
+첫 매개변수는 렌더패스 그 자체, 그리고 바인딩할 어태치먼트입니다. 각 스왑 체인 이미지에 대해 프레임버퍼를 만들었고, 색상 어태치먼트로 명시된 상태입니다. 따라서 그 프레임버퍼를 우리가 그리고자 하는 스왑체인 이미지로 바인딩해야 합니다. 전달된 imageIndex를 사용해 현재 스왑체인 이미지 중 적절한 프레임버퍼를 선택할 수 있습니다.
 
 ```c++
 renderPassInfo.renderArea.offset = {0, 0};
@@ -197,7 +197,7 @@ vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE)
 
 모든 명령의 첫 매개변수는 명령을 기록할 명령 버퍼입니다. 두 번째 매개변수는 방금 만든, 렌더 패스 세부사항을 명시합니다. 마지막 매개변수는 렌더 패스 안의 그리기 명령이 어떻게 제공될지를 제어합니다. 두 개의 값 중 하나입니다:
 
-* `VK_SUBPASS_CONTENTS_INLINE`: 렌더 패스 명령이 주 명령 버퍼에 포함되어 있고 보조 명령 버퍼는 실행되지 않음.
+* `VK_SUBPASS_CONTENTS_INLINE`: 렌더 패스 명령이 주 명령 버퍼에 포함되어 있고 보조 명령 버퍼는 실행되지 않음
 * `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS`: 렌더 패스 명령이 보조 명령 버퍼에서 실행됨
 
 보조 명령 버퍼는 사용하지 않을 것이므로, 첫 번째 값을 선택합니다.
@@ -210,7 +210,7 @@ vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE)
 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 ```
 
-두 분째 매개변수는 파이프라인 객체가 그래픽스 파이프라인인지 계산(compute) 파이프라인인지를 명시합니다. 이제 Vulkan에게 그래픽스 파이프라인에서 어떤 명령을 실행하고 프래그먼트 셰이더에서 어떤 어태치먼트를 사용할 것인지를 알려 주었습니다.
+두 번째 매개변수는 파이프라인 객체가 그래픽스 파이프라인인지 계산(compute) 파이프라인인지를 명시합니다. 이제 Vulkan에게 그래픽스 파이프라인에서 어떤 명령을 실행하고 프래그먼트 셰이더에서 어떤 어태치먼트를 사용할 것인지를 알려 주었습니다.
 
 [고정 함수 챕터](../02_Graphics_pipeline_basics/02_Fixed_functions.md#dynamic-state)에서 이야기 한 것처럼, 우리는 파이프라인에게 뷰포트와 시저 상태가 동적일 것이라고 명시해 둔 상태입니다. 따라서 이들을 명령 버퍼에서 그리기 명령을 수행하기 이전에 설정해 주어야 합니다:
 
@@ -238,7 +238,7 @@ vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
 실제 `vkCmdDraw` 명령은 아주 어렵지 않은데 미리 모든 정보를 설정해 두었기 때문입니다. 이 명령은 명령 버퍼 이외에 다음과 같은 매개변수를 갖습니다:
 
-* `vertexCount`: 정점 버퍼는 없어도, 그리기 위해서는 3개의 정점이 필요합니다.
+* `vertexCount`: 현재 정점 버퍼는 없을지라도, 드로우(draw)를 위해서는 3개의 정점이 필요합니다.
 * `instanceCount`: 인스턴스(instanced) 렌더링을 위해 사용되는데, 그 기능을 사용하지 않는경우 `1`로 설정합니다.
 * `firstVertex`: 정점 버퍼의 오프셋을 설정하는 데 사용되며, `gl_VertexIndex`의 가장 작은 값을 정의합니다.
 * `firstInstance`: 인스턴스 렌더링의 오프셋을 설정하는 데 사용되며, `gl_InstanceIndex`의 가장 작은 값을 정의합니다.
