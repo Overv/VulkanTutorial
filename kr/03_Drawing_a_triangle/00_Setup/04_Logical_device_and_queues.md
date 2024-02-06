@@ -38,7 +38,7 @@ queueCreateInfo.queueCount = 1;
 
 현재의 드라이버들은 큐 패밀리 하나당 적은 수의 큐만을 생성할 수 있도록 제한되어 있고, 여러분도 하나 이상 필요하지는 않을겁니다. 왜냐하면 여러 쓰레드(thread)에 필요한 커맨드 버퍼들을 모두 생성해 두고 메인 쓰레드에서 적은 오버헤드의 호출로 이들을 한꺼번에 제출(submit)할 수 있기 떄문입니다.
 
-Vulkan에서는 커맨드 버퍼의 실행 스케줄에 영향을 주는 큐의 우선순위를 `0.0`과 `1.0` 사이의 부동소수점 수로 명시할 수 있게 되어 있습니다. 큐가 하나밖에 없더라도 이를 명시해 주어야만 합니다:
+Vulkan에서는 커맨드 버퍼의 실행 스케줄에 영향을 주는 큐의 우선순위를 `0.0`과 `1.0` 사이의 부동소수점 값으로 명시할 수 있게 되어 있습니다. 큐가 하나밖에 없더라도 이를 명시해 주어야만 합니다:
 
 ```c++
 float queuePriority = 1.0f;
@@ -47,7 +47,7 @@ queueCreateInfo.pQueuePriorities = &queuePriority;
 
 ## 사용할 장치 기능 명시하기
 
-다음으로는 우리가 사용할 장치의 기능을 명시해야 합니다. 이는 이전 챕터의 지오메트리 셰이더를 `vkGetPhysicalDeviceFeatures`로 질의했던 것과 비슷합니다. 지금은 특별헌 기능이 필요 없으니 그냥 정의만 해 두고 모든 값을 `VK_FALSE`로 둡시다. 나중에 Vulkan을 사용해 좀 더 흥미로운 것들을 할 때 다시 이 구조체를 사용할 것입니다.
+다음으로는 우리가 사용할 장치의 기능을 명시해야 합니다. 이는 이전 챕터의 지오메트리 셰이더를 `vkGetPhysicalDeviceFeatures`로 질의했던 것과 비슷합니다. 지금은 특별한 기능이 필요 없으니 그냥 정의만 해 두고 모든 값을 `VK_FALSE`로 둡시다. 나중에 Vulkan을 사용해 좀 더 흥미로운 것들을 할 때 다시 이 구조체를 사용할 것입니다.
 
 ```c++
 VkPhysicalDeviceFeatures deviceFeatures{};
@@ -75,7 +75,7 @@ createInfo.pEnabledFeatures = &deviceFeatures;
 
 장치에 종속적인 확장 중 하나의 예시로는 `VK_KHR_swapchain`가 있는데, 렌더링된 이미지를 장치로부터 윈도우로 전달하는 기능입니다. 시스템의 Vulkan 장치가 이 기능을 지원하지 않을 수 있습니다. 예를 들어 계산 명령만 수행하는 장치일 경우에 그렇습니다. 이 확장에 대한 설명은 나중에 스왑 체인 챕터에서 다시 살펴볼 것입니다.
 
-Vulkan의 이전 구현에서는 인스턴스와 장치 종속적인 검증 레이어가 구분되어 있었으나, [지금은 아닙니다](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap40.html#extendingvulkan-layers-devicelayerdeprecation). 즉, `VkDeviceCreateInfo`의 `enabledLayerCount` 와 `ppEnabledLayerNames` 필드가 최신 구현에서는 무시됩니다. 하지만, 이전 버전과의 호환성을 위해 어쨌든 설정해 주는 것이 좋습니다.
+Vulkan의 예전 구현에서는 인스턴스와 장치 종속적인 검증 레이어가 구분되어 있었으나, [지금은 아닙니다](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap40.html#extendingvulkan-layers-devicelayerdeprecation). 즉, `VkDeviceCreateInfo`의 `enabledLayerCount` 와 `ppEnabledLayerNames` 필드가 최신 구현에서는 무시됩니다. 하지만, 이전 버전과의 호환성을 위해 어쨌든 설정해 주는 것이 좋습니다.
 
 ```c++
 createInfo.enabledExtensionCount = 0;
@@ -109,7 +109,7 @@ void cleanup() {
 }
 ```
 
-논리적 장치는 인스턴스와 직접적으로 상호작용하지 않으므로 매개변수에 포함되지 않습니다.
+논리적 장치는 인스턴스와 직접적으로 상호작용하지 않으므로 인스턴스는 매개변수에 포함되지 않습니다.
 
 ## 큐 핸들 얻기(Retrieving)
 

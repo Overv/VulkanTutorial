@@ -1,6 +1,6 @@
 ## 물리적 장치 선택
 
-VkInstance를 통해 Vulkan 라이브러리를 초기화 한 이후에는 우리가 필요로 하는 기능을 지원하는 시스템의 그래픽 카드를 찾고 선택해야 합니다. 사실 여러 대의 그래픽 카드를 선택하고 동시에 사용할 수도 있습니다. 하지만 이 튜토리얼에서는 우리의 요구에 맞는 첫 번째 그래픽 카드만을 사용하도록 할 것입니다.
+VkInstance를 통해 Vulkan 라이브러리를 초기화 한 이후에는 우리가 필요로 하는 기능을 지원하는 시스템의 그래픽 카드를 찾고 선택해야 합니다. 여러 대의 그래픽 카드를 선택하고 동시에 사용할 수도 있습니다. 하지만 이 튜토리얼에서는 우리의 요구에 맞는 첫 번째 그래픽 카드만을 사용하도록 할 것입니다.
 
 `pickPhysicalDevice` 함수를 추가하고 `initVulkan` 함수에서 이 함수를 호출하도록 합시다.
 
@@ -52,7 +52,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-그리고 어떤 물리적 장치든 요구사항에 맞는는 것이 있는지를 확인합니다.
+그리고 어떤 물리적 장치든 요구사항에 맞는 것이 있는지를 확인합니다.
 
 ```c++
 for (const auto& device : devices) {
@@ -71,7 +71,7 @@ if (physicalDevice == VK_NULL_HANDLE) {
 
 ## 기본 장치 적합성(suitability) 확인
 
-장치의 적합성을 확인하기 위해 몇 가지 세부사항을 질의할 것입니다. 장치의 기본적인 속성인 이름, 타입, 지원하는 Vulkan 버전 등을 vkGetPhysicalDeviceProperties를 사용해 질의할 수 있습니다.
+장치의 적합성을 확인하기 위해 몇 가지 세부사항을 질의할 것입니다. 장치의 기본적인 속성인 이름, 타입, 지원하는 Vulkan 버전 등은 vkGetPhysicalDeviceProperties를 사용해 질의할 수 있습니다.
 
 ```c++
 VkPhysicalDeviceProperties deviceProperties;
@@ -191,7 +191,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 
 큐 패밀리를 지원하지 않으면 어떻게 될까요? `findQueueFamilies`에서 예외를 throw할 수도 있지만, 이 함수는 장치 적합성을 확인하기 위한 목적으로는 적합하지 않습니다. 예를 들어 전송(transfer) 큐 패밀리가 있는 장치를 *선호*하긴 하지만 필수 요구사항은 아닐수도 있습니다. 따라서 특정한 큐 패밀리가 있는지 알려주는 방법이 필요합니다.
 
-큐 패밀리가 존재하지 않는것에 대한 마법같은 인덱스를 사용하는 방법은 없습니다. `0`을 포함해서 모든 `uint32_t` 값이 사실상 유요한 큐 패밀리의 인덱스일 수 있기 때문입니다. 다행히 C++17에서는 값이 존재하는지 아닌지를 구분할 수 있는 자료 구조를 지원합니다.
+큐 패밀리가 존재하지 않는것에 대한 마법같은 인덱스를 사용하는 방법은 없습니다. `0`을 포함해서 모든 `uint32_t` 값이 사실상 유효한 큐 패밀리의 인덱스일 수 있기 때문입니다. 다행히 C++17에서는 값이 존재하는지 아닌지를 구분할 수 있는 자료 구조를 지원합니다.
 
 ```c++
 #include <optional>
@@ -260,7 +260,7 @@ for (const auto& queueFamily : queueFamilies) {
 }
 ```
 
-이제 멋진 큐 패밀리 룩업(lookup) 함수가 있으니 `isDeviceSuitable` 함수에서 이를 사용해 장치가 우리가 사용하고자 하는 명령을 처리할 수 있는지 확인합니다:
+이제 큐 패밀리 룩업(lookup) 함수가 있으니 `isDeviceSuitable` 함수에서 이를 사용해 장치가 우리가 사용하고자 하는 명령을 처리할 수 있는지 확인합니다:
 
 ```c++
 bool isDeviceSuitable(VkPhysicalDevice device) {
@@ -270,7 +270,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 ```
 
-좀 더 편리하게 사용하기 위해, 구조체 안에도 체크 기능을 추가합니다:
+좀 더 편리하게 사용하기 위해, 구조체 안에도 확인 기능을 추가합니다:
 
 ```c++
 struct QueueFamilyIndices {
