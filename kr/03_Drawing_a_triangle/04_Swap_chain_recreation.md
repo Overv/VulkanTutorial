@@ -1,16 +1,13 @@
-## Introduction
+## 개요
 
-The application we have now successfully draws a triangle, but there are some
-circumstances that it isn't handling properly yet. It is possible for the window
-surface to change such that the swap chain is no longer compatible with it. One
-of the reasons that could cause this to happen is the size of the window
-changing. We have to catch these events and recreate the swap chain.
+지금까지 만든 프로그램으로 성공적으로 삼각형을 그렸지만 아직 잘 처리하지 못하는 상황이 있습니다.
+윈도우 표면이 변경되어 스왑 체인이 더이상 호환되지 않을 때 입니다.
+이러한 상황이 발생하는 이유 중 하나로 윈도우의 크기가 변하는 경우가 있습니다.
+이러한 이벤트를 탐지하여 스왑 체인을 새로 만들어야만 합니다.
 
-## Recreating the swap chain
+## 스왑 체인 재생성
 
-Create a new `recreateSwapChain` function that calls `createSwapChain` and all
-of the creation functions for the objects that depend on the swap chain or the
-window size.
+`recreateSwapChain` 함수를 새로 만드는데 이 함수는 `createSwapChain` 함수 및 스왑 체인, 그리고 윈도우 크기와 관련한 모든 객체를 만드는 함수를 호출하도록 할 것입니다. 
 
 ```c++
 void recreateSwapChain() {
@@ -22,16 +19,13 @@ void recreateSwapChain() {
 }
 ```
 
-We first call `vkDeviceWaitIdle`, because just like in the last chapter, we
-shouldn't touch resources that may still be in use. Obviously, we'll have to recreate 
-the swap chain itself. The image views need to be recreated because they are based 
-directly on the swap chain images. Finally, the framebuffers directly depend on the 
-swap chain images, and thus must be recreated as well.
+먼저 `vkDeviceWaitIdle`를 호출하는데 이전 장에서처럼 이미 사용 중인 자원을 건드리면 안되기 때문입니다.
+그리고 당연히 스왑 체인은 새로 만들어야 하고요.
+이미지 뷰는 스왑 체인의 이미지와 직접적으로 관련되어 있기 때문에 다시 만들어야 합니다.
+하지막으로 프레임버퍼도 스왑 체인 이미지와 직접적으로 관련되어 있으니 역시나 마찬가지로 다시 만들어 주어야 합니다.
 
-To make sure that the old versions of these objects are cleaned up before
-recreating them, we should move some of the cleanup code to a separate function
-that we can call from the `recreateSwapChain` function. Let's call it
-`cleanupSwapChain`:
+이러한 객체들의 이전 버전은 모두 재생성 되기 전에 정리되어야 하는데, 이를 확실히 하기 위해 정리 코드의 몇 부분을 변도의 함수로 만들어 `recreateSwapChain` 함수에서 호출 가능하도록 할 것입니다.
+이 함수는 `cleanupSwapChain`로 명명합시다:
 
 ```c++
 void cleanupSwapChain() {
@@ -49,10 +43,12 @@ void recreateSwapChain() {
 }
 ```
 
-Note that we don't recreate the renderpass here for simplicity. In theory it can be possible for the swap chain image format to change during an applications' lifetime, e.g. when moving a window from an standard range to an high dynamic range monitor. This may require the application to recreate the renderpass to make sure the change between dynamic ranges is properly reflected.
+여기서는 간략화 해서 렌더패스는 재생성하지 않았습니다.
+이론적으로는 응용 프로그램의 실행 동안 스왑 체인 이미지의 포맷도 바뀔 수 있습니다.
+예를 들어 윈도우를 일반적인 모니터에서 HDR 모니터로 이동한다거나 하는 등을 생각해 볼 수 있습니다.
+이러한 경우 응용 프로램에서 HDR로의 변경이 적절히 적용되도록 렌더패스 재생성도 필요할 수 있습니다.
 
-We'll move the cleanup code of all objects that are recreated as part of a swap
-chain refresh from `cleanup` to `cleanupSwapChain`:
+새로 만들어진 객체들의 정리 코드는 `cleanup`에서 `cleanupSwapChain`로 옮깁니다:
 
 ```c++
 void cleanupSwapChain() {
@@ -98,30 +94,22 @@ void cleanup() {
 }
 ```
 
-Note that in `chooseSwapExtent` we already query the new window resolution to
-make sure that the swap chain images have the (new) right size, so there's no
-need to modify `chooseSwapExtent` (remember that we already had to use
-`glfwGetFramebufferSize` to get the resolution of the surface in pixels when
-creating the swap chain).
+`chooseSwapExtent`에서 이미 새로운 윈도우의 해상도를 질의해서 스왑 페인 이미지가 (새로운) 윈도우에 적합한 크기가 되도록 했다는 것에 주목하십시오.
+따라서 `chooseSwapExtent`를 수정할 필요는 없습니다(`glfwGetFramebufferSize`를 사용해서 스왑 체인 생성 시점에 픽셀 단위의 표면 해상도를 얻어왔다는 것을 기억하세요).
 
-That's all it takes to recreate the swap chain! However, the disadvantage of
-this approach is that we need to stop all rendering before creating the new swap
-chain. It is possible to create a new swap chain while drawing commands on an
-image from the old swap chain are still in-flight. You need to pass the previous
-swap chain to the `oldSwapChain` field in the `VkSwapchainCreateInfoKHR` struct
-and destroy the old swap chain as soon as you've finished using it.
+이로써 스왑 체인을 재생성하는 부분은 끝입니다!
+하지만 이러한 접근법의 단점은 새로운 스왑 체인이 생성될 때까지 모든 렌더링이 중단된다는 것입니다.
+이전 스왑 체인이 사용되는 동안에 그리기가 수행되는 동안에 대 스왑 체인을 만드는 것도 가능합니다.
+그러려면 `VkSwapchainCreateInfoKHR` 구조체의 `oldSwapChain` 필드에 이전 스왑 체인을 전달하고 사용이 끝난 뒤 소멸시키면 됩니다.
 
-## Suboptimal or out-of-date swap chain
+## 최적화되지 않았거나 부적합한 스왑 체인
 
-Now we just need to figure out when swap chain recreation is necessary and call
-our new `recreateSwapChain` function. Luckily, Vulkan will usually just tell us that the swap chain is no longer adequate during presentation. The `vkAcquireNextImageKHR` and
-`vkQueuePresentKHR` functions can return the following special values to
-indicate this.
+이제 언제 스왑 체인 재생성이 필요한지 알아내서 `recreateSwapChain` 함수를 호출하면 됩니다.
+다행히 Vulkan은 대개 표시 단계에서 현재 스왑 체인이 적합하지 않게 된 시점에 이러한 것을 알려 줍니다.
+`vkAcquireNextImageKHR`와 `vkQueuePresentKHR` 함수는 아래와 같은 특정한 값으로 이러한 상황을 알려줍니다.
 
-* `VK_ERROR_OUT_OF_DATE_KHR`: The swap chain has become incompatible with the
-surface and can no longer be used for rendering. Usually happens after a window resize.
-* `VK_SUBOPTIMAL_KHR`: The swap chain can still be used to successfully present
-to the surface, but the surface properties are no longer matched exactly.
+* `VK_ERROR_OUT_OF_DATE_KHR`: 스왑 체인이 표면과 호환이 불가능하여 렌더링이 불가능하게 되었음. 일반적으로 윈도우의 크기가 변했을 때 발생
+* `VK_SUBOPTIMAL_KHR`: 스왑 체인이 표면을 표현하는 데 여전히 사용 가능하지만 표면 속성이 정확히 일치하지는 않음
 
 ```c++
 VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
@@ -134,13 +122,11 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 }
 ```
 
-If the swap chain turns out to be out of date when attempting to acquire an
-image, then it is no longer possible to present to it. Therefore we should
-immediately recreate the swap chain and try again in the next `drawFrame` call.
+이미지를 획득하려 할 때 스왑체인이 부적합하다고 판단되면 그 이미지는 표현에 활용할 수 없습니다.
+따라서 즉시 스왑 체인을 재생성하고 다음 `drawFrame`을 다시 호출해야 합니다.
 
-You could also decide to do that if the swap chain is suboptimal, but I've
-chosen to proceed anyway in that case because we've already acquired an image.
-Both `VK_SUCCESS` and `VK_SUBOPTIMAL_KHR` are considered "success" return codes.
+스왑 체인이 최적화되지 않은 경우에도 이렇게 하도록 할 수도 있지만 저는 이 경우에는 어쨌든 이미지를 이미 획득했기 때문에 그냥 진행하기로 했습니다.
+`VK_SUCCESS`와 `VK_SUBOPTIMAL_KHR`는 모두 "성공" 반환 코드로 취급합니다.
 
 ```c++
 result = vkQueuePresentKHR(presentQueue, &presentInfo);
@@ -154,26 +140,23 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 ```
 
-The `vkQueuePresentKHR` function returns the same values with the same meaning.
-In this case we will also recreate the swap chain if it is suboptimal, because
-we want the best possible result.
+`vkQueuePresentKHR` 함수는 위와 같은 의미를 가진 같은 값들을 반환합니다.
+이 경우에는 최적화되지 않은 경우에도 스왑 체인을 재생성하는데 가능한 좋은 결과를 얻고 싶기 때문입니다.
 
-## Fixing a deadlock
+## 데드락(deadlock) 해소
 
-If we try to run the code now, it is possible to encounter a deadlock.
-Debugging the code, we find that the application reaches `vkWaitForFences` but
-never continues past it. This is because when `vkAcquireNextImageKHR` returns
-`VK_ERROR_OUT_OF_DATE_KHR`, we recreate the swapchain and then return from
-`drawFrame`. But before that happens, the current frame's fence was waited upon
-and reset. Since we return immediately, no work is submitted for execution and
-the fence will never be signaled, causing `vkWaitForFences` to halt forever.
+지금 시점에서 코드를 실행하면 데드락이 발생할 수 있습니다.
+코드를 디버깅해보면 `vkWaitForFences`에는 도달하지만 여기에서 더 이상 진행하지 못하는 것을 볼 수 있습니다.
+이는 `vkAcquireNextImageKHR`이 `VK_ERROR_OUT_OF_DATE_KHR`을 반환하면 스왑체인을 재생성하고 `drawFrame`로 돌아가게 했기 때문입니다.
+하지만 그러한 처리는 현재 프레임의 펜스가 기다리는 상태에서 일어날 수 있습니다.
+바로 반환되는 바람에 아무런 작업도 제출되지 않았고 펜스는 시그널 상태가 될 수 없어서 `vkWaitForFences`에서 멈춘 상태가 됩니다.
 
-There is a simple fix thankfully. Delay resetting the fence until after we
-know for sure we will be submitting work with it. Thus, if we return early, the
-fence is still signaled and `vkWaitForFences` wont deadlock the next time we
-use the same fence object.
+다행히 손쉬운 해결법이 있습니다.
+작업을 다시 제출할 것이 확실한 시점까지 펜스를 리셋하는 것을 미루는 것입니다.
+이렇게 되면 빠른 반환이 일어났을 때 펜스는 여전히 시그널 상태이고 `vkWaitForFences`는 다음 프레임에서 데드락이 발생하지 않을 것입니다.
 
-The beginning of `drawFrame` should now look like this:
+`drawFrame`의 시작 부분으 다음과 같이 되어야 합니다
+:
 ```c++
 vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -187,13 +170,15 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     throw std::runtime_error("failed to acquire swap chain image!");
 }
 
-// Only reset the fence if we are submitting work
+// 작업을 제출하는 경우에만 펜스를 리셋
 vkResetFences(device, 1, &inFlightFences[currentFrame]);
 ```
 
-## Handling resizes explicitly
+## 크기 변환을 명시적으로 처리하기
 
-Although many drivers and platforms trigger `VK_ERROR_OUT_OF_DATE_KHR` automatically after a window resize, it is not guaranteed to happen. That's why we'll add some extra code to also handle resizes explicitly. First add a new member variable that flags that a resize has happened:
+윈도우 크기 변환에 대해 많은 드라이버와 플랫폼이 `VK_ERROR_OUT_OF_DATE_KHR`를 자동으로 반환해주지만, 이러한 동작이 보장된 것은 아닙니다.
+따라서 추가적인 코드를 통해 크기 변환을 명시적으로 처리해 주도록 하겠습니다.
+먼저 크기 변환이 일어났을 때를 위한 플래그를 멤버 변수로 추가합니다:
 
 ```c++
 std::vector<VkFence> inFlightFences;
@@ -201,7 +186,7 @@ std::vector<VkFence> inFlightFences;
 bool framebufferResized = false;
 ```
 
-The `drawFrame` function should then be modified to also check for this flag:
+`drawFrame`함수에서도 이 플래그를 체크하도록 수정합니다:
 
 ```c++
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
@@ -212,7 +197,9 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebu
 }
 ```
 
-It is important to do this after `vkQueuePresentKHR` to ensure that the semaphores are in a consistent state, otherwise a signaled semaphore may never be properly waited upon. Now to actually detect resizes we can use the `glfwSetFramebufferSizeCallback` function in the GLFW framework to set up a callback:
+이러한 작업을 `vkQueuePresentKHR` 뒤에 진행해서 세마포어가 적합상 상태에 있도록 하는 것이 중요합니다.
+그렇지 않으면 시그널 상태인 세마포어가 제대로 대기를 하지 못할 수 있습니다.
+이제 실제 크기 변경을 탐지하기 위해 GLFW 프레임워크의 `glfwSetFramebufferSizeCallback` 함수를 사용하여 콜백을 설정합니다:
 
 ```c++
 void initWindow() {
@@ -229,9 +216,9 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 }
 ```
 
-The reason that we're creating a `static` function as a callback is because GLFW does not know how to properly call a member function with the right `this` pointer to our `HelloTriangleApplication` instance.
+콜백을 `static` 함수로 만드는 이유는 GLFW가 `HelloTriangleApplication` 인스턴스를 가리키는 `this` 포인터로부터 올바른 멤버 함수를 호출하는 법을 알 수 없기 때문입니다.
 
-However, we do get a reference to the `GLFWwindow` in the callback and there is another GLFW function that allows you to store an arbitrary pointer inside of it: `glfwSetWindowUserPointer`:
+하지만 콜백 내에서 `GLFWwindow`에 대한 참조에 접근할 수 있고, 임의의 포인터를 그 안에 저장할 수 있는 `glfwSetWindowUserPointer`라는 GLFW 함수가 있습니다:
 
 ```c++
 window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
@@ -239,7 +226,7 @@ glfwSetWindowUserPointer(window, this);
 glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 ```
 
-This value can now be retrieved from within the callback with `glfwGetWindowUserPointer` to properly set the flag:
+이 값은 이제 콜백 내에서 `glfwGetWindowUserPointer`를 사용해 적절히 변환된 뒤 올바른 플래그 설정을 위해 사용됩니다:
 
 ```c++
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
@@ -248,11 +235,14 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 }
 ```
 
-Now try to run the program and resize the window to see if the framebuffer is indeed resized properly with the window.
+이제 프로그램을 실행하고 윈도우 크기를 조정하여 프레임버퍼가 윈도우 크기에 맞게 조정되는지 살펴 보세요.
 
-## Handling minimization
+## 최소화 처리하기
 
-There is another case where a swap chain may become out of date and that is a special kind of window resizing: window minimization. This case is special because it will result in a frame buffer size of `0`. In this tutorial we will handle that by pausing until the window is in the foreground again by extending the `recreateSwapChain` function:
+스왑 체인이 부적합하게 되는 다른 또다른 경우로 특수한 윈도우 크기 변경 사례가 있습니다. 바로 윈도우 최소화 입니다.
+이 경우가 특수한 이유는 프레임버퍼 크기가 `0`이 되기 떄문입니다.
+이 튜토리얼에서는 이러한 경우에 대해 윈도우가 다시 활성화가 될때까지 정지하는 방식으로 처리할 것입니다.
+`recreateSwapChain` 함수를 사용합니다:
 
 ```c++
 void recreateSwapChain() {
@@ -269,11 +259,10 @@ void recreateSwapChain() {
 }
 ```
 
-The initial call to `glfwGetFramebufferSize` handles the case where the size is already correct and `glfwWaitEvents` would have nothing to wait on.
+처음의 `glfwGetFramebufferSize` 호출은 올바른 크기일 경우에 대한 것으로 이 경우 `glfwWaitEvents`는 기다릴 것이 없습니다.
 
-Congratulations, you've now finished your very first well-behaved Vulkan
-program! In the next chapter we're going to get rid of the hardcoded vertices in
-the vertex shader and actually use a vertex buffer.
+축하합니다! 이제 올바로 동작하는 것 Vulkan 프로그램을 완성했습니다!
+다음 챕터에서는 정점 셰이더에 하드코딩된 정점을 제거하고 정점 버퍼(vertex buffer)를 사용해 볼 것입니다.
 
 [C++ code](/code/17_swap_chain_recreation.cpp) /
 [Vertex shader](/code/09_shader_base.vert) /
