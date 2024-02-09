@@ -2,7 +2,7 @@ Vulkan은 "기본 프레임버퍼(default framebuffer)"의 개념이 없습니�
 
 ## 스왑 체인 지원 확인하기
 
-모든 그래픽 카드가 이미지를 곧바로 화면에 표시하는 기능을 지원하는 것은 아닙니다. 예를 들어 서버를 위해 설계된 그래픽 카드는 디스플레이 출력이 없을 수 있습니다. 또한, 이미지의 표현은 윈도우 시스템, 그 윈도우와 연관된 표면(surface)와 밀접하게 관련되어 있기 때문에 Vulkan 코어(core)에는 포함되어 있지 않습니다. 지원하는지를 확인한 후에 `VK_KHR_swapchain` 장치 확장을 활성화시켜줘야만 합니다.
+모든 그래픽 카드가 이미지를 곧바로 화면에 표시하는 기능을 지원하는 것은 아닙니다. 예를 들어 서버를 위해 설계된 그래픽 카드는 디스플레이 출력이 없을 수 있습니다. 또한, 이미지의 표현은 윈도우 시스템, 그 윈도우와 연관된 표면(surface)과 밀접하게 관련되어 있기 때문에 Vulkan 코어(core)에는 포함되어 있지 않습니다. 지원하는지를 확인한 후에 `VK_KHR_swapchain` 장치 확장을 활성화시켜줘야만 합니다.
 
 이러한 목적으로 우리는 먼저 `isDeviceSuitable` 함수를 수정해 이러한 확장을 지원하는지 확인할 것입니다. `VkPhysicalDevice`를 사용해 지원하는 확장의 목록을 얻는 법을 이미 봤기 때문에 어렵지 않을 겁니다. Vulkan 헤더 파일은 `VK_KHR_swapchain`로 정의된 `VK_KHR_SWAPCHAIN_EXTENSION_NAME` 매크로를 지원합니다. 매크로를 사용하면 컴파일러가 타이핑 오류를 탐지할 수 있습니다.
 
@@ -95,7 +95,7 @@ SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
 
 이 장에서는 이러한 정보를 포함한 구조체를 질의하는 방법을 설명합니다. 이 구조체의 의미와 정확히 어떤 데이터들을 가지고 있는지는 다음 장에서 설명할 것입니다.
 
-기본 표면 기능으로 시작해 봅시다. 이러한 속성들은 질의하기 쉽고 `VkSurfaceCapabilitiesKHR` 타입의 단일 구조체로 반환됩니다.
+기본 표면 기능으로 시작해 봅시다. 이러한 속성들은 질의하기 쉽고, `VkSurfaceCapabilitiesKHR` 타입의 단일 구조체로 반환됩니다.
 
 ```c++
 vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -115,7 +115,7 @@ if (formatCount != 0) {
 }
 ```
 
-모든 가능한 포맷을 저장할 수 있도록 벡터의 크기가 변하게 해야 합니다. 마지막으로, 지원하는 표현 모드를 질의하는 것도 `vkGetPhysicalDeviceSurfacePresentModesKHR`를 사용해 동일한 방식으로 이루어집니다:
+모든 가능한 포맷을 저장할 수 있도록 벡터의 크기가 변해야 합니다. 마지막으로, 지원하는 표현 모드를 질의하는 것도 `vkGetPhysicalDeviceSurfacePresentModesKHR`를 사용해 동일한 방식으로 이루어집니다:
 
 ```c++
 uint32_t presentModeCount;
@@ -163,7 +163,7 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 }
 ```
 
-각 `VkSurfaceFormatKHR`는 `format` 과 `colorSpace` 멤버를 가지고 있습니다. `format`은 컬러 채널과 타입을 명시합니다. 예를 들어 `VK_FORMAT_B8G8R8A8_SRGB`는 B,G,R과 알파 채널을 그 순서대로 8비트 부호없는(unsigned) 정수로 저장하여 픽셀달 32비트를 사용합니다. `colorSpace` 멤버는 `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR`를 사용해 SRGB 컬러 공간을 지원하는지 여부를 표시합니다. 참고로 이 플래그는 이전 버전 명세에서는 `VK_COLORSPACE_SRGB_NONLINEAR_KHR`였습니다.
+각 `VkSurfaceFormatKHR`는 `format` 과 `colorSpace` 멤버를 가지고 있습니다. `format`은 컬러 채널과 타입을 명시합니다. 예를 들어 `VK_FORMAT_B8G8R8A8_SRGB`는 B,G,R과 알파 채널을 그 순서대로 8비트 부호없는(unsigned) 정수로 저장하여 픽셀당 32비트를 사용합니다. `colorSpace` 멤버는 `VK_COLOR_SPACE_SRGB_NONLINEAR_KHR`를 사용해 SRGB 컬러 공간을 지원하는지 여부를 표시합니다. 참고로 이 플래그는 이전 버전 명세에서는 `VK_COLORSPACE_SRGB_NONLINEAR_KHR`였습니다.
 
 컬러 공간에 대해서 우리는 가능하면 SRGB를 사용할 것인데, 이것이 [보다 정확한 색상 인지가 가능하기 때문입니다](http://stackoverflow.com/questions/12524623/). 또한 이는 나중에 살펴볼 (예를들면 텍스처와 같은) 이미지에 대한 표준 컬러 공간입니다. 이러한 이유로 컬러 포맷도 SRGB 컬러 포맷을 사용하는 것이고 가장 흔히 사용되는 것이 `VK_FORMAT_B8G8R8A8_SRGB`입니다.
 
@@ -232,9 +232,9 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-스왑 크기는 스왑 체인 이미지의 해상도이고 거의 대부분의 경우에 *픽셀 단위에서* 우리가 이미지를 그리고자 하는 윈도의 해상도와 동일한 값을 가집니다(보다 상세한 내용은 곧 살펴볼 것입니다). 가능한 해상도의 범위는 `VkSurfaceCapabilitiesKHR` 구조체에 정의되어 있습니다. Vulkan은 `currentExtent` 멤버의 너비와 높이를 설정하여 윈도우의 해상도와 맞추도록 하고 있습니다. 하지만 어떤 윈도우 매니저의 경우 `currentExtent`의 너비와 높이 값을 특수한 값(`uint32_t`의 최대값)으로 설정하여 이 두 값을 다르게 할 수 있습니다. 이러한 경우 윈도우에 가장 적절한 해상도를 `minImageExtent`와 `maxImageExtent` 사이 범위에서 선택하게 됩니다. 하지만 올바른 단위(unit)으로 해상도를 명시해야 합니다.
+스왑 크기는 스왑 체인 이미지의 해상도이고 거의 대부분의 경우에 *픽셀 단위에서* 이미지를 그리고자 하는 윈도의 해상도와 동일한 값을 가집니다(보다 상세한 내용은 곧 살펴볼 것입니다). 가능한 해상도의 범위는 `VkSurfaceCapabilitiesKHR` 구조체에 정의되어 있습니다. Vulkan은 `currentExtent` 멤버의 너비와 높이를 설정하여 윈도우의 해상도와 맞추도록 하고 있습니다. 하지만 어떤 윈도우 매니저의 경우 `currentExtent`의 너비와 높이 값을 특수한 값(`uint32_t`의 최대값)으로 설정하여 이 두 값을 다르게 할 수 있습니다. 이러한 경우 윈도우에 가장 적절한 해상도를 `minImageExtent`와 `maxImageExtent` 사이 범위에서 선택하게 됩니다. 하지만 올바른 단위(unit)로 해상도를 명시해야 합니다.
 
-GLFW는 크기를 측정하는 두 단위가 있고 이는 픽셀과 [스크린 좌표계](https://www.glfw.org/docs/latest/intro_guide.html#coordinate_systems) 입니다. 예를 들어 우리가 이전에 윈도우를 생성할 때 명시한 `{WIDTH, HEIGHT}` 해상도는 스크린 좌표계 기준으로 측정한 값입니다. 하지만 Vulkan은 픽셀 단위로 동작하기 때문에, 스왑 체인의 크기도 픽셀 단위로 명시해 주어야만 합니다. 안타깝게도 여러분이 (애플릐 레티나 디스플레이와 같은) 고DPI 디스플레이를 사용하는 경우, 스크린 좌표계가 픽셀 단위와 달라집니다. 높은 픽셀 밀도로 인해 픽셀 단위의 윈도우 해상도는 스크린 좌표계 단위의 윈도우 해상도보다 커집니다. Vulkan이 스왑 크기에 관한 것을 수정해 주지 않는 한, 그냥 `{WIDTH, HEIGHT}`를 사용할 수는 없습니다. 대신에 `glfwGetFramebufferSize`를 사용해서 윈도우의 해상도를 최대 및 최소 이미지 크기와 맞추기 전에 픽셀 단위로 받아와야만 합니다.
+GLFW는 크기를 측정하는 두 단위가 있고 이는 픽셀과 [스크린 좌표계](https://www.glfw.org/docs/latest/intro_guide.html#coordinate_systems) 입니다. 예를 들어 우리가 이전에 윈도우를 생성할 때 명시한 `{WIDTH, HEIGHT}` 해상도는 스크린 좌표계 기준으로 측정한 값입니다. 하지만 Vulkan은 픽셀 단위로 동작하기 때문에, 스왑 체인의 크기도 픽셀 단위로 명시해 주어야만 합니다. 안타깝게도 여러분이 (애플의 레티나 디스플레이와 같은) 고DPI 디스플레이를 사용하는 경우, 스크린 좌표계가 픽셀 단위와 달라집니다. 높은 픽셀 밀도로 인해 픽셀 단위의 윈도우 해상도는 스크린 좌표계 단위의 윈도우 해상도보다 커집니다. Vulkan이 스왑 크기에 관한 것을 수정해 주지 않는 한, 그냥 `{WIDTH, HEIGHT}`를 사용할 수는 없습니다. 대신에 `glfwGetFramebufferSize`를 사용해서 윈도우의 해상도를 최대 및 최소 이미지 크기와 맞추기 전에 픽셀 단위로 받아와야만 합니다.
 
 ```c++
 #include <cstdint> // Necessary for uint32_t
@@ -263,7 +263,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 }
 ```
 
-여기서 `clamp` 함수는 `width`와 `height` 값을 구현에서 허용 가능한 최대와 최소 크기로 제한하기 위해 사용되었습니다.
+여기서 `clamp` 함수는 `width`와 `height` 값을 허용 가능한 최대와 최소 크기로 제한하기 위해 사용되었습니다.
 
 ## 스왑 체인 생성하기
 
@@ -290,7 +290,7 @@ void createSwapChain() {
 }
 ```
 
-이러한 속성들 이외에도 스왑 체인에 몇 개의 이미지를 사용할 것인지 결정해야 합니다. 구현을 통해 동작하기 위한 최소 개수를 명시할 수 있습니다:
+이러한 속성들 이외에도 스왑 체인에 몇 개의 이미지를 사용할 것인지 결정해야 합니다. 아래 구현은 동작하기 위한 최소 개수를 명시합니다:
 
 ```c++
 uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
@@ -329,7 +329,7 @@ createInfo.imageArrayLayers = 1;
 createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 ```
 
-`imageArrayLayers`는 각 이미지가 구성하는 레이어의 개수를 명시합니다. 여러분이 스테레오 3D(stereoscopic 3D) 응용 프로그램을 개발하는 것이 아니라면 이 값은 항상 `1`입니다. `imageUsage` 비트 필드는 스왑 체인의 이미지에 어떤 연산을 적용할 것인지를 명시합니다. 이 튜토리얼에서 우리는 여기에 직접 렌더링을 수행할 것이므로 color attachment로 사용될 것입니다. 먼저 별도의 이미지에 렌더링한 뒤 후처리(post-processing)을 적용하는 것도 가능합니다. 이러한 경우 `VK_IMAGE_USAGE_TRANSFER_DST_BIT`과 같은 값을 사용하고 렌더링된 이미지를 스왑 체인 이미지로 전송하기 위한 메모리 연산을 사용해야 합니다.
+`imageArrayLayers`는 각 이미지가 구성하는 레이어의 개수를 명시합니다. 여러분이 스테레오 3D(stereoscopic 3D) 응용 프로그램을 개발하는 것이 아니라면 이 값은 항상 `1`입니다. `imageUsage` 비트 필드는 스왑 체인의 이미지에 어떤 연산을 적용할 것인지를 명시합니다. 이 튜토리얼에서 우리는 여기에 직접 렌더링을 수행할 것이므로 색상 어태치먼트(color attachment)로 사용될 것입니다. 먼저 별도의 이미지에 렌더링한 뒤 후처리(post-processing)를 적용하는 것도 가능합니다. 이러한 경우 `VK_IMAGE_USAGE_TRANSFER_DST_BIT`과 같은 값을 사용하고 렌더링된 이미지를 스왑 체인 이미지로 전송하기 위한 메모리 연산을 사용해야 합니다.
 
 ```c++
 QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -351,26 +351,26 @@ if (indices.graphicsFamily != indices.presentFamily) {
 * `VK_SHARING_MODE_EXCLUSIVE`: 하나의 이미지가 한 번에 하나의 큐 패밀리에 의해 소유(own)되고 다른 큐에서 사용되기 전에 명시적으로 전송되어야 합니다. 이 옵션이 성능이 가장 좋습니다.
 * `VK_SHARING_MODE_CONCURRENT`: 소유권의 명시적 이동 없이 이미지가 여러 큐에서 동시에 접근 가능합니다.
 
-큐 패밀리가 다르다면 이 튜토리얼에서는 소유권 챕터로 넘어가기 전에 동시성 모드(concurrent mode)를 사용할 것인데 동시성에 대한 설명은 몇몇 개념 때문에 나중에 설명하는 것이 낫기 때문입니다. 동시성 모드는 어떤 큐 패밀리의 소유권이 공유될 것인지 `queueFamilyIndexCount`와 `pQueueFamilyIndices` 매개변수를 사용해 미리 명시하게 되어 있습니다. 그래픽스 큐 패밀리와 표시 큐 패밀리가 동일하다면 (대부분의 하드웨어에서는 동일함) 독점(exclusive) 모드를 사용할 것입니다. 동시성 모드에서는 최소한 두 개의 서로다른 큐 패밀리는 명시해야만 하기 떄문입니다.
+큐 패밀리가 다르다면 이 튜토리얼에서는 소유권 챕터로 넘어가기 전에는 동시성 모드(concurrent mode)를 사용할 것입니다. 동시성에 대한 설명은 몇몇 개념 때문에 나중에 설명하는 것이 낫기 때문입니다. 동시성 모드는 어떤 큐 패밀리의 소유권이 공유될 것인지 `queueFamilyIndexCount`와 `pQueueFamilyIndices` 매개변수를 사용해 미리 명시하게 되어 있습니다. 그래픽스 큐 패밀리와 표시 큐 패밀리가 동일하다면 (대부분의 하드웨어에서는 동일함) 독점(exclusive) 모드를 사용할 것입니다. 동시성 모드에서는 최소한 두 개의 서로다른 큐 패밀리를 명시해야만 하기 떄문입니다.
 
 ```c++
 createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
 ```
 
-이제 스왑 체인의 이미지에 적용할 특정 변환(transform)을 명시할 수 있습니다. 이를 그 기능이 지원될 때(`capabilities`의 `supportedTransforms`)에 가능한데 예를 들면 시계방향으로 90도 회전이라던가, 수평 뒤집기(flip) 등이 있습니다. 이러한 변환을 적용하지 않을 것이면, 현재 변환(current transformation)으로 명시하면 됩니다.
+이제 스왑 체인의 이미지에 적용할 특정 변환(transform)을 명시할 수 있습니다. 이는 기능이 지원될 때(`capabilities`의 `supportedTransforms`)에만 가능한데 예를 들면 시계방향으로 90도 회전이라던가, 수평 뒤집기(flip) 등이 있습니다. 이러한 변환을 적용하지 않을 것이면, 현재 변환(current transformation)으로 명시하면 됩니다.
 
 ```c++
 createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 ```
 
-`compositeAlpha` 필드는 윈도우 시스템의 다른 윈도우와의 블렌딩(blending)을 위해 알파 채널이 사용될 것인지를 명시합니다. 거의 개부분의 경우 알파 채널은 무시하는 것이 좋으므로 `VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR`를 사용합니다.
+`compositeAlpha` 필드는 윈도우 시스템의 다른 윈도우와의 블렌딩(blending)을 위해 알파 채널이 사용될 것인지를 명시합니다. 거의 대부분의 경우 알파 채널은 무시하는 것이 좋으므로 `VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR`를 사용합니다.
 
 ```c++
 createInfo.presentMode = presentMode;
 createInfo.clipped = VK_TRUE;
 ```
 
-`presentMode`는 이름만 봐도 아실 수 있겠죠. `clipped`가 `VK_TRUE` 면 다려진 픽셀의 색상에 대해서는 신경쓰지 않겠다는 의미인데, 예를 들면 다른 윈도우가 그 픽셀 위에 있는 경우입니다. 뒤쪽의 픽셀 값을 읽어와 의도하는 결과를 얻을 것이 아니라면 그냥 클리핑(clipping)을 활성화 하는게 성능에 좋습니다.
+`presentMode`는 이름만 봐도 아실 수 있겠죠. `clipped`가 `VK_TRUE` 면 가려진 픽셀의 색상에 대해서는 신경쓰지 않겠다는 의미인데, 예를 들면 다른 윈도우가 그 픽셀 위에 있는 경우입니다. 뒤쪽의 픽셀 값을 읽어와 의도하는 결과를 얻을 것이 아니라면 그냥 클리핑(clipping)을 활성화 하는게 성능에 좋습니다.
 
 ```c++
 createInfo.oldSwapchain = VK_NULL_HANDLE;
@@ -439,6 +439,6 @@ swapChainImageFormat = surfaceFormat.format;
 swapChainExtent = extent;
 ```
 
-이제 그림을 그리고 화면에 표시될 이미지가 준비되었습니다. 다음 챕터에서부터는 이미지를 렌더링 타겟(render target)으로 설정하는 법, 실제 그래픽스 파이프라인과 그리지 명령에 대해 살펴볼 것입니다!
+이제 그림을 그리고 화면에 표시될 이미지가 준비되었습니다. 다음 챕터에서부터는 이미지를 렌더 타겟(render target)으로 설정하는 법, 실제 그래픽스 파이프라인과 그리기 명령에 대해 살펴볼 것입니다!
 
 [C++ code](/code/06_swap_chain_creation.cpp)
