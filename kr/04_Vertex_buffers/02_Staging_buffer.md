@@ -1,47 +1,32 @@
-## Introduction
+## 개요
 
-The vertex buffer we have right now works correctly, but the memory type that
-allows us to access it from the CPU may not be the most optimal memory type for
-the graphics card itself to read from. The most optimal memory has the
-`VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` flag and is usually not accessible by the
-CPU on dedicated graphics cards. In this chapter we're going to create two
-vertex buffers. One *staging buffer* in CPU accessible memory to upload the data
-from the vertex array to, and the final vertex buffer in device local memory.
-We'll then use a buffer copy command to move the data from the staging buffer to
-the actual vertex buffer.
+지금 만든 정점 버퍼는 잘 동작하지만 CPU에서 접근이 가능하도록 선택한 메모리 타입이 그래픽 카드에서 읽기에는 최적화된 메모리 타입은 아닐 수 있습니다. 
+가장 적합한 메모리는 `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` 플래그를 가지고 있고 대개는 대상 그래픽 카드에 대해 CPU에서는 접근이 불가능합니다. 
+이 챕터에서는 두 정점 버퍼를 만들 것입니다.
+하나는 *스테이징 버퍼(staging buffer)*로 CPU에서 접근 가능하여 정점 배열을 넣을 수 있으며 다른 하나는 장치의 로컬 메모리에 있는 정점 버퍼입니다. 
+그러고 나서 버퍼 복사 명령을 사용해 스테이징 버퍼에서 실제 정점 버퍼로 데이터를 옮길 것입니다.
 
-## Transfer queue
+## 전송 큐(Transfer queue)
 
-The buffer copy command requires a queue family that supports transfer
-operations, which is indicated using `VK_QUEUE_TRANSFER_BIT`. The good news is
-that any queue family with `VK_QUEUE_GRAPHICS_BIT` or `VK_QUEUE_COMPUTE_BIT`
-capabilities already implicitly support `VK_QUEUE_TRANSFER_BIT` operations. The
-implementation is not required to explicitly list it in `queueFlags` in those
-cases.
+버퍼 복사 맹령은 전송 연산을 지원하는 큐 패밀리가 필요하고 이는 `VK_QUEUE_TRANSFER_BIT`로 표기됩니다. 
+좋은 소식은 `VK_QUEUE_GRAPHICS_BIT`이나 `VK_QUEUE_COMPUTE_BIT` 기능이 있는 큐 패밀리는 암시적으로 `VK_QUEUE_TRANSFER_BIT` 연산을 지원한다는 것입니다. 
+이러한 경우 `queueFlags`에 이를 명시적으로 표시하도록 구현되는 것이 강제되지는 않습니다.
 
-If you like a challenge, then you can still try to use a different queue family
-specifically for transfer operations. It will require you to make the following
-modifications to your program:
+도전을 원하신다면 전송 연산을 위해 또 다른 큐 패밀리를 사용하도록 해 보십시오. 
+이렇게 하려면 다음과 같은 추가적인 수정이 필요합니다:
 
-* Modify `QueueFamilyIndices` and `findQueueFamilies` to explicitly look for a
-queue family with the `VK_QUEUE_TRANSFER_BIT` bit, but not the
-`VK_QUEUE_GRAPHICS_BIT`.
-* Modify `createLogicalDevice` to request a handle to the transfer queue
-* Create a second command pool for command buffers that are submitted on the
-transfer queue family
-* Change the `sharingMode` of resources to be `VK_SHARING_MODE_CONCURRENT` and
-specify both the graphics and transfer queue families
-* Submit any transfer commands like `vkCmdCopyBuffer` (which we'll be using in
-this chapter) to the transfer queue instead of the graphics queue
+* `QueueFamilyIndices`와 `findQueueFamilies`를 수정하여 `VK_QUEUE_TRANSFER_BIT` 비트를 갖지만 `VK_QUEUE_GRAPHICS_BIT`는 갖지 않는 큐 패밀리를 명시적으로 탐색합니다.
+* `createLogicalDevice`를 수정하여 전송 큐에 대한 핸들을 요청하도록 합니다.
+* 명령 버퍼를 위한 두 번째 명령 풀을 만들어 전송 큐 패밀리에 제출할 것입니다.
+* 리소스의 `sharingMode`를 `VK_SHARING_MODE_CONCURRENT`로 하고 그래픽스와 전송 큐 패밀리를 명시합니다.
+* (이 챕터에서 사용할 예정인) `vkCmdCopyBuffer`와 같은 전송 명령을 그래픽스 큐 대신 전송 큐에 전송합니다.
 
-It's a bit of work, but it'll teach you a lot about how resources are shared
-between queue families.
+작업이 좀 필요하지만 이를 통해 큐 패밀리간에 리소스가 어떻게 공유되는지를 배우실 수 있을겁니다.
 
-## Abstracting buffer creation
+## 버퍼 생성 추상화
 
-Because we're going to create multiple buffers in this chapter, it's a good idea
-to move buffer creation to a helper function. Create a new function
-`createBuffer` and move the code in `createVertexBuffer` (except mapping) to it.
+이 장에서는 여러 버퍼를 생성할 것이므로, 버퍼 생성에 관한 헬퍼 함수를 만드는 것이 좋을 것 같습니다.
+새로운 함수인 `createBuffer`를 만들고 `createVertexBuffer`의 (맵핑을 제외한) 코드를 옮겨옵니다.
 
 ```c++
 void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -71,12 +56,10 @@ void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyF
 }
 ```
 
-Make sure to add parameters for the buffer size, memory properties and usage so
-that we can use this function to create many different types of buffers. The
-last two parameters are output variables to write the handles to.
+버퍼의 크기와 메모리 속성, 사용 목적에 대한 매개변수를 만들어서 다른 종류의 버퍼를 만들 때도 사용 가능하도록 함수를 정의하는 것을 잊지 마세요. 
+마지막 두 매개변수는 핸들을 저장할 출력 변수입니다.
 
-You can now remove the buffer creation and memory allocation code from
-`createVertexBuffer` and just call `createBuffer` instead:
+이제 버퍼 생성과 메모리 할당 코드를 `createVertexBuffer`에서 제거하고 대신 `createBuffer`를 호출하면 됩니다:
 
 ```c++
 void createVertexBuffer() {
@@ -90,12 +73,11 @@ void createVertexBuffer() {
 }
 ```
 
-Run your program to make sure that the vertex buffer still works properly.
+프로그램을 실행해 정점 버퍼가 여전히 제대로 동작하는지 확인해보세요.
 
-## Using a staging buffer
+## 스테이징 버퍼 사용
 
-We're now going to change `createVertexBuffer` to only use a host visible buffer
-as temporary buffer and use a device local one as actual vertex buffer.
+이제 `createVertexBuffer`를 수정해 호스트에서 보이는 버퍼는 임시 버퍼로, 장치 로컬을 실제 정점 버퍼로 사용하도록 할것입니다.
 
 ```c++
 void createVertexBuffer() {
@@ -114,24 +96,16 @@ void createVertexBuffer() {
 }
 ```
 
-We're now using a new `stagingBuffer` with `stagingBufferMemory` for mapping and
-copying the vertex data. In this chapter we're going to use two new buffer usage
-flags:
+새로운 `stagingBuffer`와 `stagingBufferMemory`를 사용해 정점 데이터를 맵핑하고 복사할 것입니다. 이 챕터에서 두 개의 새로운 버퍼 사용법(usage) 플래그를 사용합니다:
 
-* `VK_BUFFER_USAGE_TRANSFER_SRC_BIT`: Buffer can be used as source in a memory
-transfer operation.
-* `VK_BUFFER_USAGE_TRANSFER_DST_BIT`: Buffer can be used as destination in a
-memory transfer operation.
+* `VK_BUFFER_USAGE_TRANSFER_SRC_BIT`: 메모리 전송 연산에서 소스(source)로 사용되는 버퍼
+* `VK_BUFFER_USAGE_TRANSFER_DST_BIT`: 메모리 전송 연산에서 목적지(destination)로 사용되는 버퍼
 
-The `vertexBuffer` is now allocated from a memory type that is device local,
-which generally means that we're not able to use `vkMapMemory`. However, we can
-copy data from the `stagingBuffer` to the `vertexBuffer`. We have to indicate
-that we intend to do that by specifying the transfer source flag for the
-`stagingBuffer` and the transfer destination flag for the `vertexBuffer`, along
-with the vertex buffer usage flag.
+`vertexBuffer`는 이제 장치 로컬인 메모리 타입에서 할당되고, 그로 인해 일반적으로 `vkMapMemory`는 사용할 수 없게 됩니다. 
+하지만 `stagingBuffer`에서 `vertexBuffer`로 데이터를 복사할 수는 있습니다. 
+우리가 이렇게 하려고 한다는 것을 `stagingBuffer`에는 전송 소스 플래그를, `vertexBuffer`에는 전송 목적지 플래그와 정점 버퍼 플래그를 사용해 알려주어야 합니다.
 
-We're now going to write a function to copy the contents from one buffer to
-another, called `copyBuffer`.
+이제 한 버퍼에서 다른 버퍼로 복사를 하는 `copyBuffer` 함수를 만듭니다.
 
 ```c++
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
@@ -139,12 +113,10 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 }
 ```
 
-Memory transfer operations are executed using command buffers, just like drawing
-commands. Therefore we must first allocate a temporary command buffer. You may
-wish to create a separate command pool for these kinds of short-lived buffers,
-because the implementation may be able to apply memory allocation optimizations.
-You should use the `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT` flag during command
-pool generation in that case.
+메모리 전송 연산은 그리기와 마찬가지로 명령 버퍼를 통해 실행됩니다. 
+그러므로 먼저 임시 명령 버퍼를 할당해야 합니다.
+이렇게 임시 사용되는 버퍼에 대한 별도의 명령 풀을 만들면 메모리 할당 최적화가 수행될 수 있습니다. 
+지금의 경우 명령 풀 생성시에 `VK_COMMAND_POOL_CREATE_TRANSIENT_BIT` 플래그를 사용해야 합니다.
 
 ```c++
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
@@ -159,7 +131,7 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 }
 ```
 
-And immediately start recording the command buffer:
+그리고 바로 명령 버퍼에 기록을 시작합니다:
 
 ```c++
 VkCommandBufferBeginInfo beginInfo{};
@@ -169,9 +141,8 @@ beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 vkBeginCommandBuffer(commandBuffer, &beginInfo);
 ```
 
-We're only going to use the command buffer once and wait with returning from the function until the copy
-operation has finished executing. It's good practice to tell the driver about
-our intent using `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`.
+명령 버퍼를 한 번만 사용하고 복사 연산 실행이 끝나서 함수가 반환될 때까지 대기하도록 할 것입니다. 
+이러한 의도를 `VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`를 사용해 드라이버에게 알려주는 것이 좋습니다.
 
 ```c++
 VkBufferCopy copyRegion{};
@@ -181,18 +152,17 @@ copyRegion.size = size;
 vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 ```
 
-Contents of buffers are transferred using the `vkCmdCopyBuffer` command. It
-takes the source and destination buffers as arguments, and an array of regions
-to copy. The regions are defined in `VkBufferCopy` structs and consist of a
-source buffer offset, destination buffer offset and size. It is not possible to
-specify `VK_WHOLE_SIZE` here, unlike the `vkMapMemory` command.
+버퍼 내용은 `vkCmdCopyBuffer` 명령을 통해 전송됩니다. 
+소스와 목적지 버퍼, 그리고 복사할 영역에 대한 배열을 인자로 받습니다. 
+영역은 `VkBufferCopy`로 정의되며 소스 버퍼의 오프셋, 목적지 버퍼의 오프셋, 크기로 구성됩니다. 
+`vkMapMemory` 명령과는 달리 여기서는 `VK_WHOLE_SIZE`로 명시하는 것은 불가능합니다.
 
 ```c++
 vkEndCommandBuffer(commandBuffer);
 ```
 
-This command buffer only contains the copy command, so we can stop recording
-right after that. Now execute the command buffer to complete the transfer:
+이 명령 버퍼는 복사 명령만을 포함하므로 바로 기록을 중단하면 됩니다. 
+이제 명령 버퍼를 실행하여 전송을 완료합니다:
 
 ```c++
 VkSubmitInfo submitInfo{};
@@ -204,22 +174,20 @@ vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
 vkQueueWaitIdle(graphicsQueue);
 ```
 
-Unlike the draw commands, there are no events we need to wait on this time. We
-just want to execute the transfer on the buffers immediately. There are again
-two possible ways to wait on this transfer to complete. We could use a fence and
-wait with `vkWaitForFences`, or simply wait for the transfer queue to become
-idle with `vkQueueWaitIdle`. A fence would allow you to schedule multiple
-transfers simultaneously and wait for all of them complete, instead of executing
-one at a time. That may give the driver more opportunities to optimize.
+그리기 명령과는 다르게 여기서를 기다려야 할 이벤트가 없습니다. 
+그냥 버퍼에 대한 전송 명령을 바로 실행하기를 원합니다. 
+여기서도 마찬가지로 이러한 전송이 완료되는 것을 기다리는 두 가지 방법이 있습니다. 
+`vkWaitForFences`로 펜스를 사용해 대기하거나, 전송 큐가 아이들(idle) 상태가 될때까지 대기하도록 `vkQueueWaitIdle`를 사용하는 것입니다. 
+하나씩 실행하는 것이 아니라 여러 개의 전송 명령을 동시에 계획하고 전체가 끝날때까지 대기하는 경우에 펜스를 사용하면 됩니다. 
+이렇게 하면 드라이버가 최적화 하기 더 좋습니다.
 
 ```c++
 vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 ```
 
-Don't forget to clean up the command buffer used for the transfer operation.
+전송 연산을 위해 사용한 명령 버퍼를 정리하는 것을 잊지 마세요.
 
-We can now call `copyBuffer` from the `createVertexBuffer` function to move the
-vertex data to the device local buffer:
+이제 `createVertexBuffer` 함수에서 `copyBuffer`를 호출하여 정점 데이터를 장치의 로컬 버퍼로 옮깁니다: 
 
 ```c++
 createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -227,8 +195,7 @@ createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERT
 copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 ```
 
-After copying the data from the staging buffer to the device buffer, we should
-clean it up:
+스테이징 버퍼에서 장치 버퍼로 데이터를 복사한 뒤에는 정리해 주어야 합니다:
 
 ```c++
     ...
@@ -240,27 +207,18 @@ clean it up:
 }
 ```
 
-Run your program to verify that you're seeing the familiar triangle again. The
-improvement may not be visible right now, but its vertex data is now being
-loaded from high performance memory. This will matter when we're going to start
-rendering more complex geometry.
+프로그램을 실행하여 삼각형이 잘 보이는지 확인하세요. 
+개선점이 바로 눈에 보이지는 않지만 이제 정점 데이터는 고성능 메모리로부터 로드(load)됩니다. 
+보다 복잡한 형상을 렌더링 할 때에는 이러한 사실이 중요해집니다.
 
-## Conclusion
+## 결론
 
-It should be noted that in a real world application, you're not supposed to
-actually call `vkAllocateMemory` for every individual buffer. The maximum number
-of simultaneous memory allocations is limited by the `maxMemoryAllocationCount`
-physical device limit, which may be as low as `4096` even on high end hardware
-like an NVIDIA GTX 1080. The right way to allocate memory for a large number of
-objects at the same time is to create a custom allocator that splits up a single
-allocation among many different objects by using the `offset` parameters that
-we've seen in many functions.
+실제 응용 프로그램에서는 개별 버퍼마다 `vkAllocateMemory`를 호출하지 않는것이 좋다는 점을 주의하십시오. 
+동시에 수행 가능한 메모리 할당은 물리적 장치의 `maxMemoryAllocationCount`에 의해 제한되며 NVIDIA GTX 1080와 같은 고성능 장치에서도 `4096`정도밖에 안됩니다. 
+많은 객체를 위한 메모리 할당을 한꺼번에 수행하는 적정한 방법은 여러 객체들에 대해 `offset` 매개변수를 사용해 한 번에 할당을 수행하는 별도의 할당자(allocator)를 만드는 것입니다.
 
-You can either implement such an allocator yourself, or use the
-[VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
-library provided by the GPUOpen initiative. However, for this tutorial it's okay
-to use a separate allocation for every resource, because we won't come close to
-hitting any of these limits for now.
+이러한 할당자를 직접 구현해도 되고, GPUOpen 이니셔티브에서 제공하는 [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) 라이브러리를 사용해도 됩니다. 
+하지만 이 튜토리얼에서는 각 리소스에 대해 별도의 할당을 수행해도 상관없는데 지금은 위와 같은 제한에 걸릴 만큼 복잡한 작업은 하지 않기 떄문입니다.
 
 [C++ code](/code/20_staging_buffer.cpp) /
 [Vertex shader](/code/18_shader_vertexbuffer.vert) /
