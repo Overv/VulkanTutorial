@@ -1,29 +1,24 @@
-## Introduction
+## 개요
 
-The 3D meshes you'll be rendering in a real world application will often share
-vertices between multiple triangles. This already happens even with something
-simple like drawing a rectangle:
+실제 응용 프로그램에서 렌더링할 3D 메쉬는 여러 삼각형에서 정점을 공유하는 경우가 많습니다. 
+이는 아래와 같은 간단한 사각형을 렌더링 할 때도 적용됩니다:
 
 ![](/images/vertex_vs_index.svg)
 
-Drawing a rectangle takes two triangles, which means that we need a vertex
-buffer with 6 vertices. The problem is that the data of two vertices needs to be
-duplicated resulting in 50% redundancy. It only gets worse with more complex
-meshes, where vertices are reused in an average number of 3 triangles. The
-solution to this problem is to use an *index buffer*.
+사각형을 렌더링하려면 삼각형 두 개가 필요하기 때문에 정점 6개를 갖는 정점 버퍼가 필요합니다. 
+문제는 두 개의 정점은 동일한 데이터이기 때문에 50%의 중복이 발생한다는 것입니다. 
+메쉬가 복잡해지면 평균적으로 정점 한개당 3개의 삼각형에서 재사용되어 상황은 더 나빠집니다. 
+이 문제를 해결하는 방법은 *인덱스 버퍼(index buffer)*를 사용하는 것입니다.
 
-An index buffer is essentially an array of pointers into the vertex buffer. It
-allows you to reorder the vertex data, and reuse existing data for multiple
-vertices. The illustration above demonstrates what the index buffer would look
-like for the rectangle if we have a vertex buffer containing each of the four
-unique vertices. The first three indices define the upper-right triangle and the
-last three indices define the vertices for the bottom-left triangle.
+인덱스 버퍼는 정점 버퍼에 대한 포인터 배열과 같습니다. 
+정점 데이터의 순서를 바꾸고 이미 존재하는 데이터는 여러 정점으로 활용할 수 있게 해줍니다. 
+위 그림에서는 정점 버퍼가 네 개의 정점을 가지고 있을 때 인덱스 버퍼를 사용해 사각형을 표현하는 예시를 보여줍니다. 
+첫 세 개의 인덱스가 위 오른쪽 삼각형을 정의하며 마지막 세 개의 인덱스가 왼쪽 아래 삼각형을 정의합니다.
 
-## Index buffer creation
+## 인덱스 버퍼 생성
 
-In this chapter we're going to modify the vertex data and add index data to
-draw a rectangle like the one in the illustration. Modify the vertex data to
-represent the four corners:
+이 챕터에서 우리는 정점 데이터를 수정하고 인덱스 데이터를 추가하여 위 그림과 같은 사각형을 그려 볼 것입니다. 
+네 개의 꼭지점을 표현하도록 정점 데이터를 수정합니다:
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -34,10 +29,9 @@ const std::vector<Vertex> vertices = {
 };
 ```
 
-The top-left corner is red, top-right is green, bottom-right is blue and the
-bottom-left is white. We'll add a new array `indices` to represent the contents
-of the index buffer. It should match the indices in the illustration to draw the
-upper-right triangle and bottom-left triangle.
+왼쪽 위 꼭지점은 빨간색, 오른쪽 위는 초록색, 오른쪽 아래는 파란색, 왼쪽 아래는 흰색입니다. 
+인덱스 버퍼의 내용은 새로운 `indices`를 추가하여 정의합니다. 
+오른쪽 위 삼각형과 왼쪽 아래 삼각형을 위해 그림에서와 같이 인덱스를 정의합니다.
 
 ```c++
 const std::vector<uint16_t> indices = {
@@ -45,13 +39,11 @@ const std::vector<uint16_t> indices = {
 };
 ```
 
-It is possible to use either `uint16_t` or `uint32_t` for your index buffer
-depending on the number of entries in `vertices`. We can stick to `uint16_t` for
-now because we're using less than 65535 unique vertices.
+`vertices`요소 개수에 따라 인덱스 버퍼로 `uint16_t`나 `uint32_t`를 사용하는 것이 모두 가능합니다. 
+지금은 65535개보다는 정점이 적으므로 `uint16_t`를 사용합니다.
 
-Just like the vertex data, the indices need to be uploaded into a `VkBuffer` for
-the GPU to be able to access them. Define two new class members to hold the
-resources for the index buffer:
+정점 데이터와 마찬가지로 인덱스도 `VkBuffer`를 통해 GPU로 전달되어 접근 가능하게 만들어야만 합니다.
+인덱스 버퍼 리소스를 저장할 두 개의 새로운 클래스 멤버를 정의합니다:
 
 ```c++
 VkBuffer vertexBuffer;
@@ -60,8 +52,7 @@ VkBuffer indexBuffer;
 VkDeviceMemory indexBufferMemory;
 ```
 
-The `createIndexBuffer` function that we'll add now is almost identical to
-`createVertexBuffer`:
+새로 추가하는 `createIndexBuffer` 함수는 `createVertexBuffer`와 거의 동일합니다:
 
 ```c++
 void initVulkan() {
@@ -92,16 +83,13 @@ void createIndexBuffer() {
 }
 ```
 
-There are only two notable differences. The `bufferSize` is now equal to the
-number of indices times the size of the index type, either `uint16_t` or
-`uint32_t`. The usage of the `indexBuffer` should be
-`VK_BUFFER_USAGE_INDEX_BUFFER_BIT` instead of
-`VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`, which makes sense. Other than that, the
-process is exactly the same. We create a staging buffer to copy the contents of
-`indices` to and then copy it to the final device local index buffer.
+눈에 띄는 차이점은 두 가지입니다. 
+`bufferSize`는 인덱스 자료형인 `uint16_t` 또는 `uint32_t`의 크기 곱하기 인덱스의 개수입니다. 
+`indexBuffer`의 사용법은 당연히 `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`가 아닌 `VK_BUFFER_USAGE_INDEX_BUFFER_BIT` 입니다.
+이 외에는 모든 것이 같습니다. 
+`indices`의 내용을 장치의 로컬 인덱스 버퍼에 복사하기 위해 스테이징 버퍼를 만들어 사용합니다.
 
-The index buffer should be cleaned up at the end of the program, just like the
-vertex buffer:
+인덱스 버퍼 정점 버퍼처럼 프로그램 종료 시점에 정리되어야 합니다:
 
 ```c++
 void cleanup() {
@@ -117,14 +105,12 @@ void cleanup() {
 }
 ```
 
-## Using an index buffer
+## 인덱스 버퍼 사용
 
-Using an index buffer for drawing involves two changes to
-`recordCommandBuffer`. We first need to bind the index buffer, just like we did
-for the vertex buffer. The difference is that you can only have a single index
-buffer. It's unfortunately not possible to use different indices for each vertex
-attribute, so we do still have to completely duplicate vertex data even if just
-one attribute varies.
+그리기를 위해 인덱스 버퍼를 사용하기 위해서는 `recordCommandBuffer`에 두 가지 변화가 필요합니다. 
+우선 정범 버퍼터럼 인덱스 버퍼도 바인딩 해야 합니다. 
+차이점은 하나의 인덱스 버퍼만 가질 수 있다는 것입니다. 
+각 정점 어트리뷰트에 대해 안타깝게도 여러 개의 인덱스를 사용할 수는 없으니 하나의 어트리뷰트만 바뀌어도 전체 정점 데이터를 복사해야 합니다.
 
 ```c++
 vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
@@ -132,47 +118,38 @@ vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 ```
 
-An index buffer is bound with `vkCmdBindIndexBuffer` which has the index buffer,
-a byte offset into it, and the type of index data as parameters. As mentioned
-before, the possible types are `VK_INDEX_TYPE_UINT16` and
-`VK_INDEX_TYPE_UINT32`.
+인덱스 버퍼의 바인딩은 `vkCmdBindIndexBuffer`로 수행되며 이 함수는 인덱스 버퍼, 바이트 오프셋, 인덱스 데이터의 타입을 매개변수로 받습니다. 
+앞서 이야기한 것처럼 타입은 `VK_INDEX_TYPE_UINT16` 또는 `VK_INDEX_TYPE_UINT32` 입니다.
 
-Just binding an index buffer doesn't change anything yet, we also need to change
-the drawing command to tell Vulkan to use the index buffer. Remove the
-`vkCmdDraw` line and replace it with `vkCmdDrawIndexed`:
+인덱스 버퍼를 바인딩한 것만으로 아직 바뀐 것은 없습니다. 
+Vulkan에 인덱스 버퍼를 사용하도록 그리기 명령 또한 수정해야 합니다. 
+`vkCmdDraw` 라인을 `vkCmdDrawIndexed`로 바꿉니다:
 
 ```c++
 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
-A call to this function is very similar to `vkCmdDraw`. The first two parameters
-specify the number of indices and the number of instances. We're not using
-instancing, so just specify `1` instance. The number of indices represents the
-number of vertices that will be passed to the vertex shader. The next parameter
-specifies an offset into the index buffer, using a value of `1` would cause the
-graphics card to start reading at the second index. The second to last parameter
-specifies an offset to add to the indices in the index buffer. The final
-parameter specifies an offset for instancing, which we're not using.
+`vkCmdDraw` 호출과 매우 유사합니다. 
+첫 두 매개변수는 인덱스의 개수와 인스턴스 개수를 명시합니다. 
+인스턴싱을 하지 않으므로 `1`로 두었습니다. 
+인덱스의 개수는 정점 셰이더에 넘겨질 정점의 개수를 의미합니다. 
+다음 매개변수는 인덱스 버터의 오프셋이고 `1`을 사용하면 두 번째 인덱스부터 렌더링을 시작합니다. 
+마지막에서 두 번째 매개변수는 인덱스 버퍼에 추가할 인덱스의 오프셋을 의미합니다. 
+마지막 매개변수는 인스턴싱을 위한 오프셋이고, 여기서는 사용하지 않습니다.
 
-Now run your program and you should see the following:
+이제 프로그램을 실행하면 아래와 같은 화면이 보입니다:
 
 ![](/images/indexed_rectangle.png)
 
-You now know how to save memory by reusing vertices with index buffers. This
-will become especially important in a future chapter where we're going to load
-complex 3D models.
+이제 인덱스 버퍼를 사용해 정점을 재사용하여 메모리를 아끼는 법을 배웠습니다. 
+나중에 복잡한 3D 모델을 로딩할 챕터에서는 이러한 기능이 특히 중요합니다.
 
-The previous chapter already mentioned that you should allocate multiple
-resources like buffers from a single memory allocation, but in fact you should
-go a step further. [Driver developers recommend](https://developer.nvidia.com/vulkan-memory-management)
-that you also store multiple buffers, like the vertex and index buffer, into a
-single `VkBuffer` and use offsets in commands like `vkCmdBindVertexBuffers`. The
-advantage is that your data is more cache friendly in that case, because it's
-closer together. It is even possible to reuse the same chunk of memory for
-multiple resources if they are not used during the same render operations,
-provided that their data is refreshed, of course. This is known as *aliasing*
-and some Vulkan functions have explicit flags to specify that you want to do
-this.
+이전 챕터에서 버퍼와 같은 다중 리소스들을 한 번의 메모리 할당으로 진행해야 한다고 언급했지만 사실 그 이상으로 해야 할 일들이 있습니다. 
+[드라이버 개발자가 추천하길](https://developer.nvidia.com/vulkan-memory-management) 정점과 인덱스 버퍼와 같은 다중 버퍼를 하나의 `VkBuffer`에 저장하고 `vkCmdBindVertexBuffers`와 같은 명령에서 오프셋을 사용하라고 합니다. 
+이렇게 하면 데이터가 함께 존재하기 때문에 더 캐시 친화적입니다. 
+또한 같은 렌더링 연산에 사용되는 것이 아니라면, 메모리 덩어리(chunk)를 여러 리소스에서 재사용 하는 것도 가능합니다.
+이는 *앨리어싱(aliasing)*이라고 불리며 몇몇 Vulkan 함수는 이러한 동작을 수행하려 한다는 것을 알려주기 위한 명시적 플래그도 존재합니다.
+이렇게 하면 
 
 [C++ code](/code/21_index_buffer.cpp) /
 [Vertex shader](/code/18_shader_vertexbuffer.vert) /
