@@ -91,3 +91,4 @@
 - 목적지: Destination
 - 앨리어싱: Aliasing
 - 투영: Projection
+- 컬링: Culling

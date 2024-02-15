@@ -1,16 +1,10 @@
-## Introduction
+## 개요
 
-The descriptor layout from the previous chapter describes the type of
-descriptors that can be bound. In this chapter we're going to create
-a descriptor set for each `VkBuffer` resource to bind it to the
-uniform buffer descriptor.
+이전 장에서의 기술자 레이아웃은 바인딩 될 수 있는 기술자의 타입을 명시합니다. 이 장에서는 각 `VkBuffer` 리소스를 위한 기술자 집합을 만들어서 유니폼 버퍼 기술자에 바인딩할 것입니다.
 
-## Descriptor pool
+## 기술자 풀
 
-Descriptor sets can't be created directly, they must be allocated from a pool
-like command buffers. The equivalent for descriptor sets is unsurprisingly
-called a *descriptor pool*. We'll write a new function `createDescriptorPool`
-to set it up.
+기술자 집합은 직접 만들 수 없고 명령 버퍼처럼 풀로부터 할당되어야 합니다. 기술자 집합에서 이에 대응하는 것은 당연하게도 *기술자 풀*입니다. 이를 설정하기 위해 `createDescriptorPool` 함수를 새로 작성합니다.
 
 ```c++
 void initVulkan() {
@@ -27,8 +21,7 @@ void createDescriptorPool() {
 }
 ```
 
-We first need to describe which descriptor types our descriptor sets are going
-to contain and how many of them, using `VkDescriptorPoolSize` structures.
+먼저 기술자 집합이 어떤 기술자 타입을 포함할 것인지, 몇 개를 포함할 것인지를 `VkDescriptorPoolSize` 구조체를 통해 명시합니다.
 
 ```c++
 VkDescriptorPoolSize poolSize{};
@@ -36,8 +29,7 @@ poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 ```
 
-We will allocate one of these descriptors for every frame. This
-pool size structure is referenced by the main `VkDescriptorPoolCreateInfo`:
+이 기술자 중 하나를 매 프레임 할당할 것입니다. 이 풀 크기에 대한 구조체는 `VkDescriptorPoolCreateInfo`에서 참조됩니다: 
 
 ```c++
 VkDescriptorPoolCreateInfo poolInfo{};
@@ -46,19 +38,13 @@ poolInfo.poolSizeCount = 1;
 poolInfo.pPoolSizes = &poolSize;
 ```
 
-Aside from the maximum number of individual descriptors that are available, we
-also need to specify the maximum number of descriptor sets that may be
-allocated:
+가용한 개별 기술자의 최대 숫자와는 별개로 할당될 기술자 집합의 최대 숫자도 명시해야 합니다:
 
 ```c++
 poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 ```
 
-The structure has an optional flag similar to command pools that determines if
-individual descriptor sets can be freed or not:
-`VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`. We're not going to touch
-the descriptor set after creating it, so we don't need this flag. You can leave
-`flags` to its default value of `0`.
+명령 풀과 유사하게 이 구조체도 개별 기술자 집합이 해제가 될 수 있을지에 대한 선택적인 플래그로 `VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`가 존재합니다. 기술자 세트는 생성한 이후에 건들지 않을 것이므로 이 플래그를 사용하지는 않을 것입니다. 따라서 `flags`는 기본값인 `0`으로 두면 됩니다.
 
 ```c++
 VkDescriptorPool descriptorPool;
@@ -70,13 +56,11 @@ if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SU
 }
 ```
 
-Add a new class member to store the handle of the descriptor pool and call
-`vkCreateDescriptorPool` to create it.
+기술자 풀의 핸들을 저장하기 위한 클래스 멤버를 추가하고 `vkCreateDescriptorPool`를 호출하여 생성합니다.
 
-## Descriptor set
+## 기술자 집합
 
-We can now allocate the descriptor sets themselves. Add a `createDescriptorSets`
-function for that purpose:
+이제 기술자 집합을 할당할 수 있습니다. 이를 위해 `createDescriptorSets` 함수를 추가합니다:
 
 ```c++
 void initVulkan() {
@@ -93,9 +77,7 @@ void createDescriptorSets() {
 }
 ```
 
-A descriptor set allocation is described with a `VkDescriptorSetAllocateInfo`
-struct. You need to specify the descriptor pool to allocate from, the number of
-descriptor sets to allocate, and the descriptor layout to base them on:
+기술자 집합의 할당은 `VkDescriptorSetAllocateInfo` 구조체를 사용합니다. 어떤 기술자 풀에서 할당할 것인지, 기술자 집합을 몇 개나 할당할 것인지, 기반이 되는 기술자 레이아웃이 무엇인지 등을 명시합니다:
 
 ```c++
 std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
@@ -106,11 +88,9 @@ allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 allocInfo.pSetLayouts = layouts.data();
 ```
 
-In our case we will create one descriptor set for each frame in flight, all with the same layout.
-Unfortunately we do need all the copies of the layout because the next function expects an array matching the number of sets.
+우리의 경우 사용 중인 각 프레임마다 하나의 기술자 집합을 생성할 것이고, 레이아웃은 모두 동일합니다. 안타깝게도 이 레이아웃들을 모두 복사해야만 하는데 이 다음 함수에서 집합의 개수와 배열의 개수가 일치되어야 하기 떄문입니다.
 
-Add a class member to hold the descriptor set handles and allocate them with
-`vkAllocateDescriptorSets`:
+기술자 집합 핸들을 저장할 클래스 멤버를 추가하고 `vkAllocateDescriptorSets`를 사용해 할당합니다:
 
 ```c++
 VkDescriptorPool descriptorPool;
@@ -124,10 +104,7 @@ if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SU
 }
 ```
 
-You don't need to explicitly clean up descriptor sets, because they will be
-automatically freed when the descriptor pool is destroyed. The call to
-`vkAllocateDescriptorSets` will allocate descriptor sets, each with one uniform
-buffer descriptor.
+기술자 집합은 기술자 풀이 소멸될 때 자동으로 해제되므로 명시적으로 정리해 줄 필요는 없습니다. `vkAllocateDescriptorSets` 호출은 기술자 집합을 할당하고 각각은 하나의 유니폼 버퍼 기술자를 갖고 있습니다.
 
 ```c++
 void cleanup() {
@@ -139,8 +116,7 @@ void cleanup() {
 }
 ```
 
-The descriptor sets have been allocated now, but the descriptors within still need
-to be configured. We'll now add a loop to populate every descriptor:
+이제 기술자 집합은 할당되었으나 그 안의 기술자에 대한 구성이 남아 있습니다. 이제 각 기술자를 생성하기 위한 반복문을 추가합니다.
 
 ```c++
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -148,10 +124,7 @@ for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 }
 ```
 
-Descriptors that refer to buffers, like our uniform buffer
-descriptor, are configured with a `VkDescriptorBufferInfo` struct. This
-structure specifies the buffer and the region within it that contains the data
-for the descriptor.
+우리 유니폼 버퍼 기술자와 같이, 버퍼를 참조하는 기술자는 `VkDescriptorBufferInfo` 구조체로 설정할 수 있습니다. 이 구조체는 버퍼와 데이터가 들어있는 버퍼의 영역을 명시합니다.
 
 ```c++
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -162,8 +135,7 @@ for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 }
 ```
 
-If you're overwriting the whole buffer, like we are in this case, then it is also possible to use the `VK_WHOLE_SIZE` value for the range. The configuration of descriptors is updated using the `vkUpdateDescriptorSets`
-function, which takes an array of `VkWriteDescriptorSet` structs as parameter.
+지금 우리가 하는 것처럼 전체 버퍼를 덮어쓰는 상황이라면 range에 `VK_WHOLE_SIZE`를 사용해도 됩니다. 기술자의 구성은 `vkUpdateDescriptorSets` 함수를 사용해 갱신되는데 `VkWriteDescriptorSet` 구조체의 배열을 매개변수로 받습니다. 
 
 ```c++
 VkWriteDescriptorSet descriptorWrite{};
@@ -173,20 +145,14 @@ descriptorWrite.dstBinding = 0;
 descriptorWrite.dstArrayElement = 0;
 ```
 
-The first two fields specify the descriptor set to update and the binding. We
-gave our uniform buffer binding index `0`. Remember that descriptors can be
-arrays, so we also need to specify the first index in the array that we want to
-update. We're not using an array, so the index is simply `0`.
+첫 두 필드는 갱신하고 바인딩할 기술자 집합을 명시합니다. 우리는 유니폼 버퍼 바인딩 인덱스로 `0`을 부여했습니다. 기술자는 배열일 수도 있으므로 갱신하고자 하는 첫 인덱스를 명시해 주어야 합니다. 지금은 배열이 아니므로 인덱스로는 `0`을 사용합니다.
 
 ```c++
 descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 descriptorWrite.descriptorCount = 1;
 ```
 
-We need to specify the type of descriptor again. It's possible to update
-multiple descriptors at once in an array, starting at index `dstArrayElement`.
-The `descriptorCount` field specifies how many array elements you want to
-update.
+기술자의 타입을 다시 명시해 주어야 합니다. `dstArrayElement` 인덱스부터 시작해서 배열의 여러 기술자를 한꺼번에 갱신하는 것이 가능합니다. `descriptorCount` 필드가 갱신할 배열의 요소 개수를 명시하게 됩니다.
 
 ```c++
 descriptorWrite.pBufferInfo = &bufferInfo;
@@ -194,66 +160,41 @@ descriptorWrite.pImageInfo = nullptr; // Optional
 descriptorWrite.pTexelBufferView = nullptr; // Optional
 ```
 
-The last field references an array with `descriptorCount` structs that actually
-configure the descriptors. It depends on the type of descriptor which one of the
-three you actually need to use. The `pBufferInfo` field is used for descriptors
-that refer to buffer data, `pImageInfo` is used for descriptors that refer to
-image data, and `pTexelBufferView` is used for descriptors that refer to buffer
-views. Our descriptor is based on buffers, so we're using `pBufferInfo`.
+마지막 필드는 실제 기술자를 구성할 `descriptorCount`개의 구조체 배열을 참조합니다. 셋 중에 실제로 사용할 것이 무엇인지에 따라 달라집니다. `pBufferInfo` 필드는 버퍼 데이터를 참조하는 경우 사용되고, `pImageInfo`는 이미지 데이터를 참조하는 경우, `pTexelBufferView`는 버퍼 뷰를 참조하는 기술자에 대해 사용됩니다. 우리의 경우 버퍼를 참조하므로 `pBufferInfo`를 사용합니다.
 
 ```c++
 vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 ```
 
-The updates are applied using `vkUpdateDescriptorSets`. It accepts two kinds of
-arrays as parameters: an array of `VkWriteDescriptorSet` and an array of
-`VkCopyDescriptorSet`. The latter can be used to copy descriptors to each other,
-as its name implies.
+갱신은 `vkUpdateDescriptorSets`를 사용해 이루어집니다. 두 종류의 배열을 매개변수로 받는데 `VkWriteDescriptorSet`과 `VkCopyDescriptorSet` 입니다. 후자는 이름 그대로 기술자들끼리 복사할 때 사용됩니다.
 
-## Using descriptor sets
+## 기술자 집합 사용
 
-We now need to update the `recordCommandBuffer` function to actually bind the
-right descriptor set for each frame to the descriptors in the shader with `vkCmdBindDescriptorSets`. This needs to be done before the `vkCmdDrawIndexed` call:
+이제 `recordCommandBuffer` 함수를 갱신해서 실제로 각 프레임에 대한 올바른 기술자 세트를 셰이더의 기술자와 `vkCmdBindDescriptorSets`를 통해 바인딩해야 합니다. 이는 `vkCmdDrawIndexed` 호출 전에 이루어져야 합니다:
 
 ```c++
 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 ```
 
-Unlike vertex and index buffers, descriptor sets are not unique to graphics
-pipelines. Therefore we need to specify if we want to bind descriptor sets to
-the graphics or compute pipeline. The next parameter is the layout that the
-descriptors are based on. The next three parameters specify the index of the
-first descriptor set, the number of sets to bind, and the array of sets to bind.
-We'll get back to this in a moment. The last two parameters specify an array of
-offsets that are used for dynamic descriptors. We'll look at these in a future
-chapter.
+정점 버퍼나 인덱스 버퍼와는 다르게, 기술자 집합은 그래픽스 파이프라인에서만 사용되는 것은 아닙니다. 따라서 기술자 집합을 그래픽스 또는 컴퓨트 파이프라인 중 어디에 사용할 것인지를 명시해야 합니다. 다음 매개변수는 기술자가 기반으로 하는 레이아웃입니다. 그 다음 세 개의 매개변수는 첫 기술자 집합의 인덱스와 바인딩할 집합의 개수, 그리고 바인딩할 집합의 배열입니다. 이에 대해선 잠시 뒤에 다시 실펴볼 것입니다. 마지막 두 개의 매개변수는 동적(dynamic) 기술자를 사용할 때를 위한 오프셋의 배열을 명시합니다. 이에 대해서는 나중 챕터에서 알아보겠습니다.
 
-If you run your program now, then you'll notice that unfortunately nothing is
-visible. The problem is that because of the Y-flip we did in the projection
-matrix, the vertices are now being drawn in counter-clockwise order instead of
-clockwise order. This causes backface culling to kick in and prevents
-any geometry from being drawn. Go to the `createGraphicsPipeline` function and
-modify the `frontFace` in `VkPipelineRasterizationStateCreateInfo` to correct
-this:
+지금 시점에 프로그램을 실행하면 아무것도 보이지 않을 겁니다. 문제는 우리가 투영 행렬에 Y 뒤집기를 수행했기 때문에 정점이 시계방향 순서가 아닌 반시계 방향 순서로 그려진다는 것입니다. 이로 인해 후면 컬링(backface culling)이 동작하여 아무것도 그려지지 않게 됩니다. `createGraphicsPipeline` 함수로 가서  `VkPipelineRasterizationStateCreateInfo`의 `frontFace`를 바로잡아줍니다:
 
 ```c++
 rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 ```
 
-Run your program again and you should now see the following:
+이제 다시 실행해보면 아래와 같이 보일겁니다:
 
 ![](/images/spinning_quad.png)
 
-The rectangle has changed into a square because the projection matrix now
-corrects for aspect ratio. The `updateUniformBuffer` takes care of screen
-resizing, so we don't need to recreate the descriptor set in
-`recreateSwapChain`.
+이제 투영 행렬이 종횡비에 맞게 투영하므로 사각형이 정사각형으로 보입니다. `updateUniformBuffer`가 화면 크기 변경을 처리하므로 `recreateSwapChain`에서 기술자 집합을 다시 생성할 필요는 없습니다.
 
-## Alignment requirements
+## 정렬 요구조건(Alignment requirements)
 
-One thing we've glossed over so far is how exactly the data in the C++ structure should match with the uniform definition in the shader. It seems obvious enough to simply use the same types in both:
+지금까지 대충 넘어갔던 것 중의 하나는 셰이더에서의 유니폼 정의와 C++ 구조체가 어떻게 일치해야 하는가에 관한 것입니다. 양 쪽에 동일한 타입을 사용하는 것이 당연해 보입니다:
 
 ```c++
 struct UniformBufferObject {
@@ -269,7 +210,7 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 ```
 
-However, that's not all there is to it. For example, try modifying the struct and shader to look like this:
+하지만 그냥 이것으로 끝은 아닙니다. 예를 들어 구조체와 셰이더를 아래와 같이 수정해 봅시다:
 
 ```c++
 struct UniformBufferObject {
@@ -287,19 +228,21 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 ```
 
-Recompile your shader and your program and run it and you'll find that the colorful square you worked so far has disappeared! That's because we haven't taken into account the *alignment requirements*.
+셰이더를 다시 컴파일하고 프로그램을 실행하면 지금까지 보였던 사각형이 사라진 것을 볼 수 있습니다! 왜냐하면 *정렬 요구조건*을 고려하지 않았기 때문입니다.
 
-Vulkan expects the data in your structure to be aligned in memory in a specific way, for example:
+Vulkan은 구조체의 데이터가 메모리에 특정한 방식으로 정렬되어 있을 것이라고 예상합니다. 예를 들어:
 
-* Scalars have to be aligned by N (= 4 bytes given 32 bit floats).
-* A `vec2` must be aligned by 2N (= 8 bytes)
-* A `vec3` or `vec4` must be aligned by 4N (= 16 bytes)
-* A nested structure must be aligned by the base alignment of its members rounded up to a multiple of 16.
-* A `mat4` matrix must have the same alignment as a `vec4`.
+* 스칼라 값은 N으로 정렬 (= 32비트 float의 경우 4바이트)
+* `vec2`는 2N으로 정렬 (= 8바이트)
+* `vec3` 또는 `vec4`는 4N으로 정렬 (= 16바이트)
+* 중접된 구조체는 멤버의 기본 정렬을 16의 배수로 반올림한 것으로 정렬
+* `mat4` 행렬은 `vec4`와 동일한 정렬이어야 함
 
-You can find the full list of alignment requirements in [the specification](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap15.html#interfaces-resources-layout).
+정렬 요구조건에 대한 전체 내용은 [해당하는 명세](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/chap15.html#interfaces-resources-layout)를 보시면 됩니다.
 
-Our original shader with just three `mat4` fields already met the alignment requirements. As each `mat4` is 4 x 4 x 4 = 64 bytes in size, `model` has an offset of `0`, `view` has an offset of 64 and `proj` has an offset of 128. All of these are multiples of 16 and that's why it worked fine.
+원래 우리의 셰이더는 세 개의 `mat4` 필드를 사용하였으므로 항상 정렬 요구조건을 만족하였습니다. 각 `mat4`는 4 x 4 x 4 = 64바이트이고, `model`은 오프셋 `0`, `view`는 오프셋 `64`, `proj`는 오프셋 `128`입니다. 각각이 16의 배수이므로 문제가 없었습니다.
+
+8바이트 크기인 `vec2`가 추가된 새 구조체로 인해 모든 오프셋이 맞지 않게 됩니다. 이제 `model`은 오프셋 `8`, `view`는 오프셋 `72`, `proj`는 오프셋 `136`이므로 16의 배수가 아닙니다. 이 문제를 해결하기 위해서는 C++11에서 추가된 [`alignas`](https://en.cppreference.com/w/cpp/language/alignas) 지정자를 사용하게 됩니다.
 
 The new structure starts with a `vec2` which is only 8 bytes in size and therefore throws off all of the offsets. Now `model` has an offset of `8`, `view` an offset of `72` and `proj` an offset of `136`, none of which are multiples of 16. To fix this problem we can use the [`alignas`](https://en.cppreference.com/w/cpp/language/alignas) specifier introduced in C++11:
 
@@ -312,9 +255,7 @@ struct UniformBufferObject {
 };
 ```
 
-If you now compile and run your program again you should see that the shader correctly receives its matrix values once again.
-
-Luckily there is a way to not have to think about these alignment requirements *most* of the time. We can define `GLM_FORCE_DEFAULT_ALIGNED_GENTYPES` right before including GLM:
+이제 컴파일하고 다시 실행해 보면 셰이더가 올바를 행렬값을 얻어오는 것을 볼 수 있습니다. GLM을 include하기 직전에 `GLM_FORCE_DEFAULT_ALIGNED_GENTYPES`를 정의할 수 있습니다:
 
 ```c++
 #define GLM_FORCE_RADIANS
@@ -322,9 +263,9 @@ Luckily there is a way to not have to think about these alignment requirements *
 #include <glm/glm.hpp>
 ```
 
-This will force GLM to use a version of `vec2` and `mat4` that has the alignment requirements already specified for us. If you add this definition then you can remove the `alignas` specifier and your program should still work.
+이렇게 하면 GLM이 정렬 요구사항이 이미 만족된 `vec2`와 `mat4`를 사용하게 됩니다. 이 정의를 추가하면 `alignas` 지정자를 없애도 제대로 동작합니다.
 
-Unfortunately this method can break down if you start using nested structures. Consider the following definition in the C++ code:
+안타깝게도 이 방법은 중첩된 구조체를 사용하면 통하지 않게 됩니다. C++에서 아래와 같은 정의를 생각해 보세요:
 
 ```c++
 struct Foo {
@@ -337,7 +278,7 @@ struct UniformBufferObject {
 };
 ```
 
-And the following shader definition:
+그리고 셰이더에서는 다음과 같이 정의했습니다:
 
 ```c++
 struct Foo {
@@ -350,7 +291,7 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 ```
 
-In this case `f2` will have an offset of `8` whereas it should have an offset of `16` since it is a nested structure. In this case you must specify the alignment yourself:
+이 경우 `f2`는 오프셋 `8`을 갖게 되는데 실제로는 중첩된 구조체이기 때문에 `16`을 가져야만 합니다. 이러한 경우엔 정렬을 직접 명시해 주어야 합니다:
 
 ```c++
 struct UniformBufferObject {
@@ -359,7 +300,7 @@ struct UniformBufferObject {
 };
 ```
 
-These gotchas are a good reason to always be explicit about alignment. That way you won't be caught offguard by the strange symptoms of alignment errors.
+교훈은, 정렬을 언제나 명시해 주는 것이 좋다는 겁니다. 그렇게 하면 정렬 오류로 인해 생기는 이상한 문제들을 방지할 수 있습니다.
 
 ```c++
 struct UniformBufferObject {
@@ -369,22 +310,17 @@ struct UniformBufferObject {
 };
 ```
 
-Don't forget to recompile your shader after removing the `foo` field.
+`foo`를 삭제한 뒤 셰이더를 다시 컴파일하는 것을 잊지 마세요.
 
-## Multiple descriptor sets
+## 다중 기술자 집합
 
-As some of the structures and function calls hinted at, it is actually possible
-to bind multiple descriptor sets simultaneously. You need to specify a descriptor layout for
-each descriptor set when creating the pipeline layout. Shaders can then
-reference specific descriptor sets like this:
+몇몇 구조체와 함수 호출에서 눈치 채실 수 있듯이, 다중 기술자 집합을 동시에 바인딩 하는 것이 가능합니다. 이 경우 각 기술자 집합에 대해 파이프라인 레이아웃 생성시에 기술자 레이아웃을 생성해야 합니다. 셰이더에서는 특정 기술자 집합을 아래와 같이 참조해야 합니다:
 
 ```c++
 layout(set = 0, binding = 0) uniform UniformBufferObject { ... }
 ```
 
-You can use this feature to put descriptors that vary per-object and descriptors
-that are shared into separate descriptor sets. In that case you avoid rebinding
-most of the descriptors across draw calls which is potentially more efficient.
+객체별로 다른 기술자를 사용하거나 별도의 기술자 집합에서 공유하는 기술자를 사용할 때 이러안 기능을 활용할 수 있습니다. 이 경우 드로우 콜마다 대부분의 기술자를 다시 바인딩하지 않아도 되어서 더 효율적일 수 있습니다.
 
 [C++ code](/code/23_descriptor_sets.cpp) /
 [Vertex shader](/code/22_shader_ubo.vert) /
