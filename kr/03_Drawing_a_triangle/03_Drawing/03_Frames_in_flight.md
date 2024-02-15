@@ -1,6 +1,6 @@
-## 여러 프레임 사용하기(frames in-flight)
+## 여러 프레임의 사용(frames in-flight)
 
-지금 우리 렌더링 루프에 눈에 띄는 문제가 하나 있습니다. 다음 프레임을 렌더링 하기 전에 이전 프레임을 기다려야만 하고 이로 인해 호스트는 불필요한 대기(ideling) 시간을 갖게 됩니다.
+지금 우리 렌더링 루프에 눈에 띄는 문제가 하나 있습니다. 다음 프레임을 렌더링 하기 전에 이전 프레임을 기다려야만 하고 이로 인해 호스트는 불필요한 아이들링(ideling) 시간을 갖게 됩니다.
 
 <!-- insert diagram showing our current render loop and the 'multi frame in flight' render loop -->
 

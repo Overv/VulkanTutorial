@@ -1,0 +1,93 @@
+# 한글 번역 용어집
+
+- 정점: Vertex
+- 프로그램가능한: Programmable
+- 명령: Command
+- 제출: Submit
+- 확장: Extension
+- 기술/기술자: Describe/Descriptor
+- 장치: Device
+- 큐 패밀리: Queue Family
+- 윈도우 표면: Window Surface
+- 스왑 체인: Swap Chain
+- 렌더 타겟: Render Target
+- 프레임: Frame
+- 표시: Present/Presentation
+- 그리기: Draw
+- 드로우 콜: Draw Call
+- 래핑: Wrap(ping)
+- 스텐실: Stensil
+- 렌더 패스: Render Pass
+- 슬롯: Slot
+- 바인딩: Bind/Bound/Binding
+- 지움/지우기: Clear
+- 혼합/블렌딩: Blend/Blending
+- 풀: Pool
+- 유니폼: Uniform
+- 버퍼: Buffer
+- 소멸: Destroy
+- 할당/할당자: Allocate/Allocator
+- 검증 레이어: Validation Layer
+- 윈도우즈(OS): Windows
+- 오프 스크린: Off-screen
+- 질의: Query
+- 프레임버퍼: Framebuffer
+- 주사율: Refresh Rate
+- 동기/동기화: Synchronize/Synchronization
+- 집합: Set
+- 깊이: Depth
+- 부호 있는/없는: Signed/Unsigned
+- 테어링: Tearing
+- 수직 동기화: Vertical Sync
+- 수직 공백: Vertical Blank
+- 지연시간: Latency
+- 범위: Extent
+- 어태치먼트: Attachment
+- 후처리: Post-processing
+- 동시성: Concurrent/Concurrency
+- 독점: Exclusive
+- 변환: Transform(ation)
+- 뒤집기: Flip
+- 클리핑: Clipping
+- 컨테이너: Container
+- 이미지 뷰: Image View
+- 밉맵: Mipmap
+- 텍스처: Texture
+- 큐브 맵: Cube Map
+- 기본: Default
+- 메쉬: Mesh
+- 입력 조립기: Input Assembler
+- 셰이더: Shader
+- 불변: Immutable
+- 뷰포트: Viewport
+- 행렬: Matrix
+- 외적: Cross Product
+- 프래그먼트: Fragment
+- 클립 좌표: Clip Coordinate
+- 정규화된 장치 좌표: Normalized Device Coordinate
+- 동차 좌표: Homogeneous Coordinate
+- 정렬: Align(ment)
+- 시저: Scissor
+- 래스터화: Rasterization
+- 편향: Bias
+- Push 상수: Push Constant
+- 서브패스: Subpass
+- 세마포어: Semaphore
+- 시그널 상태: Signaled
+- 시그널이 아닌 상태: Unsignaled
+- 블러킹: Blocking
+- 펜스: Fence
+- 종속성/종속/의존: Dependency
+- 아이들(링): Idel(ing)
+- 데드락: Deadlock
+- 스테이징 버퍼: Staging Buffer
+- 어트리뷰트: Attribute
+- 오프셋: Offset
+- 맵핑: Map(ping)
+- 플러싱: Flush(ing)
+- 전송: Transfer
+- 사용법: Usage
+- 소스: Source
+- 목적지: Destination
+- 앨리어싱: Aliasing
+- 투영: Projection
