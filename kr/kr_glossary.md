@@ -92,3 +92,14 @@
 - 앨리어싱: Aliasing
 - 투영: Projection
 - 컬링: Culling
+- 베이크: Bake(d)
+- 샘플러: Sampler
+- 배리어: Barrier
+- 소유권: Ownership
+- 텍셀: Texel
+- 복셀: Voxel
+- 타일링: Tiling
+- 전환: Transition
+- 희박한: Sparse
+- 패딩: Padding
+- 쓰루풋: Throughput
