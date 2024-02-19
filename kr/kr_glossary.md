@@ -103,3 +103,6 @@
 - 희박한: Sparse
 - 패딩: Padding
 - 쓰루풋: Throughput
+- 보간: Interpolation
+- 비등방성: Anisotropic
+- 어드레싱 모드: Addressing mode
