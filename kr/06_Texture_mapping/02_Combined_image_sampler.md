@@ -1,21 +1,12 @@
-## Introduction
+## 서론
 
-We looked at descriptors for the first time in the uniform buffers part of the
-tutorial. In this chapter we will look at a new type of descriptor: *combined
-image sampler*. This descriptor makes it possible for shaders to access an image
-resource through a sampler object like the one we created in the previous
-chapter.
+유니폼 버퍼 튜토리얼에서 처음으로 기술자에 대해 알아봤었습니다. 이 챕터에서는 새로운 종류의 기술자인 *결합된 이미지 샘플러(combined image sampler)* 에 대해 알아보겠습니다. 이 기술자를 사용해서 셰이더로부터 우리가 만든 샘플러 객체를 거쳐 이미지 리소스에 접글할 수 있게 됩니다.
 
-We'll start by modifying the descriptor layout, descriptor pool and descriptor
-set to include such a combined image sampler descriptor. After that, we're going
-to add texture coordinates to `Vertex` and modify the fragment shader to read
-colors from the texture instead of just interpolating the vertex colors.
+먼저 기술자 레이아웃, 기술자 풀, 기술자 집합이 결합된 이미지 샘플러와 같은 것을 포함할 수 있도록 수정할 것입니다. 그 이후에 `Vertex`에 텍스처 좌표를 추가하고 프래그먼트 셰이더를 수정하여 정점 색상을 보간하는 것이 아니라 텍스처로부터 색상값을 읽어오도록 할 것입니다.
 
-## Updating the descriptors
+## 기술자 수정
 
-Browse to the `createDescriptorSetLayout` function and add a
-`VkDescriptorSetLayoutBinding` for a combined image sampler descriptor. We'll
-simply put it in the binding after the uniform buffer:
+`createDescriptorSetLayout` 함수로 가서 결합된 이미지 샘플러 기술자를 위해 `VkDescriptorSetLayoutBinding`를 추가합니다. 유니폼 버퍼 이후에 바인딩에 추가 합니다:
 
 ```c++
 VkDescriptorSetLayoutBinding samplerLayoutBinding{};
@@ -32,17 +23,9 @@ layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 layoutInfo.pBindings = bindings.data();
 ```
 
-Make sure to set the `stageFlags` to indicate that we intend to use the combined
-image sampler descriptor in the fragment shader. That's where the color of the
-fragment is going to be determined. It is possible to use texture sampling in
-the vertex shader, for example to dynamically deform a grid of vertices by a
-[heightmap](https://en.wikipedia.org/wiki/Heightmap).
+`stageFlags`를 사용해 결합된 이미지 샘플러 기술자가 프래그먼트 셰이더에서 사용될 것이라는 것을 꼭 명시하십시오. 프래그먼트의 색상이 결정되는 것은 그 시점이기 때문입니다. 정점 셰이더에서 텍스처 샘플링을 하는 것도 가능한데, 예를 들어 정점들을 [하이트맵(heightmap)](https://en.wikipedia.org/wiki/Heightmap)을 기반으로 동적으로 변경하고 하려고 하는 경우에 사용할 수 있습니다.
 
-We must also create a larger descriptor pool to make room for the allocation
-of the combined image sampler by adding another `VkPoolSize` of type
-`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER` to the
-`VkDescriptorPoolCreateInfo`. Go to the `createDescriptorPool` function and
-modify it to include a `VkDescriptorPoolSize` for this descriptor:
+또한 결합된 이미지 샘플러를 위해 기술자 풀을 넉넉하게 만들어야 합니다. `VkDescriptorPoolCreateInfo`에 `VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER` 타입의 `VkPoolSize`를 추가할 것입니다. `createDescriptorPool` 함수로 가서 이 기술자를 위한 `VkDescriptorPoolSize`를 포함하도록 수정합니다:
 
 ```c++
 std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -58,26 +41,11 @@ poolInfo.pPoolSizes = poolSizes.data();
 poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 ```
 
-Inadequate descriptor pools are a good example of a problem that the validation
-layers will not catch: As of Vulkan 1.1, `vkAllocateDescriptorSets` may fail
-with the error code `VK_ERROR_POOL_OUT_OF_MEMORY` if the pool is not
-sufficiently large, but the driver may also try to solve the problem internally.
-This means that sometimes (depending on hardware, pool size and allocation size)
-the driver will let us get away with an allocation that exceeds the limits of
-our descriptor pool. Other times, `vkAllocateDescriptorSets` will fail and
-return `VK_ERROR_POOL_OUT_OF_MEMORY`. This can be particularly frustrating if
-the allocation succeeds on some machines, but fails on others.
+부적합한 기술자 풀은 검증 레이어가 문제를 탐지하지 못하는 대표적인 예입니다 (Vulkan 1.1 기준). 풀이 충분히 크지 않다면 `vkAllocateDescriptorSets`은 `VK_ERROR_POOL_OUT_OF_MEMORY` 오류 코드와 함께 실패하지만 드라이버 내부적으로 문제를 해결하려 시도합니다. 즉 어떤 경우에는 (하드웨어 및 풀 크기와 할당 크기에 따라) 기술자 풀의 크기 제한을 넘는 경우에도 드라이버가 우리의 할당 문제를 회피할 수 있게 해줄수도 있습니다. 그렇지 못한 경우에는 `vkAllocateDescriptorSets`가 실패하고 `VK_ERROR_POOL_OUT_OF_MEMORY`를 반환합니다. 어떤 환경에서는 할당에 성공하고 어떤 환경에서는 실패하기 때문에 까다로운 문제입니다.
 
-Since Vulkan shifts the responsiblity for the allocation to the driver, it is no
-longer a strict requirement to only allocate as many descriptors of a certain
-type (`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER`, etc.) as specified by the
-corresponding `descriptorCount` members for the creation of the descriptor pool.
-However, it remains best practise to do so, and in the future,
-`VK_LAYER_KHRONOS_validation` will warn about this type of problem if you enable
-[Best Practice Validation](https://vulkan.lunarg.com/doc/view/1.2.189.0/linux/best_practices.html).
+Vulkan은 할당과 관련한 역할을 드라이버에 맡기기 때문에, 특정한 타입 (`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER` 등)을의 기술자를 `descriptorCount` 멤버에 명시된 숫자대로 생성하는 것은 더 이상 엄격한 요구사항이 되지 못합니다. 하지만 그것을 지키는 것이 좋은 구현 방법이고 추후에는 [검증 모범사례](https://vulkan.lunarg.com/doc/view/1.2.189.0/linux/best_practices.html)를 활성화하는 경우 `VK_LAYER_KHRONOS_validation`가 이러한 종류의 문제에 대한 경고를 하게 될 것입니다.
 
-The final step is to bind the actual image and sampler resources to the
-descriptors in the descriptor set. Go to the `createDescriptorSets` function.
+마지막 단계는 실제 이미지와 샘플러 리소스를 기술자 집합의 기술자들에 바인딩하는 것입니다. `createDescriptorSets` 함수로 가 봅시다.
 
 ```c++
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -95,10 +63,7 @@ for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 }
 ```
 
-The resources for a combined image sampler structure must be specified in a
-`VkDescriptorImageInfo` struct, just like the buffer resource for a uniform
-buffer descriptor is specified in a `VkDescriptorBufferInfo` struct. This is
-where the objects from the previous chapter come together.
+결합된 이미지 샘플러 구조체의 리소스는 `VkDescriptorImageInfo` 구조체에 명시되어야 하고, 이는 유니폼 버퍼 기술자의 버퍼 리소스가 `VkDescriptorBufferInfo` 구조체에 명시되었던 것과 같습니다. 이제 이전 챕터에서의 구조체들이 함께 활용됩니다.
 
 ```c++
 std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
@@ -122,15 +87,11 @@ descriptorWrites[1].pImageInfo = &imageInfo;
 vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 ```
 
-The descriptors must be updated with this image info, just like the buffer. This
-time we're using the `pImageInfo` array instead of `pBufferInfo`. The descriptors
-are now ready to be used by the shaders!
+기술자는 버퍼와 동일하게 이미지 정보와 함께 갱신되어야 합니다. 이번에는 `pBufferInfo`가 아닌 `pImageInfo`가 사용됩니다. 이제 셰이더에서 기술자를 활용항 준비가 되었습니다!
 
-## Texture coordinates
+## 텍스처 좌표
 
-There is one important ingredient for texture mapping that is still missing, and
-that's the actual coordinates for each vertex. The coordinates determine how the
-image is actually mapped to the geometry.
+텍스처 맵핑을 위한 중요한 요소가 아직 빠져 있고, 이는 각 정점의 텍스처 좌표입니다. 텍스처 좌표는 이미지가 어떻게 대상에 맵핑될 것인지를 결정합니다.
 
 ```c++
 struct Vertex {
@@ -170,11 +131,7 @@ struct Vertex {
 };
 ```
 
-Modify the `Vertex` struct to include a `vec2` for texture coordinates. Make
-sure to also add a `VkVertexInputAttributeDescription` so that we can use access
-texture coordinates as input in the vertex shader. That is necessary to be able
-to pass them to the fragment shader for interpolation across the surface of the
-square.
+`Vertex` 구조체를 텍스처 좌표인 `vec2`를 포함하도록 수정합니다. `VkVertexInputAttributeDescription`도 추가해서 정점 셰이더의 입력으로 텍스처 좌표를 사용하도록 합니다. 이렇게 해야 이 값을 프래그먼트 셰이더로 넘길때 사각형의 표면에 걸쳐 보간이 이루어집니다.
 
 ```c++
 const std::vector<Vertex> vertices = {
@@ -185,16 +142,11 @@ const std::vector<Vertex> vertices = {
 };
 ```
 
-In this tutorial, I will simply fill the square with the texture by using
-coordinates from `0, 0` in the top-left corner to `1, 1` in the bottom-right
-corner. Feel free to experiment with different coordinates. Try using
-coordinates below `0` or above `1` to see the addressing modes in action!
+이 튜토리얼에서 저는 왼쪽 위 모서리에 `0, 0`을, 오른쪽 아래 모서리에 `1, 1`을 사용해서 텍스처가 사각형을 채우도록 하였습니다. 다른 좌표값으로 테스트 해 보세요. `0` 이하의 값이나 `1` 이상의 값으로 어드레싱 모드가 어떻게 동작하는지 살펴보세요!
 
-## Shaders
+## 셰이더
 
-The final step is modifying the shaders to sample colors from the texture. We
-first need to modify the vertex shader to pass through the texture coordinates
-to the fragment shader:
+마지막 단계는 셰이더를 수정해 텍스처로부터 색상을 샘플링하도록 하는 것입니다. 먼저 정점 셰이더를 수정해서 프래그먼트 셰이더로 텍스처 좌표를 넘기도록 합니다:
 
 ```glsl
 layout(location = 0) in vec2 inPosition;
@@ -211,9 +163,7 @@ void main() {
 }
 ```
 
-Just like the per vertex colors, the `fragTexCoord` values will be smoothly
-interpolated across the area of the square by the rasterizer. We can visualize
-this by having the fragment shader output the texture coordinates as colors:
+정점별 색상과 동일하게 `fragTexCoord`값도 래스터라이저에 의해 사각형 전체에 걸쳐 부드럽게 보간됩니다. 텍스처 좌표를 프래그먼트 세이더의 출력 색상으로 하여 이를 눈으로 확인할 수 있습니다:
 
 ```glsl
 #version 450
@@ -228,26 +178,19 @@ void main() {
 }
 ```
 
-You should see something like the image below. Don't forget to recompile the
-shaders!
+아래와 같은 이미지가 보일 겁니다. 셰이더를 다시 컴파일하는 것을 잊지 마세요!
 
 ![](/images/texcoord_visualization.png)
 
-The green channel represents the horizontal coordinates and the red channel the
-vertical coordinates. The black and yellow corners confirm that the texture
-coordinates are correctly interpolated from `0, 0` to `1, 1` across the square.
-Visualizing data using colors is the shader programming equivalent of `printf`
-debugging, for lack of a better option!
+초록색 채널이 수평축 좌표, 빨간색 채널이 수직축 좌표입니다. 검은색과 노란색 모서리를 통해 텍스처 좌표가 `0, 0`에서 `1, 1` 사이로 보간되었다는 것을 확인 가능합니다. 색상값으로 데이터를 가시화 하는 것이 셰이더 프로그래밍에서는 `printf`와 같은 겁니다. 더 나은 대안이 없기 때문이죠!
 
-A combined image sampler descriptor is represented in GLSL by a sampler uniform.
-Add a reference to it in the fragment shader:
+결합된 이미지 샘플러 기술자는 GLSL에서 샘플러 유니폼으로 표현됩니다. 프래그먼트 셰이더에서 이에 대한 참조를 추가합니다:
 
 ```glsl
 layout(binding = 1) uniform sampler2D texSampler;
 ```
 
-There are equivalent `sampler1D` and `sampler3D` types for other types of
-images. Make sure to use the correct binding here.
+다른 타입의 이미지를 위한 `sampler1D`와 `sampler3D` 타입도 있습니다. 올바른 바인딩을 해야 하는 것에 주의 하세요.
 
 ```glsl
 void main() {
@@ -255,16 +198,11 @@ void main() {
 }
 ```
 
-Textures are sampled using the built-in `texture` function. It takes a `sampler`
-and coordinate as arguments. The sampler automatically takes care of the
-filtering and transformations in the background. You should now see the texture
-on the square when you run the application:
+텍스처는 `texture` 내장함수에 의해 샘플링됩니다. 이 함수는 `sampler`와 텍스처 좌표를 인자로 받습니다. 샘플러는 필터링과 변환을 자동적으로 수행해줍니다. 이제 프로그램을 실행하면 사각형 위에 텍스처가 보일 겁니다:
 
 ![](/images/texture_on_square.png)
 
-Try experimenting with the addressing modes by scaling the texture coordinates
-to values higher than `1`. For example, the following fragment shader produces
-the result in the image below when using `VK_SAMPLER_ADDRESS_MODE_REPEAT`:
+텍스처 좌표를 `1`보다 큰 값으로 해서 어드레싱 모드를 살펴 보세요. 예를들어 다음 프래그먼트 셰이더는 `VK_SAMPLER_ADDRESS_MODE_REPEAT`인 경우 아래와 같은 이미지를 나타냅니다:
 
 ```glsl
 void main() {
@@ -274,7 +212,7 @@ void main() {
 
 ![](/images/texture_on_square_repeated.png)
 
-You can also manipulate the texture colors using the vertex colors:
+텍스처 색상을 정점 색상을 활용해 변경하는 것도 가능합니다:
 
 ```glsl
 void main() {
@@ -282,14 +220,11 @@ void main() {
 }
 ```
 
-I've separated the RGB and alpha channels here to not scale the alpha channel.
+여기서는 RGB와 알파 채널을 분리해서 알파 채널값은 영향을 받지 않도록 하였습니다.
 
 ![](/images/texture_on_square_colorized.png)
 
-You now know how to access images in shaders! This is a very powerful technique
-when combined with images that are also written to in framebuffers. You can use
-these images as inputs to implement cool effects like post-processing and camera
-displays within the 3D world.
+이제 셰이더에서 이미지에 접근하는 법을 알았습니다! 프레임버퍼에 쓰여진 이미지와 결합하게 되면 아주 강력한 기술이 됩니다. 그러한 이미지를 입력으로 사용해 멋진 후처리(post-processing) 효과나 3D 공간상에서 카메라를 표현하는 등의 작업을 할 수 있습니다.
 
 [C++ code](/code/26_texture_mapping.cpp) /
 [Vertex shader](/code/26_shader_textures.vert) /
