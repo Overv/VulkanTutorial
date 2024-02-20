@@ -129,7 +129,7 @@ are now ready to be used by the shaders!
 ## Texture coordinates
 
 There is one important ingredient for texture mapping that is still missing, and
-that's the actual coordinates for each vertex. The coordinates determine how the
+that's the actual texture coordinates for each vertex. The texture coordinates determine how the
 image is actually mapped to the geometry.
 
 ```c++
