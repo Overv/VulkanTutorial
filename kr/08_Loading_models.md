@@ -1,35 +1,22 @@
-## Introduction
+## 서론
 
-Your program is now ready to render textured 3D meshes, but the current geometry
-in the `vertices` and `indices` arrays is not very interesting yet. In this
-chapter we're going to extend the program to load the vertices and indices from
-an actual model file to make the graphics card actually do some work.
+이제 텍스처가 입혀진 3D 메쉬를 렌더링할 준비가 되었지만 지금의 `vertices`와 `indices` 배열에 정의된 형상은 좀 재미가 없습니다. 이 챕터에서는 프로그램을 확장해서 실제 모델 파일로부터 정점과 인덱스를 로드하여 그래픽 카드가 좀 더 실질적인 작업을 하도록 만들어 보겠습니다.
 
-Many graphics API tutorials have the reader write their own OBJ loader in a
-chapter like this. The problem with this is that any remotely interesting 3D
-application will soon require features that are not supported by this file
-format, like skeletal animation. We *will* load mesh data from an OBJ model in
-this chapter, but we'll focus more on integrating the mesh data with the program
-itself rather than the details of loading it from a file.
+많은 그래픽스 API 튜토리얼에서는 이러한 챕터에서 직접 OBJ 로더를 작성합니다. 문제는 실제 3D 응용 프로그램을 만들다면 이 포맷에서 지원하지 않는, 예를 들자면 스켈레톤 애니메이션 같은 기능을 얼마 지나지 않아 필요로 하게 된다는 것입니다. 이 챕터에서 우리도 역시 OBJ 모델로부터 메쉬 데이터를 로딩할 것이지만, 파일에서 이러한 데이터를 어떻게 로딩하는지보다는 실제 프로그램에서 어떻게 메쉬 데이터를 사용하도록 해야 하는지에 대해서 집중하도록 하겠습니다.
 
-## Library
+## 라이브러리
 
-We will use the [tinyobjloader](https://github.com/syoyo/tinyobjloader) library
-to load vertices and faces from an OBJ file. It's fast and it's easy to
-integrate because it's a single file library like stb_image. Go to the
-repository linked above and download the `tiny_obj_loader.h` file to a folder in
-your library directory.
+우리는 [tinyobjloader](https://github.com/syoyo/tinyobjloader) 라이브러리를 사용해 OBJ 파일로부터 정점과 표면(face) 정보를 로드할 것입니다. stb_image처럼 하나의 파일로 된 라이브러리기 때문에 빠르고, 프로그램에 통합하기도 쉽습니다. 위 링크의 레포지토리로 가서 `tiny_obj_loader.h` 파일을 여러분의 라이브러리 리렉토리에 다운로드 하십시오.
 
-**Visual Studio**
+**비주얼 스튜디오**
 
-Add the directory with `tiny_obj_loader.h` in it to the `Additional Include
-Directories` paths.
+`tiny_obj_loader.h`가 있는 디렉토리를 `추가 포함 디렉토리` 경로에 추가하세요.
 
 ![](/images/include_dirs_tinyobjloader.png)
 
 **Makefile**
 
-Add the directory with `tiny_obj_loader.h` to the include directories for GCC:
+`tiny_obj_loader.h`가 있는 디렉토리는 GCC의 include 리렉토리로 추가하세요:
 
 ```text
 VULKAN_SDK_PATH = /home/user/VulkanSDK/x.x.x.x/x86_64
@@ -41,28 +28,18 @@ TINYOBJ_INCLUDE_PATH = /home/user/libraries/tinyobjloader
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(TINYOBJ_INCLUDE_PATH)
 ```
 
-## Sample mesh
+## 예제 메쉬
 
-In this chapter we won't be enabling lighting yet, so it helps to use a sample
-model that has lighting baked into the texture. An easy way to find such models
-is to look for 3D scans on [Sketchfab](https://sketchfab.com/). Many of the
-models on that site are available in OBJ format with a permissive license.
+이 챕터에서 아직 라이팅(lighting)을 적용하진 않을 것이기 때문에 텍스처에 라이팅이 베이크 되어 있는 예제 모델을 사용하는 것이 좋을 것 같습니다. 쉬운 방법 중 하나는 [Sketchfab](https://sketchfab.com/)에서 3D 스캐닝 모델을 찾는 것입니다. 이 사이트의 많은 모델들이 OBJ 포맷을 허용적 라이센스(permissive license)로 제공합니다.
 
-For this tutorial I've decided to go with the [Viking room](https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)
-model by [nigelgoh](https://sketchfab.com/nigelgoh) ([CC BY 4.0](https://web.archive.org/web/20200428202538/https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)). I tweaked the size and orientation of the model to use it
-as a drop in replacement for the current geometry:
+이 튜토리얼에서는 [nigelgoh](https://sketchfab.com/nigelgoh)이 모델링한 [Viking room](https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)을 사용하기로 했습니다 ([CC BY 4.0](https://web.archive.org/web/20200428202538/https://sketchfab.com/3d-models/viking-room-a49f1b8e4f5c4ecf9e1fe7d81915ad38)). 크기와 자세를 바꾸어서 현재 형상을 바로 대체할 수 있도록 했습니다:
 
 * [viking_room.obj](/resources/viking_room.obj)
 * [viking_room.png](/resources/viking_room.png)
 
-Feel free to use your own model, but make sure that it only consists of one
-material and that is has dimensions of about 1.5 x 1.5 x 1.5 units. If it is
-larger than that, then you'll have to change the view matrix. Put the model file
-in a new `models` directory next to `shaders` and `textures`, and put the
-texture image in the `textures` directory.
+다른 모델을 사용해도 되지만 하나의 머티리얼(material)로만 구성되고, 크기가 대략 1.5 x 1.5 x 1.5 여야 합니다. 이보다 큰 경우에는 뷰 행렬을 수정해야 합니다. `shaders`와 `textures` 디렉토리와 같은 위치에 `models` 디렉토리를 만들고 모델 파일을 넣으십시오. 그리고 텍스처 이미지는 `texture` 디렉토리에 넣으십시오.
 
-Put two new configuration variables in your program to define the model and
-texture paths:
+모델과 텍스처 경로에 대한 변수를 프로그램에 추가합니다:
 
 ```c++
 const uint32_t WIDTH = 800;
@@ -72,17 +49,15 @@ const std::string MODEL_PATH = "models/viking_room.obj";
 const std::string TEXTURE_PATH = "textures/viking_room.png";
 ```
 
-And update `createTextureImage` to use this path variable:
+그리고 `createTextureImage`에서 이 경로를 사용하도록 수정합니다:
 
 ```c++
 stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 ```
 
-## Loading vertices and indices
+## 정점과 인덱스 로딩
 
-We're going to load the vertices and indices from the model file now, so you
-should remove the global `vertices` and `indices` arrays now. Replace them with
-non-const containers as class members:
+이제 모델 파일로부터 정점과 인덱스를 로딩할 것입니다. 따라서 전역 선언된 `vertices`와 `indices` 배열은 제거해야 합니다. 이들을 상수가 아닌 컨테이너로 클래스 멤버에 추가합니다:
 
 ```c++
 std::vector<Vertex> vertices;
@@ -91,28 +66,20 @@ VkBuffer vertexBuffer;
 VkDeviceMemory vertexBufferMemory;
 ```
 
-You should change the type of the indices from `uint16_t` to `uint32_t`, because
-there are going to be a lot more vertices than 65535. Remember to also change
-the `vkCmdBindIndexBuffer` parameter:
+인덱스의 타입을 `uint16_t`에서 `uint32_t`로 수정해야 하는데 65535보다 훨씬 많은 정점이 존재하기 때문입니다. `vkCmdBindIndexBuffer` 매개변수도 바꾸는 것을 잊지 마세요:
 
 ```c++
 vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 ```
 
-The tinyobjloader library is included in the same way as STB libraries. Include
-the `tiny_obj_loader.h` file and make sure to define
-`TINYOBJLOADER_IMPLEMENTATION` in one source file to include the function
-bodies and avoid linker errors:
+tinyobjloader 라이브러리는 STB 라이브러리와 같은 방식으로 include됩니다. `tiny_obj_loader.h` 파일을 include하고 소스 파일 중 하나에 `TINYOBJLOADER_IMPLEMENTATION`를 선언하여 함수 본문에 대한 링크 오류가 발생하지 않도록 합니다:
 
 ```c++
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 ```
 
-We're now going to write a `loadModel` function that uses this library to
-populate the `vertices` and `indices` containers with the vertex data from the
-mesh. It should be called somewhere before the vertex and index buffers are
-created:
+이제 이 라이브러리를 사용해 메쉬의 정점 데이터를 `vertices`와 `indices` 컨테이너에 담는 `loadModel` 함수를 만들 것입니다. 이 함수는 정점과 인덱스 버퍼가 생성되기 이전에 호출되어야 합니다:
 
 ```c++
 void initVulkan() {
@@ -130,8 +97,7 @@ void loadModel() {
 }
 ```
 
-A model is loaded into the library's data structures by calling the
-`tinyobj::LoadObj` function:
+`tinyobj::LoadObj` 함수를 호출하면 모델이 라이브러리의 데이터 구조에 담겨 로딩됩니다:
 
 ```c++
 void loadModel() {
@@ -146,27 +112,13 @@ void loadModel() {
 }
 ```
 
-An OBJ file consists of positions, normals, texture coordinates and faces. Faces
-consist of an arbitrary amount of vertices, where each vertex refers to a
-position, normal and/or texture coordinate by index. This makes it possible to
-not just reuse entire vertices, but also individual attributes.
+OBj 파일은 위치, 법선, 텍스처 좌표와 표면(face)으로 구성되어 있습니다 표면은 임의 개의 정점으로 정의되는데 각 정점은 위치, 법선과 텍스처 좌표의 인덱스를 참조합니다. 이러한 방식을 통해 정점 전체를 재사용하는 것 뿐만 아니라 개별 속성을 재사용하는 것도 가능합니다.
 
-The `attrib` container holds all of the positions, normals and texture
-coordinates in its `attrib.vertices`, `attrib.normals` and `attrib.texcoords`
-vectors. The `shapes` container contains all of the separate objects and their
-faces. Each face consists of an array of vertices, and each vertex contains the
-indices of the position, normal and texture coordinate attributes. OBJ models
-can also define a material and texture per face, but we will be ignoring those.
+`attrib` 컨테이너는 전체 위치, 법선, 텍스처 좌표를 `attrib.vertices`, `attrib.normals`, `attrib.texcoords` 벡터에 저장하고 있습니다. `shapes` 컨테이너는 모든 개별 물체와 물체를 구성하는 표면을 가지고 있습니다. 각 표면은 정점의 배열로 이루어지며 각 정점은 위치, 법선, 텍스처 좌표 속성의 인덱스를 가지고 있습니다. OBJ 모델은 각 표면별 텍스처와 머티리얼을 정의할 수 있게 되어 있는데 지금은 이를 무시할 것입니다.
 
-The `err` string contains errors and the `warn` string contains warnings that occurred while loading the
-file, like a missing material definition. Loading only really failed if the
-`LoadObj` function returns `false`. As mentioned above, faces in OBJ files can
-actually contain an arbitrary number of vertices, whereas our application can
-only render triangles. Luckily the `LoadObj` has an optional parameter to
-automatically triangulate such faces, which is enabled by default.
+`err` 문자열은 파일을 로딩하는 과정에서 발생한 오류를, `warn` 문자열은 경고를 가지고 있습니다. 예를 들자면 머티리얼 정의가 없는 경우 등이 있을 것입니다. `LoadObj` 함수가 `false`를 반환하는 경우가 실제 로딩이 실패한 경우입니다. 위에서 이야기한 것처럼 OBJ 파일에서 표면은 임의의 정점을 가질 수 있지만, 우리 프로그램에서는 삼각형만 그릴 것입니다. 다행히 `LoadObj` 함수는 표면을 자동으로 삼각화(triangulate) 해 주는 기능을 사용하기 위한 매개변수가 있고, 이는 사용하는 것이 기본값으로 되어 있습니다.
 
-We're going to combine all of the faces in the file into a single model, so just
-iterate over all of the shapes:
+파일에 들어있는 모든 표면을 하나의 모델로 만들 것이기 때문에 shape을 반복(iterate)합니다:
 
 ```c++
 for (const auto& shape : shapes) {
@@ -174,9 +126,7 @@ for (const auto& shape : shapes) {
 }
 ```
 
-The triangulation feature has already made sure that there are three vertices
-per face, so we can now directly iterate over the vertices and dump them
-straight into our `vertices` vector:
+삼각화 기능을 통해 각 표면별로 세 개의 정점을 가지는 것이 보장되어 있기 때문에 정점을 반복하며 `vertices` 벡터에 집어 넣습니다:
 
 ```c++
 for (const auto& shape : shapes) {
@@ -190,10 +140,7 @@ for (const auto& shape : shapes) {
 ```
 
 For simplicity, we will assume that every vertex is unique for now, hence the
-simple auto-increment indices. The `index` variable is of type
-`tinyobj::index_t`, which contains the `vertex_index`, `normal_index` and
-`texcoord_index` members. We need to use these indices to look up the actual
-vertex attributes in the `attrib` arrays:
+simple auto-increment indices.. `index` 변수는 `tinyobj::index_t` 타입인데, 이는 `vertex_index`, `normal_index`, `texcoord_index` 멤버를 가집니다. 이 인덱스를 사용해서 `attrib` 배열로부터 실제 정점 어트리뷰트를 가져옵니다:
 
 ```c++
 vertex.pos = {
@@ -210,21 +157,13 @@ vertex.texCoord = {
 vertex.color = {1.0f, 1.0f, 1.0f};
 ```
 
-Unfortunately the `attrib.vertices` array is an array of `float` values instead
-of something like `glm::vec3`, so you need to multiply the index by `3`.
-Similarly, there are two texture coordinate components per entry. The offsets of
-`0`, `1` and `2` are used to access the X, Y and Z components, or the U and V
-components in the case of texture coordinates.
+안타깝게도 `attrib.vertices` 배열은 `glm::vec3`와 같은 것이 아니고 `float`의 배열입니다. 따라서 익덱스에 `3`을 곱해 주어야 합니다. 또한 텍스처 좌표 요소는 두 개씩 들어 있습니다. X, Y, Z 요소 또는 텍스처 좌표의 경우 U, V 요소에 대해서 `0`, `1`, `2`의 오프셋을 가집니다.
 
-Run your program now with optimization enabled (e.g. `Release` mode in Visual
-Studio and with the `-O3` compiler flag for GCC`). This is necessary, because
-otherwise loading the model will be very slow. You should see something like the
-following:
+최적화를 수행한 상태(예를들어 비주얼 스튜디오에서는 `Release` 모드, GCC에서는 `-O3` 컴파일 플래스를 사용)에서 프로그램을 실행해 보세요. 이렇게 하지 않으면 모델을 로딩하는 것이 매우 느릴 겁니다. 그 결과로 아래와 같은 모습이 보일 겁니다:
 
 ![](/images/inverted_texture_coordinates.png)
 
-Great, the geometry looks correct, but what's going on with the texture? The OBJ format assumes a coordinate system where a vertical coordinate of `0` means the bottom of the image, however we've uploaded our image into Vulkan in a top to bottom orientation where `0` means the top of the image. Solve this by
-flipping the vertical component of the texture coordinates:
+좋습니다. 형상은 맞는 것 같네요. 하지만 텍스처에 무슨 문제가 생긴 걸까요? OBJ 포맷은 수직 좌표에서 `0`이 이미지의 하단이라고 가정하는데 우리는 Vulkan에 이미지를 업로드 할 때 위쪽이 `0`을 의미하도록 정의하였습니다. 텍스처 좌표의 수직 요소를 뒤집어서 이 문제를 해결합니다:
 
 ```c++
 vertex.texCoord = {
@@ -233,22 +172,18 @@ vertex.texCoord = {
 };
 ```
 
-When you run your program again, you should now see the correct result:
+다시 프로그램을 실행하면, 올바른 결과를 볼 수 있습니다:
 
 ![](/images/drawing_model.png)
 
-All that hard work is finally beginning to pay off with a demo like this!
 
->As the model rotates you may notice that the rear (backside of the walls) looks a bit funny. This is normal and is simply because the model is not really designed to be viewed from that side.
+지금까지의 모든 노력이 이제 이 같은 데모를 통해 결실을 얻게 되었습니다!
 
-## Vertex deduplication
+>모델이 회전되면서 뒤쪽(벽면의 뒷면)이 이상하게 보이는 것을 눈치 채실 수 있을 겁니다. 이는 모델 자체가 뒤쪽에서 보는 것을 고려하지 많고 만들어졌기 때문이고, 정상적인 현상입니다.
 
-Unfortunately we're not really taking advantage of the index buffer yet. The
-`vertices` vector contains a lot of duplicated vertex data, because many
-vertices are included in multiple triangles. We should keep only the unique
-vertices and use the index buffer to reuse them whenever they come up. A
-straightforward way to implement this is to use a `map` or `unordered_map` to
-keep track of the unique vertices and respective indices:
+## 중복 정점 제거
+
+아쉽게도 지금은 인덱스 버퍼를 통한 이점을 얻지 못하고 있습니다. `vertices` 벡터는 중복된 정점 데이터가 많은데 많은 정점들이 여러 삼각형에 중복되어 포함되기 때문입니다. 고유한 정점만을 남기고 인덱스 버퍼를 사용해 재사용해야 합니다. 이를 구현하는 간단한 방법은 `map`이나 `unordered_map`을 사용해 고유한 정점과 그에 상응하는 인덱스를 추적하는 것입니다:
 
 ```c++
 #include <unordered_map>
@@ -273,17 +208,9 @@ for (const auto& shape : shapes) {
 }
 ```
 
-Every time we read a vertex from the OBJ file, we check if we've already seen a
-vertex with the exact same position and texture coordinates before. If not, we
-add it to `vertices` and store its index in the `uniqueVertices` container.
-After that we add the index of the new vertex to `indices`. If we've seen the
-exact same vertex before, then we look up its index in `uniqueVertices` and
-store that index in `indices`.
+OBJ 파일에서 정점을 읽어올 때마다 동일한 위치와 텍스처 좌표를 갖는 정점이 이미 존재하는지를 살펴봅니다. 없다면, `vertices`에 추가하고 그 인덱스를 `uniqueVertices` 컨테이너에 추가합니다. 그리고 그 정점의 인덱스를 `indices`에 추가합니다. 이미 존재하는 정점이라면 `uniqueVertices`에서 인덱스를 찾아서 그 인덱스를 `indices`에 저장합니다.
 
-The program will fail to compile right now, because using a user-defined type
-like our `Vertex` struct as key in a hash table requires us to implement two
-functions: equality test and hash calculation. The former is easy to implement
-by overriding the `==` operator in the `Vertex` struct:
+지금 컴파일하면 컴파일이 실패하게 되는데 `Vertex`와 같은 유저가 정의한 타입을 해시 테이블의 키로 사용하기 위해서는 두 가지 기능을 구현해야 하기 때문입니다. 동일성 테스트와 해시 계산 기능을 구현해야 합니다. 전자는 `==`연산자를 `Vertex` 구조체에 오버라이딩 하면 됩니다:
 
 ```c++
 bool operator==(const Vertex& other) const {
@@ -291,11 +218,7 @@ bool operator==(const Vertex& other) const {
 }
 ```
 
-A hash function for `Vertex` is implemented by specifying a template
-specialization for `std::hash<T>`. Hash functions are a complex topic, but
-[cppreference.com recommends](http://en.cppreference.com/w/cpp/utility/hash) the
-following approach combining the fields of a struct to create a decent quality
-hash function:
+`Vertex`의 해시 함수는 `std::hash<T>`에 대한 템플릿 특수화를 명시하여 구현할 수 있습니다. 해시 함수는 복잡한 주제이지만 [cppreference.com의 추천](http://en.cppreference.com/w/cpp/utility/hash)에 따라서 아래와 같이 구조체의 필드를 결합해서 괜찮은 해시 함수를 정의할 수 있습니다:
 
 ```c++
 namespace std {
@@ -309,23 +232,16 @@ namespace std {
 }
 ```
 
-This code should be placed outside the `Vertex` struct. The hash functions for
-the GLM types need to be included using the following header:
+이 코드는 `Vertex` 구조체 밖에 정의되어야 합니다. GLM 타입에 대한 해시 함수는 아래와 같은 헤더를 include해야 사용할 수 있습니다:
 
 ```c++
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 ```
 
-The hash functions are defined in the `gtx` folder, which means that it is
-technically still an experimental extension to GLM. Therefore you need to define
-`GLM_ENABLE_EXPERIMENTAL` to use it. It means that the API could change with a
-new version of GLM in the future, but in practice the API is very stable.
+해시 함수는 `gtx` 폴더에 정의되어 있는데 이는 이 기능이 사실은 GLM의 실험적 확장 기능이라는 의미입니다. 따라서 사용하기 위해서는 `GLM_ENABLE_EXPERIMENTAL`가 정의되어 있어야 합니다. 또한 이 기능은 나중에 GLM 버전이 바뀌면 API가 바뀔 수 있다는 뜻이기도 하지만 실제로는 API는 상당히 안정적입니다.(*역주: 바뀔 가능성이 적다는 의미*)
 
-You should now be able to successfully compile and run your program. If you
-check the size of `vertices`, then you'll see that it has shrunk down from
-1,500,000 to 265,645! That means that each vertex is reused in an average number
-of ~6 triangles. This definitely saves us a lot of GPU memory.
+이제 컴파일 오류 없이 프로그램을 실행할 수 있습니다. `vertices`의 크기를 확인해 보면 1,500,000에서 265,645로 줄어든 것을 확인할 수 있습니다! 즉 각 정점이 평균적으로 대략 여섯 개의 삼각형에서 재사용되고 있다는 뜻입니다. 이를 통해 GPU 메모리가 상당히 절약되었을 것입니다.
 
 [C++ code](/code/28_model_loading.cpp) /
 [Vertex shader](/code/27_shader_depth.vert) /

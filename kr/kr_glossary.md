@@ -107,3 +107,6 @@
 - 비등방성: Anisotropic
 - 어드레싱 모드: Addressing mode
 - 하이트맵: Heightmap
+- 표면: Face
+- 라이팅: Lighting
+- 머티리얼: Material
