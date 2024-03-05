@@ -88,7 +88,7 @@
 - 전송: Transfer
 - 사용법: Usage
 - 소스: Source
-- 목적지: Destination
+- 목적(지): Destination
 - 앨리어싱: Aliasing
 - 투영: Projection
 - 컬링: Culling
@@ -110,3 +110,4 @@
 - 표면: Face
 - 라이팅: Lighting
 - 머티리얼: Material
+- 상세도: Level of Detail
