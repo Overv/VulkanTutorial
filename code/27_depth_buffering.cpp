@@ -832,7 +832,7 @@ private:
     }
 
     void createTextureImageView() {
-        textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        textureImageView = createImageView(textureImage, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void createTextureSampler() {
