@@ -29,7 +29,7 @@
 - 할당/할당자: Allocate/Allocator
 - 검증 레이어: Validation Layer
 - 윈도우즈(OS): Windows
-- 오프 스크린: Off-screen
+- 오프스크린: Off-screen
 - 질의: Query
 - 프레임버퍼: Framebuffer
 - 주사율: Refresh Rate
