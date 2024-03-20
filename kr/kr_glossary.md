@@ -111,3 +111,5 @@
 - 라이팅: Lighting
 - 머티리얼: Material
 - 상세도: Level of Detail
+- 헤드리스: Headless
+- 파티클: Particle
