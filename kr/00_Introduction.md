@@ -58,3 +58,20 @@
 이후 튜토리얼을 따라가다 문제가 있다면, 먼저 FAQ에 동일한 문제가 이미 해결된 적이 있는지부터 확인해 보세요. 그러고 나서도 문제를 해결하지 못했다면, 관련된 챕터의 코멘트 섹션에 편하게 질문을 남겨 주세요.
 
 미래의 고성능 그래픽스 API에 뛰어들 준비가 되셨나요? [출발해 봅시다!](!kr/Overview)
+
+## License
+
+Copyright (C) 2015-2023, Alexander Overvoorde
+
+The contents are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+unless stated otherwise. By contributing, you agree to license
+your contributions to the public under that same license.
+
+The code listings in the `code` directory in the source repository are licensed 
+under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+By contributing to that directory, you agree to license your contributions to
+the public under that same public domain-like license.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
