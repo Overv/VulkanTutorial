@@ -45,7 +45,7 @@ two SPIR-V binaries and load them into the program.
 ## Vertex shader
 
 The vertex shader processes each incoming vertex. It takes its attributes, like
-world position, color, normal and texture coordinates as input. The output is
+model space position, color, normal and texture coordinates as input. The output is
 the final position in clip coordinates and the attributes that need to be passed
 on to the fragment shader, like color and texture coordinates. These values will
 then be interpolated over the fragments by the rasterizer to produce a smooth
