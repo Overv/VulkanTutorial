@@ -458,7 +458,7 @@ informations, vous obtiendrez de meilleures performances en activant ce mode.
 createInfo.oldSwapchain = VK_NULL_HANDLE;
 ```
 
-Il nous reste un dernier champ, `oldSwapChain`. Il est possible avec Vulkan que la swap chain devienne
+Il nous reste un dernier champ, `oldSwapchain`. Il est possible avec Vulkan que la swap chain devienne
 invalide ou mal adaptée pendant que votre application tourne, par exemple parce que la fenêtre a été redimensionnée.
 Dans ce cas la swap chain doit être intégralement recréée et une référence à l'ancienne swap chain doit être fournie.
 C'est un sujet compliqué que nous aborderons [dans un chapitre futur](!fr/Dessiner_un_triangle/Recréation_de_la_swap_chain).
