@@ -515,7 +515,7 @@ you'll get the best performance by enabling clipping.
 createInfo.oldSwapchain = VK_NULL_HANDLE;
 ```
 
-That leaves one last field, `oldSwapChain`. With Vulkan it's possible that your swap chain becomes invalid or unoptimized while your application is
+That leaves one last field, `oldSwapchain`. With Vulkan it's possible that your swap chain becomes invalid or unoptimized while your application is
 running, for example because the window was resized. In that case the swap chain
 actually needs to be recreated from scratch and a reference to the old one must
 be specified in this field. This is a complex topic that we'll learn more about
