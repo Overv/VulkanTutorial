@@ -14,7 +14,7 @@ public:
         initWindow();
         initVulkan();
         mainLoop();
-        cleanup();
+        cleanUp();
     }
 
 private:
@@ -41,7 +41,7 @@ private:
         }
     }
 
-    void cleanup() {
+    void cleanUp() {
         vkDestroyInstance(instance, nullptr);
 
         glfwDestroyWindow(window);
