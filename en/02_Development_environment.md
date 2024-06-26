@@ -246,7 +246,7 @@ sudo dnf install glfw-devel
 ```
 or
 ```bash
-sudo pacman -S glfw-wayland # glfw-x11 for X11 users
+sudo pacman -S glfw
 ```
 
 ### GLM
