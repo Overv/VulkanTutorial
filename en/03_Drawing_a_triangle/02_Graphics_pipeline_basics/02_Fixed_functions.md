@@ -175,7 +175,7 @@ viewportState.scissorCount = 1;
 viewportState.pScissors = &scissor;
 ```
 
-Independent of how you set them, it's is possible to use multiple viewports and scissor rectangles on some graphics cards, so the structure members reference an array of them. Using multiple requires enabling a GPU feature (see logical device creation).
+Independent of how you set them, it's possible to use multiple viewports and scissor rectangles on some graphics cards, so the structure members reference an array of them. Using multiple requires enabling a GPU feature (see logical device creation).
 
 ## Rasterizer
 
