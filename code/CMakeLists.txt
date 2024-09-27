@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.23)
 
 # Set the CMP0111 policy
@@ -5,10 +6,6 @@ cmake_policy(SET CMP0111 NEW)
 
 # Your existing CMake configuration
 project(VulkanTutorial)
-
-
-
-
 
 # Set target properties
 #set_target_properties(glslang::validator PROPERTIES <property> <value>)
@@ -124,114 +121,198 @@ endfunction ()
 add_chapter (00_base_code)
 
 add_chapter (01_instance_creation)
+add_chapter (01_instance_creation_zcj)
 
 add_chapter (02_validation_layers)
+add_chapter (02_validation_layers_zcj)
 add_chapter (02_validation_layers-2)
+
 add_chapter (03_physical_device_selection)
+add_chapter (03_physical_device_selection_zcj)
+add_chapter (03_physical_device_selection-cj-03)
 
 add_chapter (04_logical_device)
+add_chapter (04_logical_device_zcj)
+#add_chapter (04_logical_device-cj-04)
 
 add_chapter (05_window_surface)
+add_chapter (05_window_surface_zcj)
+#add_chapter (05_cj_window_surface-cj-05)
 
 add_chapter (06_swap_chain_creation)
-
-add_chapter (06_swap_chain_creation-2)
+add_chapter (06_swap_chain_creation_zcj)
 
 add_chapter (07_image_views)
+add_chapter (07_image_views_zcj)
 
 add_chapter (08_graphics_pipeline)
+add_chapter (08_graphics_pipeline_zcj)
 
 add_chapter (09_shader_modules
   SHADER 09_shader_base)
 
+add_chapter (09_shader_modules_zcj
+        SHADER 09_shader_base)
 
-add_chapter (15_hello_triangle
-  SHADER 09_shader_base)
-
-add_chapter (16_frames_in_flight
-  SHADER 09_shader_base)
 add_chapter (10_fixed_functions
   SHADER 09_shader_base)
+add_chapter (10_fixed_functions_zcj
+        SHADER 09_shader_base)
 
 add_chapter (11_render_passes
   SHADER 09_shader_base)
+add_chapter (11_render_passes_zcj
+        SHADER 09_shader_base)
 
 add_chapter (12_graphics_pipeline_complete
   SHADER 09_shader_base)
+add_chapter (12_graphics_pipeline_complete_zcj
+        SHADER 09_shader_base)
 
 add_chapter (13_framebuffers
   SHADER 09_shader_base)
+add_chapter (13_framebuffers_zcj
+        SHADER 09_shader_base)
 
 add_chapter (14_command_buffers
   SHADER 09_shader_base)
+add_chapter (14_command_buffers_zcj
+        SHADER 09_shader_base)
+
+#
+add_chapter (15_hello_triangle
+        SHADER 09_shader_base)
+add_chapter (15_hello_triangle_zcj
+        SHADER 09_shader_base)
+
+add_chapter (16_frames_in_flight
+        SHADER 09_shader_base)
+add_chapter (16_frames_in_flight_zcj
+        SHADER 09_shader_base)
+
+#
 add_chapter (17_swap_chain_recreation
   SHADER 09_shader_base)
+add_chapter (17_swap_chain_recreation_zcj
+        SHADER 09_shader_base)
 
 add_chapter (18_vertex_input
   SHADER 18_shader_vertexbuffer
   LIBS glm::glm)
+add_chapter (18_vertex_input_zcj
+        SHADER 18_shader_vertexbuffer
+        LIBS glm::glm)
 
 add_chapter (19_vertex_buffer
   SHADER 18_shader_vertexbuffer
   LIBS glm::glm)
+add_chapter (19_vertex_buffer_zcj
+        SHADER 18_shader_vertexbuffer
+        LIBS glm::glm)
 
 add_chapter (20_staging_buffer
   SHADER 18_shader_vertexbuffer
   LIBS glm::glm)
+add_chapter (20_staging_buffer_zcj
+        SHADER 18_shader_vertexbuffer
+        LIBS glm::glm)
 
 add_chapter (21_index_buffer
   SHADER 18_shader_vertexbuffer
   LIBS glm::glm)
+add_chapter (21_index_buffer_zcj
+        SHADER 18_shader_vertexbuffer
+        LIBS glm::glm)
 
 add_chapter (22_descriptor_set_layout
   SHADER 22_shader_ubo
   LIBS glm::glm)
+add_chapter (22_descriptor_set_layout_zcj
+        SHADER 22_shader_ubo
+        LIBS glm::glm)
 
 add_chapter (23_descriptor_sets
   SHADER 22_shader_ubo
   LIBS glm::glm)
+add_chapter (23_descriptor_sets_zcj
+        SHADER 22_shader_ubo
+        LIBS glm::glm)
 
 add_chapter (24_texture_image
   SHADER 22_shader_ubo
   TEXTURES ../images/texture.jpg
   LIBS glm::glm)
+add_chapter (24_texture_image_zcj
+        SHADER 22_shader_ubo
+        TEXTURES ../images/texture.jpg
+        LIBS glm::glm)
 
 add_chapter (25_sampler
   SHADER 22_shader_ubo
   TEXTURES ../images/texture.jpg
   LIBS glm::glm)
+add_chapter (25_sampler_zcj
+        SHADER 22_shader_ubo
+        TEXTURES ../images/texture.jpg
+        LIBS glm::glm)
 
 add_chapter (26_texture_mapping
   SHADER 26_shader_textures
   TEXTURES ../images/texture.jpg
   LIBS glm::glm)
+add_chapter (26_texture_mapping_zcj
+        SHADER 26_shader_textures
+        TEXTURES ../images/texture.jpg
+        LIBS glm::glm)
 
 add_chapter (27_depth_buffering
   SHADER 27_shader_depth
   TEXTURES ../images/texture.jpg
   LIBS glm::glm)
+add_chapter (27_depth_buffering_zcj
+        SHADER 27_shader_depth
+        TEXTURES ../images/texture.jpg
+        LIBS glm::glm)
 
 add_chapter (28_model_loading
   SHADER 27_shader_depth
   MODELS ../resources/viking_room.obj
   TEXTURES ../resources/viking_room.png
   LIBS glm::glm tinyobjloader::tinyobjloader)
+add_chapter (28_model_loading_zcj
+        SHADER 27_shader_depth
+        MODELS ../resources/viking_room.obj
+        TEXTURES ../resources/viking_room.png
+        LIBS glm::glm tinyobjloader::tinyobjloader)
 
 add_chapter (29_mipmapping
   SHADER 27_shader_depth
   MODELS ../resources/viking_room.obj
   TEXTURES ../resources/viking_room.png
   LIBS glm::glm tinyobjloader::tinyobjloader)
+add_chapter (29_mipmapping_zcj
+        SHADER 27_shader_depth
+        MODELS ../resources/viking_room.obj
+        TEXTURES ../resources/viking_room.png
+        LIBS glm::glm tinyobjloader::tinyobjloader)
 
 add_chapter (30_multisampling
   SHADER 27_shader_depth
   MODELS ../resources/viking_room.obj
   TEXTURES ../resources/viking_room.png
   LIBS glm::glm tinyobjloader::tinyobjloader)
+add_chapter (30_multisampling_zcj
+        SHADER 27_shader_depth
+        MODELS ../resources/viking_room.obj
+        TEXTURES ../resources/viking_room.png
+        LIBS glm::glm tinyobjloader::tinyobjloader)
 
 add_chapter (31_compute_shader
   SHADER 31_shader_compute
   LIBS glm::glm)
+add_chapter (31_compute_shader_zcj
+        SHADER 31_shader_compute
+        LIBS glm::glm)
 
 if(NOT DEFINED SOME_REQUIRED_VARIABLE)
   message(STATUS "FINAL ENDING!!")
