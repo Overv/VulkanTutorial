@@ -353,7 +353,7 @@ LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 The flag `-lglfw` is for GLFW, `-lvulkan` links with the Vulkan function loader and the remaining flags are low-level system libraries that GLFW needs. The remaining flags are dependencies of GLFW itself: the threading and window management.
 
-It is possible that the `Xxf68vm` and `Xi` libraries are not yet installed on your system. You can find them in the following packages:
+It is possible that the `Xxf86vm` and `Xi` libraries are not yet installed on your system. You can find them in the following packages:
 
 ```bash
 sudo apt install libxxf86vm-dev libxi-dev
