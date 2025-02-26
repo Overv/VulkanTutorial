@@ -186,7 +186,7 @@ packages. Il vous faut un compilateur qui supporte C++17 (GCC 7+ ou Clang 5+). V
 Les composants les plus importants pour le développement d'applications Vulkan sous Linux sont le loader Vulkan, les validation layers et quelques utilitaires pour tester que votre machine est bien en état de faire fonctionner une application Vulkan:
 * `sudo apt install vulkan-tools` ou `sudo dnf install vulkan-tools`: Les utilitaires en ligne de commande, plus précisément `vulkaninfo` et `vkcube`. Lancez ceux-ci pour vérifier le bon fonctionnement de votre machine pour Vulkan.
 * `sudo apt install libvulkan-dev` ou `sudo dnf install vulkan-headers vulkan-loader-devel`: Installe le loader Vulkan. Il sert à aller chercher les fonctions auprès du driver de votre GPU au runtime, de la même façon que GLEW le fait pour OpenGL - si vous êtes familier avec ceci.
-* `sudo apt install vulkan-validationlayers-dev` ou `sudo dnf install mesa-vulkan-devel vulkan-validation-layers-devel`: Installe les layers de validation standards. Ceux-ci sont cruciaux pour débugger vos applications Vulkan, et nous en reparlerons dans un prochain chapitre.
+* `sudo apt install vulkan-validationlayers-dev` ou `sudo dnf install mesa-vulkan-drivers vulkan-validation-layers-devel`: Installe les layers de validation standards. Ceux-ci sont cruciaux pour débugger vos applications Vulkan, et nous en reparlerons dans un prochain chapitre.
 
 Si l'installation est un succès, vous devriez être prêt pour la partie Vulkan. N'oubliez pas de lancer `vkcube` et assurez-vous de voir la fenêtre suivante:
 
