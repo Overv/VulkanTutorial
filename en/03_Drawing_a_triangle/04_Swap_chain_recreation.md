@@ -49,7 +49,7 @@ void recreateSwapChain() {
 }
 ```
 
-Note that we don't recreate the renderpass here for simplicity. In theory it can be possible for the swap chain image format to change during an applications' lifetime, e.g. when moving a window from an standard range to an high dynamic range monitor. This may require the application to recreate the renderpass to make sure the change between dynamic ranges is properly reflected.
+Note that we don't recreate the renderpass here for simplicity. In theory it can be possible for the swap chain image format to change during an applications' lifetime, e.g. when moving a window from a standard range to a high dynamic range monitor. This may require the application to recreate the renderpass to make sure the change between dynamic ranges is properly reflected.
 
 We'll move the cleanup code of all objects that are recreated as part of a swap
 chain refresh from `cleanup` to `cleanupSwapChain`:
