@@ -11,6 +11,9 @@ from dataclasses import dataclass
 from subprocess import CalledProcessError
 from re import Match
 import shutil
+import argparse
+import sys
+from make_parser import make_parser
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -148,7 +151,7 @@ def compile_full_markdown(
     return markdown_file
 
 
-def build_pdf(markdown_file: Path, pdf_file: Path) -> Path:
+def build_pdf(markdown_file: Path, pdf_file: Path, args: argparse.Namespace) -> Path:
     """Build combined Markdown file into a PDF."""
 
     try:
@@ -157,12 +160,21 @@ def build_pdf(markdown_file: Path, pdf_file: Path) -> Path:
         raise RuntimeError(f"failed to build {pdf_file}: xelatex not installed")
 
     try:
+        keys_values = [(arg, getattr(args, arg)) for arg in vars(args)]
+        opts = [f"{key}={val}" for key, val in keys_values if val != ""]
+        pandoc_args = [x for i in opts for x in ("-V", i)]
+
         subprocess.check_output(
             [
                 "pandoc",
                 markdown_file.as_posix(),
                 "-V",
-                "documentclass=report",
+                "documentclass=report"
+            ]
+            +
+            pandoc_args
+            +
+            [
                 "-t",
                 "latex",
                 "-s",
@@ -202,8 +214,10 @@ def build_epub(markdown_file: Path, epub_file: Path) -> Path:
 
     return epub_file
 
-
 def main() -> None:
+    parser = make_parser()
+    args = parser.parse_args(sys.argv[1:])
+    
     """Build ebooks."""
     with TemporaryDirectory() as raw_out_dir:
         out_dir = Path(raw_out_dir)
@@ -223,11 +237,11 @@ def main() -> None:
             )
 
             logging.info(f"{lang}: building pdf...")
-            pdf_file = build_pdf(markdown_file, out_dir / f"{lang}.pdf")
+            pdf_file = build_pdf(markdown_file, out_dir / f"{lang}.pdf", args)
 
             logging.info(f"{lang}: building epub...")
             epub_file = build_epub(markdown_file, out_dir / f"{lang}.epub")
-
+            
             shutil.copy(pdf_file, f"ebook/vulkan_tutorial_{lang}.pdf")
             shutil.copy(epub_file, f"ebook/vulkan_tutorial_{lang}.epub")
 
