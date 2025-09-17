@@ -145,8 +145,14 @@ disable it for now with another window hint call:
 glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 ```
 
-All that's left now is creating the actual window. Add a `GLFWwindow* window;`
-private class member to store a reference to it and initialize the window with:
+All that's left now is creating the actual window. Add a private class member to store a reference to it:
+
+```c++
+private:
+GLFWwindow* window;
+```
+
+Initialize the window with
 
 ```c++
 window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
