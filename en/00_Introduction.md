@@ -1,3 +1,12 @@
+>## Read before following this tutorial
+>
+>This tutorial was written shortly after Vulkan was initially released, back in
+>2016. A lot has changed since then and this tutorial no longer reflects the best
+>way to use Vulkan today.
+>
+>Instead of reading this website, I recommend to follow the guide or one of the
+>tutorials linked here: https://vulkan.org/learn
+
 ## About
 
 This tutorial will teach you the basics of using the [Vulkan](https://www.khronos.org/vulkan/)
