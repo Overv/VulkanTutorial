@@ -5,7 +5,7 @@
 >way to use Vulkan today.
 >
 >Instead of reading this website, I recommend to follow the guide or one of the
->tutorials linked here: [https://vulkan.org/learn]
+>tutorials linked here: [https://vulkan.org/learn](https://vulkan.org/learn)
 
 ## About
 
