@@ -1,4 +1,4 @@
->## Read before following this tutorial
+## Read before following this tutorial
 >
 >This tutorial was written shortly after Vulkan was initially released, back in
 >2016. A lot has changed since then and this tutorial no longer reflects the best
