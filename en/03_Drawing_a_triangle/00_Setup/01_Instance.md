@@ -60,17 +60,16 @@ createInfo.pApplicationInfo = &appInfo;
 The first two parameters are straightforward. The next two layers specify the
 desired global extensions. As mentioned in the overview chapter, Vulkan is a
 platform agnostic API, which means that you need an extension to interface with
-the window system. GLFW has a handy built-in function that returns the
+the window system. SDL has a handy built-in function that returns the
 extension(s) it needs to do that which we can pass to the struct:
 
 ```c++
-uint32_t glfwExtensionCount = 0;
-const char** glfwExtensions;
+uint32_t     sdlExtensionCount = 0;
+const char *const *sdlExtensions;
+sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
 
-glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-createInfo.enabledExtensionCount = glfwExtensionCount;
-createInfo.ppEnabledExtensionNames = glfwExtensions;
+createInfo.enabledExtensionCount   = sdlExtensionCount;
+createInfo.ppEnabledExtensionNames = sdlExtensions;
 ```
 
 The last two members of the struct determine the global validation layers to
@@ -108,37 +107,6 @@ if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 ```
 
 Now run the program to make sure that the instance is created successfully.
-
-## Encountered VK_ERROR_INCOMPATIBLE_DRIVER:
-If using MacOS with the latest MoltenVK sdk, you may get `VK_ERROR_INCOMPATIBLE_DRIVER`
-returned from `vkCreateInstance`. According to the [Getting Start Notes](https://vulkan.lunarg.com/doc/sdk/1.3.216.0/mac/getting_started.html). Beginning with the 1.3.216 Vulkan SDK, the `VK_KHR_PORTABILITY_subset`
-extension is mandatory.
-
-To get over this error, first add the `VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR` bit
-to `VkInstanceCreateInfo` struct's flags, then add `VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME`
-to instance enabled extension list.
-
-Typically the code could be like this:
-```c++
-...
-
-std::vector<const char*> requiredExtensions;
-
-for(uint32_t i = 0; i < glfwExtensionCount; i++) {
-    requiredExtensions.emplace_back(glfwExtensions[i]);
-}
-
-requiredExtensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-
-createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-
-createInfo.enabledExtensionCount = (uint32_t) requiredExtensions.size();
-createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-
-if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create instance!");
-}
-```
 
 ## Checking for extension support
 
@@ -191,7 +159,7 @@ for (const auto& extension : extensions) {
 You can add this code to the `createInstance` function if you'd like to provide
 some details about the Vulkan support. As a challenge, try to create a function
 that checks if all of the extensions returned by
-`glfwGetRequiredInstanceExtensions` are included in the supported extensions
+`SDL_Vulkan_GetInstanceExtensions` are included in the supported extensions
 list.
 
 ## Cleaning up
@@ -201,12 +169,11 @@ be destroyed in `cleanup` with the `vkDestroyInstance` function:
 
 ```c++
 void cleanup() {
-    vkDestroyInstance(instance, nullptr);
-
-    glfwDestroyWindow(window);
-
-    glfwTerminate();
+	vkDestroyInstance(instance, nullptr);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
+
 ```
 
 The parameters for the `vkDestroyInstance` function are straightforward. As

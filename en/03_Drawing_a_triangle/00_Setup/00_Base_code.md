@@ -7,9 +7,9 @@ from scratch with the following code:
 ```c++
 #include <vulkan/vulkan.h>
 
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include <cstdlib>
 
 class HelloTriangleApplication {
 public:
@@ -99,20 +99,20 @@ parameter that they all share: `pAllocator`. This is an optional parameter that
 allows you to specify callbacks for a custom memory allocator. We will ignore
 this parameter in the tutorial and always pass `nullptr` as argument.
 
-## Integrating GLFW
+## Integrating SDL
 
 Vulkan works perfectly fine without creating a window if you want to use it for
 off-screen rendering, but it's a lot more exciting to actually show something!
 First replace the `#include <vulkan/vulkan.h>` line with
 
 ```c++
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
 ```
 
-That way GLFW will include its own definitions and automatically load the Vulkan
+That way SDL will include its own definitions and automatically load the Vulkan
 header with it. Add a `initWindow` function and add a call to it from the `run`
-function before the other calls. We'll use that function to initialize GLFW and
+function before the other calls. We'll use that function to initialize SDL and
 create a window.
 
 ```c++
@@ -129,33 +129,13 @@ private:
     }
 ```
 
-The very first call in `initWindow` should be `glfwInit()`, which initializes
-the GLFW library. Because GLFW was originally designed to create an OpenGL
+The very first call in `initWindow` should be `SDL_Init()`, which initializes
+the SDL library. Because SDL was originally designed to create an OpenGL
 context, we need to tell it to not create an OpenGL context with a subsequent
 call:
 
 ```c++
-glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-```
-
-Because handling resized windows takes special care that we'll look into later,
-disable it for now with another window hint call:
-
-```c++
-glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-```
-
-All that's left now is creating the actual window. Add a private class member to store a reference to it:
-
-```c++
-private:
-GLFWwindow* window;
-```
-
-Initialize the window with
-
-```c++
-window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
+SDL_Init(SDL_INIT_VIDEO);
 ```
 
 The first three parameters specify the width, height and title of the window.
@@ -174,19 +154,15 @@ const uint32_t HEIGHT = 600;
 and replaced the window creation call with
 
 ```c++
-window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+window = SDL_CreateWindow("Vulkan", WIDTH, HEIGHT, SDL_WINDOW_VULKAN);
 ```
 
 You should now have a `initWindow` function that looks like this:
 
 ```c++
 void initWindow() {
-    glfwInit();
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+	SDL_Init(SDL_INIT_VIDEO);
+	window = SDL_CreateWindow("Vulkan", WIDTH, HEIGHT, SDL_WINDOW_VULKAN);
 }
 ```
 
@@ -195,10 +171,20 @@ closed, we need to add an event loop to the `mainLoop` function as follows:
 
 ```c++
 void mainLoop() {
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-    }
+	bool running = true;
+	while (running) {
+		SDL_Event e;
+		while (SDL_PollEvent(&e)) {
+			if (e.type == SDL_EVENT_QUIT) {
+				running = false;
+			}
+			if (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE) {
+				running = false;
+			}
+		}
+	}
 }
+
 ```
 
 This code should be fairly self-explanatory. It loops and checks for events like
@@ -206,13 +192,12 @@ pressing the X button until the window has been closed by the user. This is also
 the loop where we'll later call a function to render a single frame.
 
 Once the window is closed, we need to clean up resources by destroying it and
-terminating GLFW itself. This will be our first `cleanup` code:
+terminating SDL itself. This will be our first `cleanup` code:
 
 ```c++
 void cleanup() {
-    glfwDestroyWindow(window);
-
-    glfwTerminate();
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
 ```
 
