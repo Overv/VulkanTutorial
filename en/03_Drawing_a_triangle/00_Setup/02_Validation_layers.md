@@ -171,22 +171,22 @@ required list of extensions based on whether validation layers are enabled or
 not:
 
 ```c++
-std::vector<const char*> getRequiredExtensions() {
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+std::vector<const char *> getRequiredExtensions() {
+	uint32_t     sdlExtensionCount = 0;
+	const char *const *sdlExtensions;
+	sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
 
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+	std::vector<const char *> extensions(sdlExtensions, sdlExtensions + sdlExtensionCount);
 
-    if (enableValidationLayers) {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
+	if (enableValidationLayers) {
+		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	}
 
-    return extensions;
+	return extensions;
 }
 ```
 
-The extensions specified by GLFW are always required, but the debug messenger
+The extensions specified by SDL are always required, but the debug messenger
 extension is conditionally added. Note that I've used the
 `VK_EXT_DEBUG_UTILS_EXTENSION_NAME` macro here which is equal to the literal
 string "VK_EXT_debug_utils". Using this macro lets you avoid typos.
@@ -353,16 +353,16 @@ Make sure that this function is either a static class function or a function
 outside the class. We can then call it in the `cleanup` function:
 
 ```c++
+
 void cleanup() {
-    if (enableValidationLayers) {
-        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    }
+	if (enableValidationLayers) {
+		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+	}
 
-    vkDestroyInstance(instance, nullptr);
+	vkDestroyInstance(instance, nullptr);
 
-    glfwDestroyWindow(window);
-
-    glfwTerminate();
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
 ```
 
